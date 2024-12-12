@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2024 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+arc:
+  scripts:
+    folder: src/test/resources/agents
+    hotReload:
+      enable: true
+      delay: PT1S
+  router:
+    enable: true
+    model: "llama3:8b"
+
+logging:
+  level:
+    root: WARN
+    org.eclipse.lmos.ai: DEBUG

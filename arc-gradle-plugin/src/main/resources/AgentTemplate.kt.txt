@@ -1,0 +1,25 @@
+// SPDX-FileCopyrightText: 2024 Deutsche Telekom AG
+//
+// SPDX-License-Identifier: Apache-2.0
+@file:Suppress("ktlint")
+package org.eclipse.lmos.arc.agents.gen
+
+//@@IMPORTS@@
+import org.eclipse.lmos.arc.agents.dsl.get
+import org.eclipse.lmos.arc.agents.dsl.*
+import org.eclipse.lmos.arc.core.*
+import org.eclipse.lmos.arc.agents.conversation.UserMessage
+import org.eclipse.lmos.arc.agents.conversation.latest
+import org.eclipse.lmos.arc.agents.dsl.extensions.*
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.OutputFormat
+
+class Agents {
+
+    context(AgentDefinitionContext)
+    fun build() {
+    //@@CODE@@
+    }
+
+    //@@OUTER_CODE@@
+}

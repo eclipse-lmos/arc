@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[*.{kt,kts}]
+ktlint_code_style = intellij_idea
+ktlint_standard_filename = disabled
+ktlint_standard_no-wildcard-imports = disabled

@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2024 Deutsche Telekom AG
+# 
+# SPDX-License-Identifier: Apache-2.0
+
+version = 1
+SPDX-PackageName = "arc"
+SPDX-PackageSupplier = "Deutsche Telekom AG <opensource@telekom.de>"
+SPDX-PackageDownloadLocation = "https://github.com/eclipse-lmos/arc"
+
+
+[[annotations]]
+path = ["**/fonts/**",
+    "**/assets/**",
+    "**/chat/flutter*.js",
+    "**/chat/canvaskit/**",
+    "gradle/**",
+    "gradlew",
+    "gradlew.bat"]
+precedence = "override"
+SPDX-FileCopyrightText = "The original author or authors."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+    "**/chat/favicon.png",
+    "**/chat/icons/*.png",
+    "**/chat/main.dart.wasm",
+    "**/chat/main.dart.js",
+    "**/chat/main.dart.mjs",
+    "**/chat/index.html",
+    "**/chat/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2024 Deutsche Telekom AG"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["docs-src/docs/**",
+    "docs-src/src/**",
+    "docs-src/*.json",
+    "docs-src/blog/**",
+    "docs-src/static/**",
+    "docs/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "The original author or authors."
+SPDX-License-Identifier = "Apache-2.0"

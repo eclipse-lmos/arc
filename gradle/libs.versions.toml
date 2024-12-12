@@ -1,0 +1,22 @@
+[versions]
+kotlin-x-version = "1.9.0"
+kotlinx-serialization-version = "1.7.3"
+slf4j-version = "1.7.25"
+spring-boot-version = "3.4.0"
+ktor-version = "2.3.13"
+
+[libraries]
+kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
+kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlin-x-version" }
+kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlin-x-version" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-version" }
+
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-version" }
+
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot-version" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot-version" }
+
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor-version" }
+ktor-client-cio-jvm = { module = "io.ktor:ktor-client-cio-jvm", version.ref = "ktor-version" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-version" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
