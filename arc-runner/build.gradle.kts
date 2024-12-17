@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 dependencies {
-    val ktorVersion = "2.3.13"
+    val ktorVersion = "3.0.2"
     val langchain4jVersion = "0.36.2"
     val graphqlKotlinVersion = "8.2.1"
     val logbackVersion = "1.5.12"
