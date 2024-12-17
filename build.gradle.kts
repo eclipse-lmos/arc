@@ -17,7 +17,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
     id("net.researchgate.release") version "3.0.2"
-    id("com.vanniktech.maven.publish") version "0.29.0"
+    id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
 subprojects {
@@ -59,7 +59,7 @@ subprojects {
 
     if (project.name != "arc-gradle-plugin") {
         mavenPublishing {
-            publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+            publishToMavenCentral(SonatypeHost.DEFAULT)
             signAllPublications()
 
             pom {
