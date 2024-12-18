@@ -12,7 +12,7 @@ dependencies {
     compileOnly(project(":arc-ollama-client"))
     compileOnly(project(":arc-gen"))
 
-    compileOnly("io.micrometer:micrometer-registry-atlas:1.14.1")
+    compileOnly("io.micrometer:micrometer-registry-atlas:1.14.2")
     compileOnly("com.azure:azure-identity:1.13.1")
 
     val langchain4jVersion = "0.36.2"
