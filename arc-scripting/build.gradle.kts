@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":arc-agents"))
 
     // Logging
-    implementation("org.slf4j:slf4j-api:1.7.25")
+    implementation("org.slf4j:slf4j-api:2.0.16")
 
     // Kotlin Scripting
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:2.1.0")

@@ -1,7 +1,7 @@
 [versions]
 kotlin-x-version = "1.9.0"
 kotlinx-serialization-version = "1.7.3"
-slf4j-version = "1.7.25"
+slf4j-version = "2.0.16"
 spring-boot-version = "3.4.0"
 ktor-version = "2.3.13"
 

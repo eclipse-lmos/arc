@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":arc-agents"))
 
     // Logging
-    implementation("org.slf4j:slf4j-api:1.7.25")
+    implementation("org.slf4j:slf4j-api:2.0.16")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
 

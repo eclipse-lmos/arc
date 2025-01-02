@@ -5,5 +5,5 @@
 dependencies {
     implementation(project(":arc-result"))
     implementation(project(":arc-agents"))
-    implementation("org.slf4j:slf4j-api:1.7.25")
+    implementation("org.slf4j:slf4j-api:2.0.16")
 }

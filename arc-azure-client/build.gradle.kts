@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":arc-agents"))
 
     // Logging
-    implementation("org.slf4j:slf4j-api:1.7.25")
+    implementation("org.slf4j:slf4j-api:2.0.16")
 
     // Azure
     api("com.azure:azure-ai-openai:1.0.0-beta.7")
