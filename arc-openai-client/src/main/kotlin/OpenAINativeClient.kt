@@ -113,10 +113,12 @@ class OpenAINativeClient(
                 settings?.n?.let { n(it.toLong()) }
                 settings?.maxTokens?.let { maxTokens(it.toLong()) }
                 settings?.format?.takeIf { JSON == it }?.let {
-                    ChatCompletionCreateParams.ResponseFormat.ofResponseFormatJsonObject(
-                        ResponseFormatJsonObject.builder().type(
-                            ResponseFormatJsonObject.Type.JSON_OBJECT,
-                        ).build(),
+                    responseFormat(
+                        ChatCompletionCreateParams.ResponseFormat.ofResponseFormatJsonObject(
+                            ResponseFormatJsonObject.builder().type(
+                                ResponseFormatJsonObject.Type.JSON_OBJECT,
+                            ).build(),
+                        ),
                     )
                 }
             }.build()
@@ -173,22 +175,15 @@ class OpenAINativeClient(
      * Converts functions to openai functions.
      */
     private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-        val map = fn.parameters.parameters.associate { param ->
-            param.name to mapOf(
-                "type" to param.type.schemaType,
-                "description" to param.description,
-                "enum" to param.enum,
-            )
-        }
-
+        val jsonObject = fn.parameters.toOpenAISchemaAsMap()
         ChatCompletionTool.builder()
             .type(ChatCompletionTool.Type.FUNCTION)
             .function(
                 FunctionDefinition.builder()
                     .name(fn.name).description(fn.description).parameters(
-                        FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from("object"))
-                            .putAdditionalProperty("properties", JsonValue.from(map))
-                            .putAdditionalProperty("required", JsonValue.from(fn.parameters.required)).build(),
+                        FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from(jsonObject["type"]))
+                            .putAdditionalProperty("properties", JsonValue.from(jsonObject["properties"]))
+                            .putAdditionalProperty("required", JsonValue.from(jsonObject["required"])).build(),
                     ).build(),
             ).build()
     }.takeIf { it.isNotEmpty() }

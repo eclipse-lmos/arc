@@ -15,30 +15,9 @@ import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
 
 fun main() {
-    System.setProperty("OPENAI_LOG", "debug")
     val client = OpenAIOkHttpClientAsync.builder()
         .apiKey(System.getenv("OPENAI_API_KEY"))
         .build()
-
-    val functionArgs = listOf(
-        ParameterSchema(
-            name = "location",
-            description = "The city and state, e.g., San Francisco, CA.",
-            type = ParameterType("string"),
-            enum = emptyList(),
-        ),
-        ParameterSchema(
-            name = "unit",
-            description = "The temperature unit to use.",
-            type = ParameterType("string"),
-            enum = listOf("celsius", "fahrenheit"),
-        ),
-    )
-
-    val parameters = ParametersSchema(
-        required = listOf("location", "unit"),
-        parameters = functionArgs,
-    )
 
     val functions = listOf(
         object : LLMFunction {
@@ -81,9 +60,9 @@ fun main() {
                     emptyList(),
                     listOf(
                         ParameterSchema(
-                            name = "location",
-                            description = "The city and state, e.g., San Francisco, CA.",
-                            type = ParameterType("string"),
+                            name = "locations",
+                            description = "The list of cities and states, e.g., San Francisco, CA.",
+                            type = ParameterType("array", items = ParameterType("string")),
                             enum = emptyList(),
                         ),
                     ),
@@ -143,22 +122,17 @@ fun main() {
 }
 
 private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-    val map = fn.parameters.parameters.associate { param ->
-        param.name to mapOf(
-            "type" to param.type.schemaType,
-            "description" to param.description,
-            "enum" to param.enum,
-        )
-    }
+    val jsonObject = fn.parameters.toOpenAISchemaAsMap()
+    println("$jsonObject")
 
     ChatCompletionTool.builder()
         .type(ChatCompletionTool.Type.FUNCTION)
         .function(
             FunctionDefinition.builder()
                 .name(fn.name).description(fn.description).parameters(
-                    FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from("object"))
-                        .putAdditionalProperty("properties", JsonValue.from(map))
-                        .putAdditionalProperty("required", JsonValue.from(fn.parameters.required)).build(),
+                    FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from(jsonObject["type"]))
+                        .putAdditionalProperty("properties", JsonValue.from(jsonObject["properties"]))
+                        .putAdditionalProperty("required", JsonValue.from(jsonObject["required"])).build(),
                 ).build(),
         ).build()
 }.takeIf { it.isNotEmpty() }
