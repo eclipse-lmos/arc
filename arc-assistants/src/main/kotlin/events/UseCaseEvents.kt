@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Deutsche Telekom AG
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.eclipse.lmos.arc.assistants.support.events
 
 import org.eclipse.lmos.arc.agents.events.BaseEvent
