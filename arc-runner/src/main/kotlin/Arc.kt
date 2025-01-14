@@ -1,4 +1,4 @@
-@file:JvmName("RunKt") // SPDX-FileCopyrightText: 2024 Deutsche Telekom AG
+@file:JvmName("RunKt") // SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
 //
 // SPDX-License-Identifier: Apache-2.0
 
