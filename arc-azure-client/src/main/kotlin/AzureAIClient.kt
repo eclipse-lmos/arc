@@ -5,17 +5,41 @@
 package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.OpenAIAsyncClient
-import com.azure.ai.openai.models.*
+import com.azure.ai.openai.models.ChatCompletions
+import com.azure.ai.openai.models.ChatCompletionsFunctionToolDefinition
+import com.azure.ai.openai.models.ChatCompletionsFunctionToolDefinitionFunction
+import com.azure.ai.openai.models.ChatCompletionsJsonResponseFormat
+import com.azure.ai.openai.models.ChatCompletionsOptions
+import com.azure.ai.openai.models.ChatRequestAssistantMessage
+import com.azure.ai.openai.models.ChatRequestMessage
+import com.azure.ai.openai.models.ChatRequestSystemMessage
+import com.azure.ai.openai.models.ChatRequestUserMessage
+import com.azure.ai.openai.models.EmbeddingsOptions
 import com.azure.core.exception.ClientAuthenticationException
 import com.azure.core.util.BinaryData
 import kotlinx.coroutines.reactive.awaitFirst
 import org.eclipse.lmos.arc.agents.ArcException
-import org.eclipse.lmos.arc.agents.conversation.*
+import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
+import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
+import org.eclipse.lmos.arc.agents.conversation.MessageFormat
+import org.eclipse.lmos.arc.agents.conversation.SystemMessage
+import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
-import org.eclipse.lmos.arc.agents.llm.*
+import org.eclipse.lmos.arc.agents.llm.ChatCompleter
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
-import org.eclipse.lmos.arc.core.*
+import org.eclipse.lmos.arc.agents.llm.TextEmbedder
+import org.eclipse.lmos.arc.agents.llm.TextEmbedding
+import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
+import org.eclipse.lmos.arc.core.Result
+import org.eclipse.lmos.arc.core.failWith
+import org.eclipse.lmos.arc.core.getOrNull
+import org.eclipse.lmos.arc.core.getOrThrow
+import org.eclipse.lmos.arc.core.map
+import org.eclipse.lmos.arc.core.mapFailure
+import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
 import kotlin.time.measureTime
@@ -41,42 +65,18 @@ class AzureAIClient(
             val openAIMessages = toOpenAIMessages(messages)
             val openAIFunctions = if (functions != null) toOpenAIFunctions(functions) else null
             val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+            val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
 
             eventHandler?.publish(LLMStartedEvent(config.modelName))
             val result = getChatCompletions(
                 openAIMessages,
                 openAIFunctions,
                 functionCallHandler,
-                settings
-            ) { result, chatCompletions, duration, settings ->
-                publishEvent(result, messages, functions, chatCompletions, duration, settings)
-            }
+                settings,
+                llmEventPublisher,
+            )
             result failWith { it }
         }
-
-    private fun publishEvent(
-        result: Result<AssistantMessage, ArcException>,
-        messages: List<ConversationMessage>,
-        functions: List<LLMFunction>?,
-        chatCompletions: ChatCompletions?,
-        duration: Duration,
-        settings: ChatCompletionSettings?,
-    ) {
-        eventHandler?.publish(
-            LLMFinishedEvent(
-                result,
-                messages,
-                functions,
-                config.modelName,
-                chatCompletions?.usage?.totalTokens ?: -1,
-                chatCompletions?.usage?.promptTokens ?: -1,
-                chatCompletions?.usage?.completionTokens ?: -1,
-                chatCompletions?.choices?.getOrNull(0)?.message?.toolCalls?.size ?: 0,
-                duration,
-                settings = settings,
-            ),
-        )
-    }
 
     private fun ChatCompletions.getFirstAssistantMessage(
         sensitive: Boolean = false,
@@ -97,12 +97,7 @@ class AzureAIClient(
         openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
         functionCallHandler: FunctionCallHandler,
         settings: ChatCompletionSettings?,
-        publishCompletionEvent: (
-            result: Result<AssistantMessage, ArcException>,
-            chatCompletions: ChatCompletions?,
-            duration: Duration,
-            settings: ChatCompletionSettings?,
-        ) -> Unit,
+        llmEventPublisher: LLMEventPublisher,
     ): Result<AssistantMessage, ArcException> {
         val chatCompletionsOptions = toCompletionsOptions(messages, openAIFunctions, settings)
 
@@ -114,7 +109,7 @@ class AzureAIClient(
             )
         }
 
-        publishCompletionEvent(result, chatCompletionsResult.getOrNull(), duration, settings)
+        llmEventPublisher.publishEvent(result, chatCompletionsResult.getOrNull(), duration)
 
         chatCompletionsResult.getOrNull()?.let { chatCompletions ->
             log.debug("ChatCompletions: ${chatCompletions.choices[0].finishReason} (${chatCompletions.choices.size})")
@@ -125,7 +120,7 @@ class AzureAIClient(
                     openAIFunctions,
                     functionCallHandler,
                     settings,
-                    publishCompletionEvent,
+                    llmEventPublisher,
                 )
             }
         }
