@@ -43,19 +43,15 @@ class AzureAIClient(
             val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
 
             eventHandler?.publish(LLMStartedEvent(config.modelName))
-
-            val result: Result<ChatCompletions, ArcException>
-            val duration = measureTime {
-                result = getChatCompletions(openAIMessages, openAIFunctions, functionCallHandler, settings)
+            val result = getChatCompletions(
+                openAIMessages,
+                openAIFunctions,
+                functionCallHandler,
+                settings
+            ) { result, chatCompletions, duration, settings ->
+                publishEvent(result, messages, functions, chatCompletions, duration, settings)
             }
-
-            var chatCompletions: ChatCompletions? = null
-            finally { publishEvent(it, messages, functions, chatCompletions, duration, functionCallHandler, settings) }
-            chatCompletions = result failWith { it }
-            chatCompletions.getFirstAssistantMessage(
-                sensitive = functionCallHandler.calledSensitiveFunction(),
-                settings = settings,
-            )
+            result failWith { it }
         }
 
     private fun publishEvent(
@@ -64,7 +60,6 @@ class AzureAIClient(
         functions: List<LLMFunction>?,
         chatCompletions: ChatCompletions?,
         duration: Duration,
-        functionCallHandler: FunctionCallHandler,
         settings: ChatCompletionSettings?,
     ) {
         eventHandler?.publish(
@@ -76,7 +71,7 @@ class AzureAIClient(
                 chatCompletions?.usage?.totalTokens ?: -1,
                 chatCompletions?.usage?.promptTokens ?: -1,
                 chatCompletions?.usage?.completionTokens ?: -1,
-                functionCallHandler.calledFunctions.size,
+                chatCompletions?.choices?.getOrNull(0)?.message?.toolCalls?.size ?: 0,
                 duration,
                 settings = settings,
             ),
@@ -102,32 +97,68 @@ class AzureAIClient(
         openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
         functionCallHandler: FunctionCallHandler,
         settings: ChatCompletionSettings?,
-    ): Result<ChatCompletions, ArcException> {
-        val chatCompletionsOptions = ChatCompletionsOptions(messages)
-            .apply {
-                settings?.temperature?.let { temperature = it }
-                settings?.topP?.let { topP = it }
-                settings?.seed?.let { seed = it }
-                settings?.n?.let { n = it }
-                settings?.maxTokens?.let { maxTokens = it }
-                settings?.format?.takeIf { JSON == it }?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
-                if (openAIFunctions != null) tools = openAIFunctions
+        publishCompletionEvent: (
+            result: Result<AssistantMessage, ArcException>,
+            chatCompletions: ChatCompletions?,
+            duration: Duration,
+            settings: ChatCompletionSettings?,
+        ) -> Unit,
+    ): Result<AssistantMessage, ArcException> {
+        val chatCompletionsOptions = toCompletionsOptions(messages, openAIFunctions, settings)
+
+        val (chatCompletionsResult, duration) = doChatCompletions(chatCompletionsOptions)
+        val result = chatCompletionsResult.map {
+            it.getFirstAssistantMessage(
+                sensitive = functionCallHandler.calledSensitiveFunction(),
+                settings = settings,
+            )
+        }
+
+        publishCompletionEvent(result, chatCompletionsResult.getOrNull(), duration, settings)
+
+        chatCompletionsResult.getOrNull()?.let { chatCompletions ->
+            log.debug("ChatCompletions: ${chatCompletions.choices[0].finishReason} (${chatCompletions.choices.size})")
+            val newMessages = functionCallHandler.handle(chatCompletions).getOrThrow()
+            if (newMessages.isNotEmpty()) {
+                return getChatCompletions(
+                    messages + newMessages,
+                    openAIFunctions,
+                    functionCallHandler,
+                    settings,
+                    publishCompletionEvent,
+                )
             }
-
-        val chatCompletions = try {
-            client.getChatCompletions(config.modelName, chatCompletionsOptions).awaitFirst()
-        } catch (ex: Exception) {
-            log.error("Calling Azure OpenAI failed!", ex)
-            return Failure(mapOpenAIException(ex))
         }
-        log.debug("ChatCompletions: ${chatCompletions.choices[0].finishReason} (${chatCompletions.choices.size})")
-
-        val newMessages = functionCallHandler.handle(chatCompletions).getOrThrow()
-        if (newMessages.isNotEmpty()) {
-            return getChatCompletions(messages + newMessages, openAIFunctions, functionCallHandler, settings)
-        }
-        return Success(chatCompletions)
+        return result
     }
+
+    private suspend fun doChatCompletions(chatCompletionsOptions: ChatCompletionsOptions): Pair<Result<ChatCompletions, ArcException>, Duration> {
+        val result: Result<ChatCompletions, ArcException>
+        val duration = measureTime {
+            result = result<ChatCompletions, ArcException> {
+                client.getChatCompletions(config.modelName, chatCompletionsOptions).awaitFirst()
+            }.mapFailure {
+                log.error("Calling Azure OpenAI failed!", it)
+                mapOpenAIException(it)
+            }
+        }
+        return result to duration
+    }
+
+    private fun toCompletionsOptions(
+        messages: List<ChatRequestMessage>,
+        openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
+        settings: ChatCompletionSettings?,
+    ) = ChatCompletionsOptions(messages)
+        .apply {
+            settings?.temperature?.let { temperature = it }
+            settings?.topP?.let { topP = it }
+            settings?.seed?.let { seed = it }
+            settings?.n?.let { n = it }
+            settings?.maxTokens?.let { maxTokens = it }
+            settings?.format?.takeIf { JSON == it }?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
+            if (openAIFunctions != null) tools = openAIFunctions
+        }
 
     private fun mapOpenAIException(ex: Exception): ArcException = when (ex) {
         is ClientAuthenticationException -> ArcException(ex.message ?: "Unexpected error!", ex)
