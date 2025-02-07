@@ -59,7 +59,7 @@ subprojects {
 
     if (project.name != "arc-gradle-plugin") {
         mavenPublishing {
-            publishToMavenCentral(SonatypeHost.DEFAULT)
+            publishToMavenCentral(SonatypeHost.DEFAULT, automaticRelease = true)
             signAllPublications()
 
             pom {
@@ -210,12 +210,7 @@ private fun Process.readStream() = sequence<String> {
 }
 
 release {
-    buildTasks = listOf("releaseBuild")
     ignoredSnapshotDependencies = listOf("org.springframework.ai:spring-ai-bom")
     newVersionCommitMessage = "New Snapshot-Version:"
     preTagCommitMessage = "Release:"
-}
-
-tasks.register("releaseBuild") {
-    dependsOn(subprojects.mapNotNull { it.tasks.findByName("build") })
 }
