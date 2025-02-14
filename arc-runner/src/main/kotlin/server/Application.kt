@@ -50,7 +50,7 @@ fun runApp(appConfig: AppConfig) {
             contentConverter = JacksonWebsocketContentConverter()
         }
 
-        install(Routing) {
+        install(RoutingRoot) {
             staticResources("/chat", "/chat")
             graphQLPostRoute()
             graphQLSubscriptionsRoute()

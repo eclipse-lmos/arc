@@ -10,7 +10,6 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agent.client.AgentClient
 import org.eclipse.lmos.arc.agent.client.AgentException
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Implementation of [AgentClient] that uses GraphQL over WebSockets to communicate with the agents.
@@ -35,7 +35,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
 
     private val client = HttpClient(CIO) {
         install(WebSockets) {
-            pingInterval = 20_000
+            pingInterval = 20.seconds
         }
     }
 

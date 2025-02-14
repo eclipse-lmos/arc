@@ -21,7 +21,7 @@ open class TestBase {
 
     companion object {
 
-        lateinit var server: ApplicationEngine
+        lateinit var server: EmbeddedServer<*, *>
 
         @JvmStatic
         protected var port: Int = 0

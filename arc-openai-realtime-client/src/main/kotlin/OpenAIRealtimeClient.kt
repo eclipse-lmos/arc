@@ -12,7 +12,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -36,6 +35,7 @@ import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Implementation of [ChatCompleter] that uses OpenAI's Realtime API to communicate with the agents.
@@ -51,7 +51,7 @@ class OpenAIRealtimeClient(private val url: String, private val key: String) : C
 
     private val client = HttpClient(CIO) {
         install(WebSockets) {
-            pingInterval = 20_000
+            pingInterval = 20.seconds
         }
     }
 
