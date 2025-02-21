@@ -12,5 +12,5 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // OpenAISDK
-    api("com.openai:openai-java:0.8.0")
+    api("com.openai:openai-java:0.26.1")
 }
