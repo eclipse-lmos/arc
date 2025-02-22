@@ -8,6 +8,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.get
+import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.events.MessagePublisher
@@ -16,7 +17,7 @@ import org.eclipse.lmos.arc.agents.events.MessagePublisher
  * Extensions for eventing.
  */
 suspend fun DSLContext.emit(event: Event) {
-    get<EventPublisher>().publish(event)
+    getOptional<EventPublisher>()?.publish(event)
 }
 
 /**

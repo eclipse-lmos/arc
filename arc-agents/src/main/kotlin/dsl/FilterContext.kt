@@ -8,9 +8,14 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CoroutineScope
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
+import org.eclipse.lmos.arc.agents.dsl.extensions.emit
+import org.eclipse.lmos.arc.agents.events.BaseEvent
+import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.withLogContext
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.measureTime
 
 /**
  * Context for filtering messages before being processed by an Agent.
@@ -106,30 +111,38 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     protected val jobs = AtomicReference<List<Deferred<Unit>>>(emptyList())
 
-    suspend infix fun String.replaces(s: String) = this@FilterContext.mapLatest {
-        it.update(it.content.replace(s, this))
+    suspend infix fun String.replaces(s: String) = this@FilterContext.mapLatest { message ->
+        publish("Replace $s with ${this@replaces}") {
+            message.update(message.content.replace(s, this@replaces))
+        }
     }
 
-    suspend infix fun String.replaces(s: Regex) = this@FilterContext.mapLatest {
-        it.update(it.content.replace(s, this))
+    suspend infix fun String.replaces(s: Regex) = this@FilterContext.mapLatest { message ->
+        publish("Replace $s with ${this@replaces}") {
+            message.update(message.content.replace(s, this@replaces))
+        }
     }
 
     suspend operator fun String.unaryMinus() {
-        this@FilterContext.mapLatest {
-            it.update(it.content.replace(this, ""))
+        this@FilterContext.mapLatest { message ->
+            publish("Remove ${this@unaryMinus}") {
+                message.update(message.content.replace(this@unaryMinus, ""))
+            }
         }
     }
 
     suspend operator fun Regex.unaryMinus() {
-        this@FilterContext.mapLatest {
-            it.update(it.content.replace(this, ""))
+        this@FilterContext.mapLatest { message ->
+            publish("Remove ${this@unaryMinus}") {
+                message.update(message.content.replace(this@unaryMinus, ""))
+            }
         }
     }
 
     suspend operator fun AgentFilter.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
             withLogContext(mapOf("filter" to (this@unaryPlus::class.simpleName ?: "unknown"))) {
-                filter(msg)
+                publish(this@unaryPlus::class.simpleName) { filter(msg) }
             }
         }
     }
@@ -137,7 +150,9 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
     suspend operator fun KClass<out AgentFilter>.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
             withLogContext(mapOf("filter" to (this::class.simpleName ?: "unknown"))) {
-                context(this@unaryPlus).filter(msg)
+                publish(this@unaryPlus::class.simpleName) {
+                    context(this@unaryPlus).filter(msg)
+                }
             }
         }
     }
@@ -170,4 +185,23 @@ fun interface AgentFilter {
      * If the fun returns null, the message will be removed from the conversation transcript.
      */
     suspend fun filter(message: ConversationMessage): ConversationMessage?
+}
+
+/**
+ * Events
+ */
+sealed class FilterEvent : Event by BaseEvent()
+
+data class FilterExecutedEvent(
+    val name: String,
+    val duration: Duration,
+) : FilterEvent()
+
+private suspend fun <T> DSLContext.publish(name: String?, fn: suspend DSLContext.() -> T): T {
+    val result: T
+    val duration = measureTime {
+        result = fn()
+    }
+    emit(FilterExecutedEvent(name ?: "unknown", duration))
+    return result
 }
