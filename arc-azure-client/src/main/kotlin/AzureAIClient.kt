@@ -83,7 +83,7 @@ class AzureAIClient(
         settings: ChatCompletionSettings?,
     ) = choices.first().message.content.let {
         AssistantMessage(
-            it,
+            it ?: "",
             sensitive = sensitive,
             format = when (settings?.format) {
                 JSON -> MessageFormat.JSON
