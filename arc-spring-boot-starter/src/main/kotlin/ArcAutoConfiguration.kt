@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.dsl.AgentFactory
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.ChatAgentFactory
 import org.eclipse.lmos.arc.agents.dsl.CoroutineBeanProvider
+import org.eclipse.lmos.arc.agents.dsl.MissingBeanException
 import org.eclipse.lmos.arc.agents.events.*
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -23,6 +24,7 @@ import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.router.SemanticRouter
 import org.eclipse.lmos.arc.agents.router.SemanticRoutes
 import org.eclipse.lmos.arc.mcp.MCPPromptRetriever
+import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -35,6 +37,7 @@ import kotlin.reflect.KClass
 @AutoConfiguration
 @Import(
     MetricConfiguration::class,
+    TracingConfiguration::class,
     ClientsConfiguration::class,
     Langchain4jConfiguration::class,
     ScriptingConfiguration::class,
@@ -45,7 +48,11 @@ open class ArcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(BeanProvider::class)
     fun beanProvider(beanFactory: ConfigurableBeanFactory): BeanProvider = CoroutineBeanProvider(object : BeanProvider {
-        override suspend fun <T : Any> provide(bean: KClass<T>) = beanFactory.getBean(bean.java)
+        override suspend fun <T : Any> provide(bean: KClass<T>) = try {
+            beanFactory.getBean(bean.java)
+        } catch (e: NoSuchBeanDefinitionException) {
+            throw MissingBeanException("Bean of type $bean cannot be located!")
+        }
     })
 
     @Bean

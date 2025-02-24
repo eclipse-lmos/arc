@@ -7,6 +7,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.micrometer.core.instrument.Timer
 import org.eclipse.lmos.arc.agents.AgentFinishedEvent
+import org.eclipse.lmos.arc.agents.dsl.FilterExecutedEvent
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
@@ -51,6 +52,14 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
                     "arc.llm.finished",
                     duration,
                     tags = mapOf("model" to model),
+                )
+            }
+
+            is FilterExecutedEvent -> with(event) {
+                timer(
+                    "arc.filter.executed",
+                    duration,
+                    tags = mapOf("name" to name),
                 )
             }
 
