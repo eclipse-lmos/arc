@@ -54,6 +54,6 @@ open class Idea : Runnable {
     override fun run() {
         val folder = File(".idea/libraries/").also { it.mkdirs() }
         val libraryFile = File(folder, "eclipse.lmos.arc.scripting.xml").writeText(ideaLibrary, StandardCharsets.UTF_8)
-        println("Created $libraryFile")
+        println("Created eclipse.lmos.arc.scripting.xml")
     }
 }

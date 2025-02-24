@@ -4,14 +4,17 @@
 
 package org.eclipse.lmos.arc.agents.dsl
 
-import kotlinx.coroutines.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
 import org.eclipse.lmos.arc.agents.events.BaseEvent
 import org.eclipse.lmos.arc.agents.events.Event
-import org.eclipse.lmos.arc.agents.withLogContext
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -112,20 +115,20 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
     protected val jobs = AtomicReference<List<Deferred<Unit>>>(emptyList())
 
     suspend infix fun String.replaces(s: String) = this@FilterContext.mapLatest { message ->
-        publish("Replace $s with ${this@replaces}") {
+        trace("Replace $s with ${this@replaces}") {
             message.update(message.content.replace(s, this@replaces))
         }
     }
 
     suspend infix fun String.replaces(s: Regex) = this@FilterContext.mapLatest { message ->
-        publish("Replace $s with ${this@replaces}") {
+        trace("Replace $s with ${this@replaces}") {
             message.update(message.content.replace(s, this@replaces))
         }
     }
 
     suspend operator fun String.unaryMinus() {
         this@FilterContext.mapLatest { message ->
-            publish("Remove ${this@unaryMinus}") {
+            trace("Remove ${this@unaryMinus}") {
                 message.update(message.content.replace(this@unaryMinus, ""))
             }
         }
@@ -133,7 +136,7 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun Regex.unaryMinus() {
         this@FilterContext.mapLatest { message ->
-            publish("Remove ${this@unaryMinus}") {
+            trace("Remove ${this@unaryMinus}") {
                 message.update(message.content.replace(this@unaryMinus, ""))
             }
         }
@@ -141,18 +144,14 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun AgentFilter.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            withLogContext(mapOf("filter" to (this@unaryPlus::class.simpleName ?: "unknown"))) {
-                publish(this@unaryPlus::class.simpleName) { filter(msg) }
-            }
+            trace(this@unaryPlus::class.simpleName ?: "unknown") { filter(msg) }
         }
     }
 
     suspend operator fun KClass<out AgentFilter>.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            withLogContext(mapOf("filter" to (this::class.simpleName ?: "unknown"))) {
-                publish(this@unaryPlus::class.simpleName) {
-                    context(this@unaryPlus).filter(msg)
-                }
+            trace(this@unaryPlus::class.simpleName ?: "unknown") {
+                context(this@unaryPlus).filter(msg)
             }
         }
     }
@@ -197,11 +196,17 @@ data class FilterExecutedEvent(
     val duration: Duration,
 ) : FilterEvent()
 
-private suspend fun <T> DSLContext.publish(name: String?, fn: suspend DSLContext.() -> T): T {
-    val result: T
-    val duration = measureTime {
-        result = fn()
+/**
+ * Add tracing and log events for each filter execution.
+ */
+private suspend fun <T> DSLContext.trace(name: String, fn: suspend DSLContext.() -> T): T {
+    var result: T? = null
+    val tracer = getOptional<AgentTracer>() ?: DefaultAgentTracer()
+    val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) {
+        measureTime {
+            result = fn()
+        }
     }
-    emit(FilterExecutedEvent(name ?: "unknown", duration))
-    return result
+    emit(FilterExecutedEvent(name, duration))
+    return result!!
 }

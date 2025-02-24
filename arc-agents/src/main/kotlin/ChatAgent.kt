@@ -23,8 +23,11 @@ import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
+import org.eclipse.lmos.arc.agents.functions.TraceableLLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -36,6 +39,8 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.measureTime
 
 const val AGENT_LOG_CONTEXT_KEY = "agent"
+const val PHASE_LOG_CONTEXT_KEY = "phase"
+const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
@@ -60,10 +65,13 @@ class ChatAgent(
     }
 
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
-        return withLogContext(mapOf(AGENT_LOG_CONTEXT_KEY to name)) {
+        val compositeBeanProvider =
+            CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
+        val tracer = compositeBeanProvider.provideOptional<AgentTracer>()?.init(compositeBeanProvider)
+            ?: DefaultAgentTracer()
+
+        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) {
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
-            val compositeBeanProvider =
-                CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
 
@@ -73,7 +81,7 @@ class ChatAgent(
             val usedFunctions = AtomicReference<List<LLMFunction>?>(null)
             val result: Result<Conversation, AgentFailedException>
             val duration = measureTime {
-                result = doExecute(input, model, dslContext, compositeBeanProvider, usedFunctions)
+                result = doExecute(input, model, dslContext, compositeBeanProvider, usedFunctions, tracer)
                     .recover {
                         val cause = it.cause
                         when {
@@ -117,36 +125,53 @@ class ChatAgent(
         dslContext: DSLContext,
         compositeBeanProvider: BeanProvider,
         usedFunctions: AtomicReference<List<LLMFunction>?>,
+        tracer: AgentTracer,
     ) =
         result<Conversation, Exception> {
             val chatCompleter = compositeBeanProvider.chatCompleter(model = model)
 
-            val functions = functions(dslContext, compositeBeanProvider)
+            val functions = functions(dslContext, compositeBeanProvider)?.map { TraceableLLMFunction(tracer, it) }
             usedFunctions.set(functions)
 
-            val filteredInput = coroutineScope {
-                val filterContext = InputFilterContext(dslContext, conversation)
-                filterInput.invoke(filterContext).let {
-                    filterContext.finish()
-                    filterContext.input
+            val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) {
+                coroutineScope {
+                    val filterContext = InputFilterContext(dslContext, conversation)
+                    filterInput.invoke(filterContext).let {
+                        filterContext.finish()
+                        filterContext.input
+                    }
                 }
             }
 
             if (filteredInput.isEmpty()) failWith { AgentNotExecutedException("Input has been filtered") }
 
-            val generatedSystemPrompt = systemPrompt.invoke(dslContext)
-            val fullConversation =
-                listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
-            val completedConversation =
+            val generatedSystemPrompt = tracer.withSpan(
+                "generate prompt",
+                mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
+            ) {
+                systemPrompt.invoke(dslContext).also {
+                    dslContext.addData(Data("systemPrompt", it))
+                }
+            }
+
+            val fullConversation = listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
+
+            val completedConversation = tracer.withSpan(
+                "generating",
+                mapOf(PHASE_LOG_CONTEXT_KEY to "Generating", PROMPT_LOG_CONTEXT_KEY to generatedSystemPrompt),
+            ) {
                 conversation + chatCompleter.complete(fullConversation, functions, settings.invoke(dslContext))
                     .getOrThrow()
+            }
 
-            coroutineScope {
-                val filterOutputContext =
-                    OutputFilterContext(dslContext, conversation, completedConversation, generatedSystemPrompt)
-                filterOutput.invoke(filterOutputContext).let {
-                    filterOutputContext.finish()
-                    filterOutputContext.output
+            tracer.withSpan("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) {
+                coroutineScope {
+                    val filterOutputContext =
+                        OutputFilterContext(dslContext, conversation, completedConversation, generatedSystemPrompt)
+                    filterOutput.invoke(filterOutputContext).let {
+                        filterOutputContext.finish()
+                        filterOutputContext.output
+                    }
                 }
             }
         }
