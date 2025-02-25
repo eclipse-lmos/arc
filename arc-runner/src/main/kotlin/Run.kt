@@ -26,7 +26,7 @@ class RunArc : Runnable {
     private var agentFolder: String = ""
 
     override fun run() {
-        println("Staring Arc Runner...")
+        println("Starting Arc Runner...")
 
         val properties = loadProperties()
 
