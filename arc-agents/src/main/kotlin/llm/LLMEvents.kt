@@ -31,4 +31,5 @@ data class LLMFinishedEvent(
     val functionCallCount: Int,
     val duration: Duration,
     val settings: ChatCompletionSettings? = null,
+    val finishReasons: List<String>? = null,
 ) : Event by BaseEvent()

@@ -7,6 +7,8 @@ package org.eclipse.lmos.arc.assistants.support.filters
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.Data
+import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
@@ -43,6 +45,7 @@ class UseCaseResponseHandler : AgentFilter {
             emit(UseCaseEvent(useCaseId, stepId, version = useCase?.version, description = useCase?.description))
             loadedUseCases?.let {
                 setCurrentUseCases(it.copy(currentUseCaseId = useCaseId, currentStep = stepId))
+                addData(Data(name = it.name, data = it.processedUseCases))
             }
         }
         return message.update(cleanMessage)

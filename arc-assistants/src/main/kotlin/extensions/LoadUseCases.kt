@@ -31,7 +31,7 @@ suspend fun DSLContext.useCases(name: String, fallbackLimit: Int = 2, conditions
     val filteredUseCases = useCases.formatToString(usedUseCases.toSet(), fallbackCases, loadConditions() + conditions)
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
-    setLocal(LOCAL_USE_CASES, LoadedUseCases(useCases, filteredUseCases))
+    setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, filteredUseCases))
 
     return filteredUseCases
 }

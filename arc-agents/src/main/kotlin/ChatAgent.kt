@@ -12,14 +12,17 @@ import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.Data
 import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
+import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.ListenableFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Result
@@ -157,6 +160,8 @@ class ChatAgent(
         return if (tools.isNotEmpty()) {
             getFunctions(tools, beanProvider).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn
+            }.map { fn ->
+                ListenableFunction(fn) { context.addData(Data(fn.name, it)) }
             }
         } else {
             null

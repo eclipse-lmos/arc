@@ -153,6 +153,7 @@ dependencies {
     kover(project("arc-assistants"))
     kover(project("arc-langchain4j-client"))
     kover(project("arc-memory-redis"))
+    kover(project("arc-mcp"))
 }
 
 repositories {
