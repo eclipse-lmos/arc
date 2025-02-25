@@ -5,6 +5,7 @@
 
 package org.eclipse.lmos.arc.runner
 
+import picocli.CommandLine
 import picocli.CommandLine.Command
 import java.io.File
 import java.io.FileInputStream
@@ -47,4 +48,11 @@ fun loadProperties(): Properties {
 fun Properties.storeInHome() {
     val propertiesFile = File(home(), "arc.properties")
     FileOutputStream(propertiesFile).use { store(it, null) }
+}
+
+/**
+ * Main method for running the arc runner without jbang, e.g., from IDE.
+ */
+fun main(args: Array<String>) {
+    CommandLine(Arc()).execute(*args)
 }

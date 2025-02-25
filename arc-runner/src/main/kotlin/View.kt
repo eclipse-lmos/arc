@@ -25,7 +25,7 @@ open class OpenView : Runnable {
     override fun run() {
         println("Opening Arc View...")
         try {
-            Desktop.getDesktop().browse(URI("http://localhost:$port/chat/index.html"))
+            Desktop.getDesktop().browse(URI("https://eclipse.dev/lmos/chat/index.html?agentUrl=http://localhost:$port#/chat"))
         } catch (e: Exception) {
             e.printStackTrace()
         }

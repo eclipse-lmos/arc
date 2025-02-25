@@ -5,7 +5,7 @@
 dependencies {
     val ktorVersion = "3.1.0"
     val langchain4jVersion = "0.36.2"
-    val graphqlKotlinVersion = "8.2.1"
+    val graphqlKotlinVersion = "8.3.0"
     val logbackVersion = "1.5.16"
 
     implementation(project(":arc-agents"))
@@ -38,6 +38,11 @@ dependencies {
     // Ktor
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-server-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
     // Tests
