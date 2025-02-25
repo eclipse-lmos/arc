@@ -43,6 +43,7 @@ class LLMEventPublisher(
                 chatCompletions?.choices?.getOrNull(0)?.message?.toolCalls?.size ?: 0,
                 duration,
                 settings = settings,
+                finishReasons = chatCompletions?.choices?.map { it.finishReason.toString() },
             ),
         )
     }

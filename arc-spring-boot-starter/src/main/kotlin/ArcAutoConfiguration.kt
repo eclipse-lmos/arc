@@ -22,6 +22,7 @@ import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.router.SemanticRouter
 import org.eclipse.lmos.arc.agents.router.SemanticRoutes
+import org.eclipse.lmos.arc.mcp.MCPPromptRetriever
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -46,6 +47,10 @@ open class ArcAutoConfiguration {
     fun beanProvider(beanFactory: ConfigurableBeanFactory): BeanProvider = CoroutineBeanProvider(object : BeanProvider {
         override suspend fun <T : Any> provide(bean: KClass<T>) = beanFactory.getBean(bean.java)
     })
+
+    @Bean
+    @ConditionalOnProperty("arc.mcp.prompts.url")
+    fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String) = MCPPromptRetriever(url)
 
     @Bean
     fun eventPublisher(eventHandlers: List<EventHandler<*>>) = BasicEventPublisher().apply {

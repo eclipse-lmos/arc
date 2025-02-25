@@ -6,6 +6,7 @@ dependencies {
     api(project(":arc-result"))
     api(project(":arc-agents"))
     implementation(project(":arc-scripting"))
+    implementation(project(":arc-mcp"))
     implementation(project(":arc-langchain4j-client"))
 
     compileOnly(project(":arc-azure-client"))

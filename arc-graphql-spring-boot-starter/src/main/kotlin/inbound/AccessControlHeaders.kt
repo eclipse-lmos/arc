@@ -22,7 +22,7 @@ class AccessControlHeaders(
     private val log = LoggerFactory.getLogger(this.javaClass)
 
     override fun filter(serverWebExchange: ServerWebExchange, webFilterChain: WebFilterChain): Mono<Void> {
-        log.info("Adding CORs headers")
+        log.debug("Adding CORs headers")
         serverWebExchange.response.headers.add("Access-Control-Allow-Origin", allowOrigin)
         serverWebExchange.response.headers.add("Access-Control-Allow-Methods", allowMethods)
         serverWebExchange.response.headers.add("Access-Control-Allow-Headers", allowHeaders)
