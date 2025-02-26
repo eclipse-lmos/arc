@@ -12,7 +12,7 @@
 //DEPS org.slf4j:slf4j-api:2.0.16
 //DEPS com.fasterxml.jackson.core:jackson-databind:2.17.2
 //DEPS io.projectreactor:reactor-core:3.6.9
-//DEPS io.ktor:ktor-server-core-jvm:3.1.0
+//DEPS io.ktor:ktor-server-core-jvm:3.0.3
 
 package arc.runner;
 
