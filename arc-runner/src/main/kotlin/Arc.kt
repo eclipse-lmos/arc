@@ -25,6 +25,7 @@ import java.util.*
         NewAgent::class,
         NewFunction::class,
         Spring::class,
+        Idea::class,
     ],
     description = ["The Arc CLI."],
 )
