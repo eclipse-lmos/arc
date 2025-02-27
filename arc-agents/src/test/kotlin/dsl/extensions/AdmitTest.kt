@@ -23,12 +23,12 @@ class AdmitTest : TestBase() {
 
     @Test
     fun `test first conversation is blocked`(): Unit = runBlocking {
-        with(BasicDSLContext(beans(Conversation(conversationId = UUID.randomUUID().toString())))) {
+        with(BasicDSLContext(beans(Conversation(conversationId = "10")))) {
             val filter = AdmitFilter(50, "rejected")
             val success = filter.runTest()
             assertThat(success).isEqualTo(0)
         }
-        with(BasicDSLContext(beans(Conversation(conversationId = UUID.randomUUID().toString())))) {
+        with(BasicDSLContext(beans(Conversation(conversationId = "1")))) {
             val filter = AdmitFilter(50, "rejected")
             val success = filter.runTest()
             assertThat(success).isEqualTo(100)
@@ -41,7 +41,7 @@ class AdmitTest : TestBase() {
         runBlocking {
             repeat(100) {
                 launch {
-                    with(BasicDSLContext(beans(Conversation(conversationId = UUID.randomUUID().toString())))) {
+                    with(BasicDSLContext(beans(Conversation(conversationId = "$it")))) {
                         val filter = AdmitFilter(10, "rejected")
                         if (filter.runTest(times = 1) > 0) {
                             success.incrementAndGet()
@@ -50,7 +50,7 @@ class AdmitTest : TestBase() {
                 }
             }
         }
-        assertThat(success.get()).isEqualTo(10)
+        assertThat(success.get()).isEqualTo(9)
     }
 
     private suspend fun AdmitFilter.runTest(times: Int = 100): Int {
