@@ -20,8 +20,7 @@ class RunArc : Runnable {
 
     @Parameters(
         index = "0",
-        defaultValue = "HOME",
-        description = ["The name of the folder containing the agents to run. Defaults to HOME."],
+        description = ["The name of the folder containing the agents to run."],
     )
     private var agentFolder: String = ""
 

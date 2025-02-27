@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.dsl.beans
 import org.eclipse.lmos.arc.agents.events.BasicEventPublisher
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
+import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.graphql.inbound.EventSubscriptionHolder
 import org.eclipse.lmos.arc.scripting.ScriptHotReload
 import org.eclipse.lmos.arc.scripting.agents.ScriptingAgentLoader
@@ -32,7 +33,7 @@ fun setupArc(appConfig: AppConfig): Pair<AgentProvider, EventSubscriptionHolder>
      * Set up the chat completer and the bean provider.
      */
     val chatCompleterProvider = chatCompleterProvider(appConfig.clientConfig, eventPublisher)
-    val beanProvider = beans(chatCompleterProvider, eventPublisher)
+    val beanProvider = beans(chatCompleterProvider, eventPublisher, InMemoryMemory())
 
     /**
      * Set up the loading of agent functions from scripts.
