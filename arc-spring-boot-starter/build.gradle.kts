@@ -18,7 +18,7 @@ dependencies {
     compileOnly("com.azure:azure-identity:1.15.0")
 
     // Micrometer
-    compileOnly("io.micrometer:micrometer-registry-atlas:1.14.1")
+    compileOnly("io.micrometer:micrometer-registry-atlas:1.14.4")
     implementation(platform("io.micrometer:micrometer-tracing-bom:1.4.3"))
     compileOnly("io.micrometer:micrometer-tracing")
     compileOnly("io.micrometer:micrometer-registry-otlp")
