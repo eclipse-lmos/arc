@@ -16,11 +16,12 @@ dependencies {
     compileOnly("io.micrometer:micrometer-registry-atlas:1.14.1")
     compileOnly("com.azure:azure-identity:1.15.0")
 
-    val langchain4jVersion = "0.36.2"
+    val langchain4jVersion = "1.0.0-beta1"
     compileOnly("dev.langchain4j:langchain4j-bedrock:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-google-ai-gemini:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-open-ai:$langchain4jVersion")
+    compileOnly("dev.langchain4j:langchain4j-azure-open-ai:$langchain4jVersion")
 
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.4.2")
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.1")

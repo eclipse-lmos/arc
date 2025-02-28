@@ -17,6 +17,7 @@ import com.azure.ai.openai.models.ChatRequestUserMessage
 import com.azure.ai.openai.models.EmbeddingsOptions
 import com.azure.core.exception.ClientAuthenticationException
 import com.azure.core.util.BinaryData
+import com.sun.org.apache.xml.internal.serializer.utils.Utils.messages
 import kotlinx.coroutines.reactive.awaitFirst
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -33,6 +34,7 @@ import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.agents.llm.TextEmbedder
 import org.eclipse.lmos.arc.agents.llm.TextEmbedding
 import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
+import org.eclipse.lmos.arc.agents.withSpan
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull

@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.emit
 import org.eclipse.lmos.arc.agents.events.BaseEvent
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.withLogContext
+import org.eclipse.lmos.arc.agents.withSpan
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -141,7 +142,7 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun AgentFilter.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            withLogContext(mapOf("filter" to (this@unaryPlus::class.simpleName ?: "unknown"))) {
+            withSpan("filter" + (this@unaryPlus::class.simpleName ?: "unknown")){
                 publish(this@unaryPlus::class.simpleName) { filter(msg) }
             }
         }
@@ -149,7 +150,7 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun KClass<out AgentFilter>.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            withLogContext(mapOf("filter" to (this::class.simpleName ?: "unknown"))) {
+            withSpan("filter" + (this::class.simpleName ?: "unknown")){
                 publish(this@unaryPlus::class.simpleName) {
                     context(this@unaryPlus).filter(msg)
                 }

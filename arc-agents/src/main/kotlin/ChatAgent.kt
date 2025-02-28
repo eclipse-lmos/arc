@@ -4,6 +4,9 @@
 
 package org.eclipse.lmos.arc.agents
 
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.extension.kotlin.asContextElement
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
@@ -57,7 +60,11 @@ class ChatAgent(
     }
 
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
-        return withLogContext(mapOf(AGENT_LOG_CONTEXT_KEY to name)) {
+        return withSpan("ChatAgent.execute") { span ->
+            span.setAttribute("lmos.arc.conversation.id", input.conversationId)
+            span.setAttribute("lmos.arc.turn.id", input.currentTurnId)
+            span.setAttribute("lmos.arc.conversation.user.id", input.user?.id ?: "unknown")
+
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val compositeBeanProvider =
                 CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)

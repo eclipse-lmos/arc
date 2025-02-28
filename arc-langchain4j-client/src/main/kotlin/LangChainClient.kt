@@ -15,6 +15,7 @@ import dev.langchain4j.data.message.TextContent
 import dev.langchain4j.data.message.VideoContent
 import dev.langchain4j.model.chat.ChatLanguageModel
 import dev.langchain4j.model.output.Response
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.BinaryData
@@ -52,6 +53,7 @@ class LangChainClient(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    @WithSpan
     override suspend fun complete(
         messages: List<ConversationMessage>,
         functions: List<LLMFunction>?,

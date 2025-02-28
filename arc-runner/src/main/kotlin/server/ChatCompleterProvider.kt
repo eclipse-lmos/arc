@@ -14,10 +14,7 @@ import org.eclipse.lmos.arc.client.azure.AzureAIClient
 import org.eclipse.lmos.arc.client.azure.AzureClientConfig
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
 import org.eclipse.lmos.arc.client.langchain4j.LangChainConfig
-import org.eclipse.lmos.arc.client.langchain4j.builders.bedrockBuilder
-import org.eclipse.lmos.arc.client.langchain4j.builders.geminiBuilder
-import org.eclipse.lmos.arc.client.langchain4j.builders.groqBuilder
-import org.eclipse.lmos.arc.client.langchain4j.builders.ollamaBuilder
+import org.eclipse.lmos.arc.client.langchain4j.builders.*
 import org.eclipse.lmos.arc.client.openai.OpenAINativeClient
 import org.eclipse.lmos.arc.client.openai.OpenAINativeClientConfig
 
@@ -42,15 +39,6 @@ fun chatCompleterProvider(config: AIClientConfig, eventPublisher: EventPublisher
 
         "ollama" == config.client -> LangChainClient(langChainConfig, ollamaBuilder(), eventPublisher)
 
-        "openai" == config.client -> AzureAIClient(
-            AzureClientConfig(config.modelName, config.url ?: "", config.apiKey ?: ""),
-            OpenAIClientBuilder()
-                .apply { if (config.url != null) endpoint(config.url) }
-                .credential(KeyCredential(config.apiKey))
-                .buildAsyncClient(),
-            eventPublisher,
-        )
-
         "azure" == config.client && config.apiKey != null
         -> AzureAIClient(
             AzureClientConfig(config.modelName, config.url ?: "", config.apiKey ?: ""),
@@ -69,6 +57,8 @@ fun chatCompleterProvider(config: AIClientConfig, eventPublisher: EventPublisher
                 .buildAsyncClient(),
             eventPublisher,
         )
+
+        "azure-langchain4j" == config.client -> LangChainClient(langChainConfig, azureBuilder(), eventPublisher)
 
         "openai-sdk" == config.client && config.apiKey != null -> OpenAINativeClient(
             config = OpenAINativeClientConfig(config.modelName, config.url ?: "", config.apiKey),

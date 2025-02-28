@@ -4,19 +4,15 @@
 
 package org.eclipse.lmos.arc.spring
 
-import dev.langchain4j.model.bedrock.BedrockAnthropicMessageChatModel
+import dev.langchain4j.model.azure.AzureOpenAiChatModel
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel
 import dev.langchain4j.model.ollama.OllamaChatModel
 import dev.langchain4j.model.openai.OpenAiChatModel
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
 import org.eclipse.lmos.arc.client.langchain4j.LangChainConfig
-import org.eclipse.lmos.arc.client.langchain4j.builders.bedrockBuilder
-import org.eclipse.lmos.arc.client.langchain4j.builders.geminiBuilder
-import org.eclipse.lmos.arc.client.langchain4j.builders.groqBuilder
-import org.eclipse.lmos.arc.client.langchain4j.builders.ollamaBuilder
+import org.eclipse.lmos.arc.client.langchain4j.builders.*
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 
 /**
  * Configuration for Langchain4j based LLM clients.
@@ -25,22 +21,21 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 class Langchain4jConfiguration {
 
     @Bean
-    @ConditionalOnClass(BedrockAnthropicMessageChatModel::class)
-    fun bedrockClient(awsCredentialsProvider: AwsCredentialsProvider? = null) =
-        ClientBuilder { config, eventPublisher ->
-            if (config.client != "bedrock") return@ClientBuilder null
-            LangChainClient(
-                LangChainConfig(
-                    modelName = config.modelName,
-                    url = config.url,
-                    accessKeyId = config.accessKey,
-                    secretAccessKey = config.accessSecret,
-                    apiKey = null,
-                ),
-                bedrockBuilder(awsCredentialsProvider),
-                eventPublisher,
-            )
-        }
+    @ConditionalOnClass(AzureOpenAiChatModel::class)
+    fun azureClient() = ClientBuilder { config, eventPublisher ->
+        if (config.client != "langchain4j-azure") return@ClientBuilder null
+        LangChainClient(
+            LangChainConfig(
+                modelName = config.modelName,
+                url = config.url,
+                accessKeyId = null,
+                secretAccessKey = null,
+                apiKey = config.apiKey,
+            ),
+            azureBuilder(),
+            eventPublisher,
+        )
+    }
 
     @Bean
     @ConditionalOnClass(GoogleAiGeminiChatModel::class)

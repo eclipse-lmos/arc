@@ -7,6 +7,7 @@ package org.eclipse.lmos.arc.client.langchain4j
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.events.EventPublisher
@@ -39,6 +40,7 @@ class FunctionCallHandler(
 
     fun calledSensitiveFunction() = _calledFunctions.any { it.value.isSensitive }
 
+    @WithSpan
     suspend fun handle(assistantMessage: AiMessage) = result<List<ChatMessage>, ArcException> {
         if (functionCallCount.incrementAndGet() > functionCallLimit) {
             failWith {
