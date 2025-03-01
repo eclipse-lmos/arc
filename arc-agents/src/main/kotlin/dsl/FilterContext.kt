@@ -11,10 +11,9 @@ import kotlinx.coroutines.awaitAll
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
+import org.eclipse.lmos.arc.agents.dsl.extensions.tracer
 import org.eclipse.lmos.arc.agents.events.BaseEvent
 import org.eclipse.lmos.arc.agents.events.Event
-import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -194,6 +193,7 @@ sealed class FilterEvent : Event by BaseEvent()
 data class FilterExecutedEvent(
     val name: String,
     val duration: Duration,
+    val output: String? = null,
 ) : FilterEvent()
 
 /**
@@ -201,12 +201,15 @@ data class FilterExecutedEvent(
  */
 private suspend fun <T> DSLContext.trace(name: String, fn: suspend DSLContext.() -> T): T {
     var result: T? = null
-    val tracer = getOptional<AgentTracer>() ?: DefaultAgentTracer()
-    val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) {
+    var output = ""
+    val tracer = tracer()
+    val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) { tags ->
         measureTime {
             result = fn()
+            output = if (result is ConversationMessage) (result as ConversationMessage).content else result.toString()
+            tags.tag("output", output)
         }
     }
-    emit(FilterExecutedEvent(name, duration))
+    emit(FilterExecutedEvent(name, duration, output = output))
     return result!!
 }

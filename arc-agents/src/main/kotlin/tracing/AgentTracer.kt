@@ -4,7 +4,6 @@
 
 package org.eclipse.lmos.arc.agents.tracing
 
-import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.withLogContext
 
 /**
@@ -12,9 +11,14 @@ import org.eclipse.lmos.arc.agents.withLogContext
  */
 interface AgentTracer {
 
-    suspend fun init(beanProvider: BeanProvider): AgentTracer = this
+    suspend fun <T> withSpan(name: String, attributes: Map<String, String> = emptyMap(), fn: suspend (Tags) -> T): T
+}
 
-    suspend fun <T> withSpan(name: String, attributes: Map<String, String>, fn: suspend () -> T): T
+/**
+ * Tag interface for setting tags on spans.
+ */
+fun interface Tags {
+    fun tag(key: String, value: String)
 }
 
 /**
@@ -22,9 +26,9 @@ interface AgentTracer {
  */
 class DefaultAgentTracer : AgentTracer {
 
-    override suspend fun <T> withSpan(name: String, attributes: Map<String, String>, fn: suspend () -> T): T {
+    override suspend fun <T> withSpan(name: String, attributes: Map<String, String>, fn: suspend (Tags) -> T): T {
         return withLogContext(attributes) {
-            fn()
+            fn({ _, _ -> })
         }
     }
 }

@@ -7,6 +7,7 @@ package org.eclipse.lmos.arc.agents
 import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
+import org.eclipse.lmos.arc.agents.conversation.toLogString
 import org.eclipse.lmos.arc.agents.dsl.AllTools
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
@@ -41,6 +42,7 @@ import kotlin.time.measureTime
 const val AGENT_LOG_CONTEXT_KEY = "agent"
 const val PHASE_LOG_CONTEXT_KEY = "phase"
 const val PROMPT_LOG_CONTEXT_KEY = "prompt"
+const val INPUT_LOG_CONTEXT_KEY = "input"
 
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
@@ -67,8 +69,7 @@ class ChatAgent(
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =
             CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
-        val tracer = compositeBeanProvider.provideOptional<AgentTracer>()?.init(compositeBeanProvider)
-            ?: DefaultAgentTracer()
+        val tracer = compositeBeanProvider.provideOptional<AgentTracer>() ?: DefaultAgentTracer()
 
         return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) {
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
@@ -148,17 +149,22 @@ class ChatAgent(
             val generatedSystemPrompt = tracer.withSpan(
                 "generate prompt",
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
-            ) {
+            ) { tags ->
                 systemPrompt.invoke(dslContext).also {
                     dslContext.addData(Data("systemPrompt", it))
+                    tags.tag("value", it)
                 }
             }
 
             val fullConversation = listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
 
             val completedConversation = tracer.withSpan(
-                "generating",
-                mapOf(PHASE_LOG_CONTEXT_KEY to "Generating", PROMPT_LOG_CONTEXT_KEY to generatedSystemPrompt),
+                "generating response",
+                mapOf(
+                    PHASE_LOG_CONTEXT_KEY to "Generating",
+                    PROMPT_LOG_CONTEXT_KEY to generatedSystemPrompt,
+                    INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
+                ),
             ) {
                 conversation + chatCompleter.complete(fullConversation, functions, settings.invoke(dslContext))
                     .getOrThrow()

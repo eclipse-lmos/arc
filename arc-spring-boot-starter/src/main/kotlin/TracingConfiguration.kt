@@ -9,11 +9,11 @@ import io.micrometer.tracing.Tracer
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.isPresent
 import kotlinx.coroutines.withContext
-import org.eclipse.lmos.arc.agents.dsl.DataAddedEvent
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.agents.withLogContext
 import org.eclipse.lmos.arc.core.getOrNull
 import org.slf4j.MDC
@@ -33,9 +33,13 @@ class TracingConfiguration {
 class SpanTracer(private val tracer: Tracer) :
     AgentTracer,
     EventHandler<Event> {
+
+    /**
+     * We keep track of the current span ourselves to fix issues with the Micrometer Tracer and Kotlin Coroutines.
+     */
     private val contextLocal = ThreadLocal<Span?>()
 
-    override suspend fun <T> withSpan(name: String, attributes: Map<String, String>, fn: suspend () -> T): T {
+    override suspend fun <T> withSpan(name: String, attributes: Map<String, String>, fn: suspend (Tags) -> T): T {
         return withLogContext(attributes) {
             val parent = if (contextLocal.isPresent()) contextLocal.get() else null
 
@@ -51,7 +55,7 @@ class SpanTracer(private val tracer: Tracer) :
                         return@withLogContext withContext(contextLocal.asContextElement(value = newSpan)) {
                             tracer.withSpan(newSpan).use {
                                 attributes.forEach { (k, v) -> newSpan.tag(k, v) }
-                                fn()
+                                fn({ k, v -> newSpan.tag(k, v) })
                             }.also {
                                 contextLocal.remove()
                             }
@@ -62,13 +66,13 @@ class SpanTracer(private val tracer: Tracer) :
                 }
             }
 
-            val newSpan = tracer.nextSpan(parent)?.name(name) ?: return@withLogContext fn()
+            val newSpan = tracer.nextSpan(parent)?.name(name) ?: return@withLogContext fn({ _, _ -> })
             try {
                 val startedSpan = newSpan.start()
-                withContext(contextLocal.asContextElement(value = startedSpan)) {
+                return@withLogContext withContext(contextLocal.asContextElement(value = startedSpan)) {
                     tracer.withSpan(startedSpan).use {
                         attributes.forEach { (k, v) -> newSpan.tag(k, v) }
-                        fn()
+                        fn({ k, v -> newSpan.tag(k, v) })
                     }.also {
                         contextLocal.remove()
                     }
@@ -82,25 +86,6 @@ class SpanTracer(private val tracer: Tracer) :
     override fun onEvent(event: Event) {
         when (event) {
             is LLMFinishedEvent -> handleLLMFinishedEvent(event)
-            is DataAddedEvent -> handleDataAddedEvent(event)
-        }
-    }
-
-    private fun handleDataAddedEvent(event: DataAddedEvent) {
-        val parent = contextLocal.get()
-        val newSpan =
-            if (parent != null) {
-                tracer.nextSpan(parent)!!.name("data ${event.name}")
-            } else {
-                tracer.nextSpan()
-                    .name("data ${event.name}")
-            }
-        try {
-            tracer.withSpan(newSpan.start()).use {
-                newSpan.tag("data", event.data)
-            }
-        } finally {
-            newSpan.end()
         }
     }
 
