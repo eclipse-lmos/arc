@@ -17,10 +17,12 @@ import org.eclipse.lmos.arc.agents.User
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.latest
+import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
 import org.eclipse.lmos.arc.agents.events.MessagePublisherChannel
 import org.eclipse.lmos.arc.agents.getAgentByName
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
+import org.eclipse.lmos.arc.api.ContextEntry
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -51,6 +53,7 @@ class AgentSubscription(
                 AnonymizationEntities(request.conversationContext.anonymizationEntities.convertConversationEntities())
             val start = System.nanoTime()
             val messageChannel = Channel<AssistantMessage>()
+            val outputContext = OutputContext()
 
             log.info("Received request: ${request.systemContext}")
 
@@ -75,6 +78,7 @@ class AgentSubscription(
                             anonymizationEntities,
                             MessagePublisherChannel(messageChannel),
                             ContextProvider(request),
+                            outputContext,
                         ) + extraContext,
                     )
                 }
@@ -88,6 +92,7 @@ class AgentSubscription(
                         responseTime = responseTime,
                         messages = listOf(result.value.latest<AssistantMessage>().toMessage()),
                         anonymizationEntities = anonymizationEntities.entities.convertAPIEntities(),
+                        context = outputContext.map().map { (key, value) -> ContextEntry(key, value) },
                     ),
                 )
 
@@ -98,6 +103,7 @@ class AgentSubscription(
                             responseTime = responseTime,
                             messages = listOf(handledResult.toMessage()),
                             anonymizationEntities = emptyList(),
+                            context = outputContext.map().map { (key, value) -> ContextEntry(key, value) },
                         ),
                     )
                 }

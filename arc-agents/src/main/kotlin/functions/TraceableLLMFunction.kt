@@ -6,6 +6,8 @@ package org.eclipse.lmos.arc.agents.functions
 
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.Result
+import org.eclipse.lmos.arc.core.getOrNull
+import org.eclipse.lmos.arc.core.onFailure
 
 class TraceableLLMFunction(private val tracer: AgentTracer, private val function: LLMFunction) :
     LLMFunction by function {
@@ -19,8 +21,11 @@ class TraceableLLMFunction(private val tracer: AgentTracer, private val function
                 "description" to description,
                 "sensitive" to isSensitive.toString(),
             ),
-        ) {
-            function.execute(input)
+        ) { tags ->
+            function.execute(input).also { result ->
+                result.getOrNull()?.let { tags.tag("result", it) }
+                result.onFailure { tags.tag("error", it.message ?: "unknown error") }
+            }
         }
     }
 }

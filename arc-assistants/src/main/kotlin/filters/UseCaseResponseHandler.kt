@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
+import org.eclipse.lmos.arc.agents.dsl.extensions.outputContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.setCurrentUseCases
 import org.eclipse.lmos.arc.assistants.support.events.UseCaseEvent
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
@@ -46,6 +47,7 @@ class UseCaseResponseHandler : AgentFilter {
             loadedUseCases?.let {
                 setCurrentUseCases(it.copy(currentUseCaseId = useCaseId, currentStep = stepId))
                 addData(Data(name = it.name, data = it.processedUseCases))
+                outputContext("useCase", useCaseId)
             }
         }
         return message.update(cleanMessage)

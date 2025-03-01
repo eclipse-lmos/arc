@@ -19,6 +19,7 @@ import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListFunctionsLoader
+import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 
 /**
@@ -51,13 +52,13 @@ class DSLAgents private constructor(
             val beanProvider = beans(chatCompleterProvider, eventPublisher, *beans.toTypedArray())
 
             /**
-             * Set up the loading of agent functions from scripts.
+             * Set up the loading of agent functions.
              */
             val functionLoader = ListFunctionsLoader()
             val functionProvider = CompositeLLMFunctionProvider(listOf(functionLoader))
 
             /**
-             * Set up the loading of agents from scripts.
+             * Set up the loading of agents.
              */
             val agentFactory = ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider), beanProvider))
             val agentLoader = ListAgentLoader()
@@ -102,4 +103,12 @@ class DSLAgents private constructor(
     override fun provide(functionName: String) = functionProvider.provide(functionName)
 
     override fun provideAll() = functionProvider.provideAll()
+}
+
+/**
+ * Set up the agent system with a single AI Client / ChatCompleter.
+ */
+fun arcAgents(chatCompleter: ChatCompleter, beans: Set<Any> = emptySet()): DSLAgents {
+    val chatCompleterProvider = ChatCompleterProvider { chatCompleter }
+    return DSLAgents.init(chatCompleterProvider, beans)
 }

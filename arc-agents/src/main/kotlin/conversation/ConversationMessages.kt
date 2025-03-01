@@ -40,6 +40,20 @@ sealed class ConversationMessage {
 }
 
 /**
+ * Returns a loggable string representation of the message.
+ */
+fun List<ConversationMessage>.toLogString(): String {
+    return joinToString("\n") { message ->
+        when (message) {
+            is UserMessage -> "User:[${message.content}]"
+            is SystemMessage -> "System:[${message.content}]"
+            is AssistantMessage -> "Assistant:[${message.content}]"
+            is DeveloperMessage -> "Developer:[${message.content}]"
+        }
+    }
+}
+
+/**
  * A message sent by the user.
  */
 @Serializable
