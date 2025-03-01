@@ -23,6 +23,7 @@ class TraceableLLMFunction(private val tracer: AgentTracer, private val function
             ),
         ) { tags ->
             function.execute(input).also { result ->
+                tags.tag("input", input.toString())
                 result.getOrNull()?.let { tags.tag("result", it) }
                 result.onFailure { tags.tag("error", it.message ?: "unknown error") }
             }
