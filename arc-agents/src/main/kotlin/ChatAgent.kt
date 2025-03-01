@@ -147,7 +147,7 @@ class ChatAgent(
             if (filteredInput.isEmpty()) failWith { AgentNotExecutedException("Input has been filtered") }
 
             val generatedSystemPrompt = tracer.withSpan(
-                "generate prompt",
+                "generate system prompt",
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
             ) { tags ->
                 systemPrompt.invoke(dslContext).also {
@@ -159,7 +159,7 @@ class ChatAgent(
             val fullConversation = listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
 
             val completedConversation = tracer.withSpan(
-                "generating response",
+                "generate response",
                 mapOf(
                     PHASE_LOG_CONTEXT_KEY to "Generating",
                     PROMPT_LOG_CONTEXT_KEY to generatedSystemPrompt,
