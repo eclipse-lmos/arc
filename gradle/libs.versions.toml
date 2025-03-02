@@ -6,6 +6,7 @@ spring-boot-version = "3.4.2"
 ktor-version = "3.1.0"
 lettuce-version = "6.3.2.RELEASE"
 jackson-version = "2.9.8"
+resilience4j-version = "2.2.0"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
@@ -30,3 +31,6 @@ redis-lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce-ver
 
 jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-version" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-version" }
+
+resilience4j-kotlin = { module = "io.github.resilience4j:resilience4j-kotlin", version.ref = "resilience4j-version" }
+resilience4j-ratelimiter = { module = "io.github.resilience4j:resilience4j-ratelimiter", version.ref = "resilience4j-version" }

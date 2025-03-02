@@ -8,6 +8,8 @@ import io.micrometer.core.instrument.Tag
 import io.micrometer.core.instrument.Timer
 import org.eclipse.lmos.arc.agents.AgentFinishedEvent
 import org.eclipse.lmos.arc.agents.dsl.FilterExecutedEvent
+import org.eclipse.lmos.arc.agents.dsl.extensions.RateLimitTimeoutEvent
+import org.eclipse.lmos.arc.agents.dsl.extensions.RateLimitedEvent
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
@@ -52,6 +54,22 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
                     "arc.llm.finished",
                     duration,
                     tags = mapOf("model" to model),
+                )
+            }
+
+            is RateLimitedEvent -> with(event) {
+                timer(
+                    "arc.agent.rate.limited",
+                    duration,
+                    tags = mapOf("name" to name),
+                )
+            }
+
+            is RateLimitTimeoutEvent -> with(event) {
+                timer(
+                    "arc.agent.rate.timeout",
+                    duration,
+                    tags = mapOf("name" to name),
                 )
             }
 
