@@ -21,7 +21,9 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
+import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.getOrThrow
+import org.eclipse.lmos.arc.core.result
 import org.junit.jupiter.api.BeforeEach
 
 open class TestBase {
@@ -55,7 +57,7 @@ open class TestBase {
         testBeanProvider.setContext(context ?: contextBeans) {
             result = agent.execute(message.toConversation(User("user"))).getOrThrow()
         }
-        return input.captured to result
+        return (result<List<ConversationMessage>, Exception> { input.captured }.getOrNull() ?: emptyList()) to result
     }
 
     @BeforeEach

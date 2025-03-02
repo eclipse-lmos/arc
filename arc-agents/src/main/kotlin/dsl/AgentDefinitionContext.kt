@@ -73,12 +73,20 @@ class AgentDefinition {
 
     var outputFilter: suspend OutputFilterContext.() -> Unit = { }
     fun filterOutput(fn: suspend OutputFilterContext.() -> Unit) {
-        outputFilter = fn
+        val previous = outputFilter
+        outputFilter = {
+            previous()
+            fn()
+        }
     }
 
     var inputFilter: suspend InputFilterContext.() -> Unit = { }
     fun filterInput(fn: suspend InputFilterContext.() -> Unit) {
-        inputFilter = fn
+        val previous = inputFilter
+        inputFilter = {
+            previous()
+            fn()
+        }
     }
 
     var init: DSLContext.() -> Unit = { }
