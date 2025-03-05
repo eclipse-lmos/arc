@@ -33,6 +33,8 @@ import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.agents.llm.TextEmbedder
 import org.eclipse.lmos.arc.agents.llm.TextEmbedding
 import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -41,6 +43,9 @@ import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -51,6 +56,7 @@ class AzureAIClient(
     private val config: AzureClientConfig,
     private val client: OpenAIAsyncClient,
     private val eventHandler: EventPublisher? = null,
+    private val tracer: AgentTracer? = null,
 ) : ChatCompleter,
     TextEmbedder {
 
@@ -101,14 +107,20 @@ class AzureAIClient(
     ): Result<AssistantMessage, ArcException> {
         val chatCompletionsOptions = toCompletionsOptions(messages, openAIFunctions, settings)
 
-        val (chatCompletionsResult, duration) = doChatCompletions(chatCompletionsOptions)
-        val result = chatCompletionsResult.map {
-            it.getFirstAssistantMessage(
-                sensitive = functionCallHandler.calledSensitiveFunction(),
-                settings = settings,
-            )
+        var chatCompletionsResult: Result<ChatCompletions, ArcException>
+        var duration: Duration
+        val result = withLLMSpan(settings) { tag ->
+            val pair = doChatCompletions(chatCompletionsOptions)
+            chatCompletionsResult = pair.first
+            duration = pair.second
+            chatCompletionsResult.getOrNull()?.let { tag(it) }
+            chatCompletionsResult.map {
+                it.getFirstAssistantMessage(
+                    sensitive = functionCallHandler.calledSensitiveFunction(),
+                    settings = settings,
+                )
+            }
         }
-
         llmEventPublisher.publishEvent(result, chatCompletionsResult.getOrNull(), duration)
 
         chatCompletionsResult.getOrNull()?.let { chatCompletions ->
@@ -125,6 +137,39 @@ class AzureAIClient(
             }
         }
         return result
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    private suspend fun <T> withLLMSpan(
+        settings: ChatCompletionSettings?,
+        fn: suspend ((ChatCompletions) -> Unit) -> T,
+    ): T {
+        contract {
+            callsInPlace(fn, EXACTLY_ONCE)
+        }
+        val name = "chat ${config.modelName}"
+        return (tracer ?: DefaultAgentTracer()).withSpan(name) { tags, _ ->
+            fn({ completions ->
+                tags.tag("gen_ai.request.model", config.modelName)
+                tags.tag("gen_ai.operation.name", "chat")
+                tags.tag(
+                    "gen_ai.response.finish_reasons",
+                    completions.choices.joinToString(
+                        prefix = "[",
+                        postfix = "]",
+                        separator = ",",
+                    ) { it.finishReason.toString() },
+                )
+                settings?.seed?.let { tags.tag("gen_ai.request.seed", it) }
+                settings?.temperature?.let { tags.tag("gen_ai.request.temperature", it.toString()) }
+                settings?.topP?.let { tags.tag("gen_ai.request.top_p", it.toString()) }
+                // tags.tag("gen_ai.user.message", event.messages.last().content)
+                // tags.tag("gen_ai.choice", event.result.getOrNull()?.content ?: "")
+                tags.tag("gen_ai.usage.input_tokens", completions.usage.promptTokens.toLong())
+                tags.tag("gen_ai.usage.output_tokens", completions.usage.completionTokens.toLong())
+                tags.tag("gen_ai.openai.response.system_fingerprint", completions.systemFingerprint)
+            })
+        }
     }
 
     private suspend fun doChatCompletions(chatCompletionsOptions: ChatCompletionsOptions): Pair<Result<ChatCompletions, ArcException>, Duration> {

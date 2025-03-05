@@ -13,6 +13,7 @@ import com.openai.client.okhttp.OpenAIOkHttpClientAsync
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.client.azure.AzureAIClient
 import org.eclipse.lmos.arc.client.azure.AzureClientConfig
 import org.eclipse.lmos.arc.client.ollama.OllamaClient
@@ -34,7 +35,7 @@ class ClientsConfiguration {
      */
     @Bean
     @ConditionalOnClass(OpenAIAsyncClient::class)
-    fun openAIAsyncClient() = ClientBuilder { config, eventPublisher ->
+    fun openAIAsyncClient(tracer: AgentTracer? = null) = ClientBuilder { config, eventPublisher ->
         if (config.client != "azure" && config.client != "openai") return@ClientBuilder null
         val azureClient = when {
             config.client == "openai" || config.url == null -> OpenAIClientBuilder()
@@ -53,6 +54,7 @@ class ClientsConfiguration {
             AzureClientConfig(config.modelName, config.url ?: "", config.apiKey ?: ""),
             azureClient,
             eventPublisher,
+            tracer,
         )
     }
 
@@ -61,7 +63,7 @@ class ClientsConfiguration {
      */
     @Bean
     @ConditionalOnClass(OpenAIAsyncClient::class, DefaultAzureCredentialBuilder::class)
-    fun openAIAsyncClientWithAzureCredentials() = ClientBuilder { config, eventPublisher ->
+    fun openAIAsyncClientWithAzureCredentials(tracer: AgentTracer? = null) = ClientBuilder { config, eventPublisher ->
         if (config.client != "azure") return@ClientBuilder null
         val azureClient = when {
             config.url != null && config.apiKey == null -> OpenAIClientBuilder()
@@ -75,6 +77,7 @@ class ClientsConfiguration {
             AzureClientConfig(config.modelName, config.url ?: "", config.apiKey ?: ""),
             azureClient,
             eventPublisher,
+            tracer,
         )
     }
 

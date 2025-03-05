@@ -203,7 +203,7 @@ private suspend fun <T> DSLContext.trace(name: String, fn: suspend DSLContext.()
     var result: T? = null
     var output = ""
     val tracer = tracer()
-    val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) { tags ->
+    val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) { tags, _ ->
         measureTime {
             result = fn()
             output = if (result is ConversationMessage) (result as ConversationMessage).content else result.toString()
