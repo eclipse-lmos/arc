@@ -23,7 +23,7 @@ import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.router.SemanticRouter
 import org.eclipse.lmos.arc.agents.router.SemanticRoutes
-import org.eclipse.lmos.arc.mcp.MCPPromptRetriever
+import org.eclipse.lmos.arc.mcp.McpPromptRetriever
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -57,7 +57,7 @@ open class ArcAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty("arc.mcp.prompts.url")
-    fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String) = MCPPromptRetriever(url)
+    fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String) = McpPromptRetriever(url)
 
     @Bean
     fun eventPublisher(eventHandlers: List<EventHandler<*>>) = BasicEventPublisher().apply {
