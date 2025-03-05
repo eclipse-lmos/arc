@@ -26,7 +26,7 @@ import java.util.concurrent.Executors
 /**
  * PromptRetriever that uses the MCP client to fetch prompts.
  */
-class MCPPromptRetriever(val url: String) : PromptRetriever {
+class McpPromptRetriever(private val url: String) : PromptRetriever {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val dispatcher = Executors.newVirtualThreadPerTaskExecutor().asCoroutineDispatcher()
