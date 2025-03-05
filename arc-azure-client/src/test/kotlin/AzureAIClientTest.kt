@@ -11,6 +11,7 @@ import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
 import com.azure.ai.openai.models.ChatResponseMessage
 import com.azure.ai.openai.models.CompletionsFinishReason.STOPPED
 import com.azure.ai.openai.models.CompletionsFinishReason.TOOL_CALLS
+import com.azure.ai.openai.models.CompletionsUsage
 import com.azure.ai.openai.models.FunctionCall
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -105,8 +106,16 @@ class AzureAIClientTest {
         every { chatChoice.finishReason } returns STOPPED
         every { chatChoice.message } returns chatResponseMessage
 
+        val completionsUsage = mockk<CompletionsUsage>()
+        every { completionsUsage.completionTokens } returns 11
+        every { completionsUsage.promptTokens } returns 11
+        every { completionsUsage.totalTokens } returns 22
+
         val chatCompletions = mockk<ChatCompletions>()
         every { chatCompletions.choices } returns listOf(chatChoice)
+        every { chatCompletions.usage } returns completionsUsage
+        every { chatCompletions.systemFingerprint } returns "systemFingerprint"
+
         return just(chatCompletions)
     }
 
@@ -120,8 +129,16 @@ class AzureAIClientTest {
         every { chatChoice.finishReason } returns TOOL_CALLS
         every { chatChoice.message } returns chatResponseMessage
 
+        val completionsUsage = mockk<CompletionsUsage>()
+        every { completionsUsage.completionTokens } returns 11
+        every { completionsUsage.promptTokens } returns 11
+        every { completionsUsage.totalTokens } returns 22
+
         val chatCompletions = mockk<ChatCompletions>()
         every { chatCompletions.choices } returns listOf(chatChoice)
+        every { chatCompletions.usage } returns completionsUsage
+        every { chatCompletions.systemFingerprint } returns "systemFingerprint"
+
         return just(chatCompletions)
     }
 }

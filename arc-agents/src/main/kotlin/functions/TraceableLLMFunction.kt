@@ -21,7 +21,7 @@ class TraceableLLMFunction(private val tracer: AgentTracer, private val function
                 "description" to description,
                 "sensitive" to isSensitive.toString(),
             ),
-        ) { tags ->
+        ) { tags, _ ->
             function.execute(input).also { result ->
                 tags.tag("input", input.toString())
                 result.getOrNull()?.let { tags.tag("result", it) }

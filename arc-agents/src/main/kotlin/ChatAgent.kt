@@ -71,7 +71,7 @@ class ChatAgent(
             CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
         val tracer = compositeBeanProvider.provideOptional<AgentTracer>() ?: DefaultAgentTracer()
 
-        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) {
+        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { _, _ ->
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
@@ -134,7 +134,7 @@ class ChatAgent(
             val functions = functions(dslContext, compositeBeanProvider)?.map { TraceableLLMFunction(tracer, it) }
             usedFunctions.set(functions)
 
-            val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) {
+            val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
                 coroutineScope {
                     val filterContext = InputFilterContext(dslContext, conversation)
                     filterInput.invoke(filterContext).let {
@@ -149,10 +149,10 @@ class ChatAgent(
             val generatedSystemPrompt = tracer.withSpan(
                 "generate system prompt",
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
-            ) { tags ->
+            ) { tags, _ ->
                 systemPrompt.invoke(dslContext).also {
                     dslContext.addData(Data("systemPrompt", it))
-                    tags.tag("value", it)
+                    tags.tag("prompt", it)
                 }
             }
 
@@ -165,12 +165,12 @@ class ChatAgent(
                     PROMPT_LOG_CONTEXT_KEY to generatedSystemPrompt,
                     INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
                 ),
-            ) {
+            ) { tags, _ ->
                 conversation + chatCompleter.complete(fullConversation, functions, settings.invoke(dslContext))
-                    .getOrThrow()
+                    .getOrThrow().also { tags.tag("response", it.content) }
             }
 
-            tracer.withSpan("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) {
+            tracer.withSpan("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) { _, _ ->
                 coroutineScope {
                     val filterOutputContext =
                         OutputFilterContext(dslContext, conversation, completedConversation, generatedSystemPrompt)

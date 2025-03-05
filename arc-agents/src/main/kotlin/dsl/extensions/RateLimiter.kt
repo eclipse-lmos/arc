@@ -41,7 +41,7 @@ suspend fun DSLContext.limit(name: String, fn: RateLimiterContext.() -> Rate): S
     val rateLimiterName = "$name/${rate.limit}"
 
     val rateLimiter = rateLimiters.computeIfAbsent(rateLimiterName) { Semaphore(rate.limit) }
-    return tracer().withSpan("limit $name") { tags ->
+    return tracer().withSpan("limit $name") { tags, _ ->
         tags.tag("rate.limit.rate", rate.toString())
         if (rateLimiter.tryAcquire()) return@withSpan name.also { releasePermitLater(rateLimiterName, rate) }
         try {
