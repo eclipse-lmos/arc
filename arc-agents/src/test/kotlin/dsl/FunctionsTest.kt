@@ -29,10 +29,10 @@ class FunctionsTest : TestBase() {
             assertThat(result).isNotNull
             assertThat(result!!.name).isEqualTo("get_weather")
             assertThat(result.description).isEqualTo("the weather service")
-            assertThat(result.parameters.parameters).hasSize(1)
-            with(result.parameters.parameters.first()) {
+            assertThat(result.parameters.properties).hasSize(1)
+            with(result.parameters.properties.values.first()) {
                 assertThat(name).isEqualTo("location")
-                assertThat(type.schemaType).isEqualTo("string")
+                assertThat(type).isEqualTo("string")
                 assertThat(description).isEqualTo("the location")
             }
             assertThat(result.execute(emptyMap()).getOrThrow()).isEqualTo("result")

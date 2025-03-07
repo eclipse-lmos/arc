@@ -30,6 +30,9 @@ import kotlin.time.measureTime
 /**
  * Calls a Ollama Chat endpoint to complete a conversation.
  */
+@Deprecated(
+    "Use the Arc Langchain4j Ollama client instead",
+)
 class OllamaClient(
     private val languageModel: OllamaClientConfig,
     private val eventHandler: EventPublisher? = null,
@@ -101,14 +104,14 @@ class OllamaClient(
                     parameters = parametersSchema?.let { schema ->
                         Parameters(
                             type = "object",
-                            properties = schema.parameters.associate {
-                                it.name to Property(
-                                    type = it.type.schemaType,
-                                    description = it.description,
-                                    enum = it.enum,
+                            properties = schema.properties.mapValues { (_, v) ->
+                                Property(
+                                    type = v.type,
+                                    description = v.description ?: "",
+                                    enum = v.enum,
                                 )
                             },
-                            required = schema.required,
+                            required = schema.required ?: emptyList(),
                         )
                     },
                 ),
@@ -141,7 +144,12 @@ class OllamaClient(
         )
     }
 
-    private suspend fun chat(messages: List<ChatMessage>, tools: List<Tool>? = null, functionCallHandler: FunctionCallHandler, settings: ChatCompletionSettings?): Result<ChatResponse, ArcException> {
+    private suspend fun chat(
+        messages: List<ChatMessage>,
+        tools: List<Tool>? = null,
+        functionCallHandler: FunctionCallHandler,
+        settings: ChatCompletionSettings?,
+    ): Result<ChatResponse, ArcException> {
         val response: HttpResponse = client.post("${languageModel.url}/api/chat") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -173,10 +181,12 @@ class OllamaClient(
                     content = msg.content,
                     role = "system",
                 )
+
                 is AssistantMessage -> ChatMessage(
                     content = msg.content,
                     role = "assistant",
                 )
+
                 is UserMessage -> if (msg.binaryData.isNotEmpty()) {
                     ChatMessage(
                         content = msg.content,
@@ -186,6 +196,7 @@ class OllamaClient(
                 } else {
                     ChatMessage(content = msg.content, role = "user")
                 }
+
                 else -> throw ArcException("Unsupported message type: $msg")
             }
         }

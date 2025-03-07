@@ -4,7 +4,6 @@
 
 package org.eclipse.lmos.arc.client.langchain4j
 
-import dev.langchain4j.agent.tool.ToolParameters
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.AudioContent
@@ -14,6 +13,13 @@ import dev.langchain4j.data.message.ImageContent
 import dev.langchain4j.data.message.TextContent
 import dev.langchain4j.data.message.VideoContent
 import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.request.json.JsonBooleanSchema
+import dev.langchain4j.model.chat.request.json.JsonEnumSchema
+import dev.langchain4j.model.chat.request.json.JsonIntegerSchema
+import dev.langchain4j.model.chat.request.json.JsonNumberSchema
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema
+import dev.langchain4j.model.chat.request.json.JsonSchemaElement
+import dev.langchain4j.model.chat.request.json.JsonStringSchema
 import dev.langchain4j.model.output.Response
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -23,7 +29,7 @@ import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
-import org.eclipse.lmos.arc.agents.functions.toSchemaMap
+import org.eclipse.lmos.arc.agents.functions.ParameterSchema
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
@@ -164,13 +170,32 @@ class LangChainClient(
             .name(fn.name)
             .description(fn.description)
             .parameters(
-                ToolParameters.builder()
+                JsonObjectSchema.builder()
                     .apply {
-                        properties(fn.parameters.parameters.toSchemaMap())
+                        properties(fn.parameters.properties.mapValues { (_, v) -> v.toJsonElement() })
                         required(fn.parameters.required)
                     }
                     .build(),
             )
             .build()
     }.takeIf { it.isNotEmpty() }
+
+    private fun ParameterSchema.toJsonElement(): JsonSchemaElement {
+        if (enum != null) return JsonEnumSchema.builder().description(description).enumValues(enum).build()
+        return when (type) {
+            "string" -> JsonStringSchema.builder().description(description).build()
+            "integer" -> JsonIntegerSchema.builder().description(description).build()
+            "number" -> JsonNumberSchema.builder().description(description).build()
+            "boolean" -> JsonBooleanSchema.builder().description(description).build()
+            "object" -> JsonObjectSchema.builder()
+                .apply {
+                    description(description)
+                    properties(properties?.mapValues { it.value.toJsonElement() } ?: emptyMap())
+                    required(required)
+                }
+                .build()
+
+            else -> error("Unsupported parameter type: $type!")
+        }
+    }
 }

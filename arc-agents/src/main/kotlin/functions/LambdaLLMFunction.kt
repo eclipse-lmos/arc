@@ -21,7 +21,7 @@ data class LambdaLLMFunction(
     override val isSensitive: Boolean,
     override val parameters: ParametersSchema,
     private val context: DSLContext,
-    private val function: suspend DSLContext.(List<String?>) -> String,
+    private val function: suspend DSLContext.(List<Any?>) -> String,
 ) : LLMFunction, FunctionWithContext {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -33,7 +33,7 @@ data class LambdaLLMFunction(
         return try {
             log.debug("Calling function $name with $input")
             result<String, Exception> {
-                function.invoke(context, parameters.parameters.map { p -> input[p.name]?.let { "$it" } })
+                function.invoke(context, parameters.properties.values.map { p -> input[p.name] })
             }.mapFailure { LLMFunctionException("LLMFunction call $name failed! ", it) }
         } catch (ex: Exception) {
             Failure(LLMFunctionException("LLMFunction call $name failed!", ex))

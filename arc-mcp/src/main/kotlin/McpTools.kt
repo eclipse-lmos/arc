@@ -41,7 +41,7 @@ class McpTools(private val url: String) : LLMFunctionLoader {
             client.listTools().tools.map { tool ->
                 object : LLMFunction {
                     override val name: String = tool.name
-                    override val parameters = ParametersSchema(emptyList(), emptyList())
+                    override val parameters = ParametersSchema()
                     override val description: String = tool.description
                     override val group: String = "MCP"
                     override val isSensitive: Boolean = false

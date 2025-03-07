@@ -26,6 +26,7 @@ import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.functions.toJsonMap
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
@@ -221,7 +222,7 @@ class AzureAIClient(
         ChatCompletionsFunctionToolDefinition(
             ChatCompletionsFunctionToolDefinitionFunction(fn.name).apply {
                 description = fn.description
-                parameters = BinaryData.fromObject(fn.parameters.toAzureOpenAISchemaAsMap())
+                parameters = BinaryData.fromObject(fn.parameters.toJsonMap())
             },
         )
     }.takeIf { it.isNotEmpty() }

@@ -67,7 +67,7 @@ open class TestBase {
 }
 
 class TestFunction(override val name: String = "test") : LLMFunction {
-    override val parameters = ParametersSchema(emptyList(), emptyList())
+    override val parameters = ParametersSchema()
     override val description: String = "test"
     override val group: String? = null
     override val isSensitive: Boolean = false

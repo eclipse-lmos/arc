@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.*
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.functions.toJson
 import org.eclipse.lmos.arc.agents.llm.*
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.core.*
@@ -175,7 +176,7 @@ class OpenAINativeClient(
      * Converts functions to openai functions.
      */
     private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-        val jsonObject = fn.parameters.toOpenAISchemaAsMap()
+        val jsonObject = fn.parameters.toJson()
         ChatCompletionTool.builder()
             .type(ChatCompletionTool.Type.FUNCTION)
             .function(

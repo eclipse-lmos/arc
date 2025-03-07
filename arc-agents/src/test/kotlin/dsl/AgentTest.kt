@@ -80,7 +80,7 @@ class AgentTest : TestBase() {
         coEvery { functionProvider.provide(capture(functionGroup)) } answers {
             Success(object : LLMFunction {
                 override val name = "MyFunction"
-                override val parameters = ParametersSchema(emptyList(), emptyList())
+                override val parameters = ParametersSchema()
                 override val description = "This is a sample function"
                 override val group = "SampleGroup"
                 override val isSensitive = false
@@ -106,7 +106,7 @@ class AgentTest : TestBase() {
         coEvery { functionProvider.provide(capture(functionGroup)) } answers {
             Success(object : LLMFunction {
                 override val name = "MyFunction"
-                override val parameters = ParametersSchema(emptyList(), emptyList())
+                override val parameters = ParametersSchema()
                 override val description = "This is a sample function"
                 override val group = "SampleGroup"
                 override val isSensitive = false
