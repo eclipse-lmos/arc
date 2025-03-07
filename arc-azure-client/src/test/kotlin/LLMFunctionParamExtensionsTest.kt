@@ -1,19 +1,19 @@
-
 // SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
 //
 // SPDX-License-Identifier: Apache-2.0
 
 package org.eclipse.lmos.arc.client.azure
 
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
+import com.azure.core.util.BinaryData
+import com.azure.json.JsonOptions
+import com.azure.json.implementation.DefaultJsonWriter
+import kotlinx.serialization.json.Json
+import org.assertj.core.api.Assertions
 import org.eclipse.lmos.arc.agents.functions.ParameterSchema
-import org.eclipse.lmos.arc.agents.functions.ParameterType
 import org.eclipse.lmos.arc.agents.functions.ParametersSchema
-import org.junit.jupiter.api.Assertions.*
+import org.eclipse.lmos.arc.agents.functions.toJsonMap
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
 
 class LLMFunctionParamExtensionsTest {
 
@@ -22,156 +22,112 @@ class LLMFunctionParamExtensionsTest {
         // Create a sample ParametersSchema object
         val parametersSchema = ParametersSchema(
             required = listOf("id", "name"),
-            parameters = listOf(
-                ParameterSchema(
-                    name = "id",
+            properties = mapOf(
+                "id" to ParameterSchema(
                     description = "The ID of the object",
-                    type = ParameterType("integer"),
-                    enum = emptyList(),
+                    type = "integer",
                 ),
-                ParameterSchema(
-                    name = "name",
+                "name" to ParameterSchema(
                     description = "The name of the object",
-                    type = ParameterType("string"),
-                    enum = emptyList(),
+                    type = "string",
                 ),
-                ParameterSchema(
-                    name = "category",
+                "category" to ParameterSchema(
+                    type = "object",
                     description = "The category object",
-                    type = ParameterType(
-                        schemaType = "object",
-                        properties = listOf(
-                            ParameterSchema(
-                                name = "id",
-                                description = "Category ID",
-                                type = ParameterType("integer"),
-                                enum = emptyList(),
-                            ),
-                            ParameterSchema(
-                                name = "name",
-                                description = "Category Name",
-                                type = ParameterType("string"),
-                                enum = emptyList(),
-                            ),
+                    properties = mapOf(
+                        "id" to ParameterSchema(
+                            name = "id",
+                            description = "Category ID",
+                            type = "integer",
+                        ),
+                        "name" to ParameterSchema(
+                            name = "name",
+                            description = "Category Name",
+                            type = "string",
                         ),
                     ),
-                    enum = emptyList(),
                 ),
-                ParameterSchema(
-                    name = "tags",
+                "tags" to ParameterSchema(
                     description = "List of tags",
-                    type = ParameterType(
-                        schemaType = "array",
-                        items = ParameterType(
-                            schemaType = "object",
-                            properties = listOf(
-                                ParameterSchema(
-                                    name = "id",
-                                    description = "Tag ID",
-                                    type = ParameterType("integer"),
-                                    enum = emptyList(),
-                                ),
-                                ParameterSchema(
-                                    name = "name",
-                                    description = "Tag Name",
-                                    type = ParameterType("string"),
-                                    enum = emptyList(),
-                                ),
+                    type = "array",
+                    items = ParameterSchema(
+                        type = "object",
+                        properties = mapOf(
+                            "id" to ParameterSchema(
+                                name = "id",
+                                description = "Tag ID",
+                                type = "integer",
+                            ),
+                            "name" to ParameterSchema(
+                                name = "name",
+                                description = "Tag Name",
+                                type = "string",
                             ),
                         ),
                     ),
-                    enum = emptyList(),
                 ),
             ),
         )
 
-        // Convert to Azure OpenAI JSON format
-        val jsonResult: JsonObject = parametersSchema.toAzureOpenAIObject()
-
-        // Expected JSON structure
-        val expectedJson = buildJsonObject {
-            put("type", JsonPrimitive("object"))
-            put("required", JsonArray(listOf(JsonPrimitive("id"), JsonPrimitive("name"))))
-            put(
-                "properties",
-                buildJsonObject {
-                    put(
-                        "id",
-                        buildJsonObject {
-                            put("type", JsonPrimitive("integer"))
-                            put("description", JsonPrimitive("The ID of the object"))
-                        },
-                    )
-                    put(
-                        "name",
-                        buildJsonObject {
-                            put("type", JsonPrimitive("string"))
-                            put("description", JsonPrimitive("The name of the object"))
-                        },
-                    )
-                    put(
-                        "category",
-                        buildJsonObject {
-                            put("type", JsonPrimitive("object"))
-                            put("description", JsonPrimitive("The category object"))
-                            put(
-                                "properties",
-                                buildJsonObject {
-                                    put(
-                                        "id",
-                                        buildJsonObject {
-                                            put("type", JsonPrimitive("integer"))
-                                            put("description", JsonPrimitive("Category ID"))
-                                        },
-                                    )
-                                    put(
-                                        "name",
-                                        buildJsonObject {
-                                            put("type", JsonPrimitive("string"))
-                                            put("description", JsonPrimitive("Category Name"))
-                                        },
-                                    )
-                                },
-                            )
-                        },
-                    )
-                    put(
-                        "tags",
-                        buildJsonObject {
-                            put("type", JsonPrimitive("array"))
-                            put("description", JsonPrimitive("List of tags"))
-                            put(
-                                "items",
-                                buildJsonObject {
-                                    put("type", JsonPrimitive("object"))
-                                    put(
-                                        "properties",
-                                        buildJsonObject {
-                                            put(
-                                                "id",
-                                                buildJsonObject {
-                                                    put("type", JsonPrimitive("integer"))
-                                                    put("description", JsonPrimitive("Tag ID"))
-                                                },
-                                            )
-                                            put(
-                                                "name",
-                                                buildJsonObject {
-                                                    put("type", JsonPrimitive("string"))
-                                                    put("description", JsonPrimitive("Tag Name"))
-                                                },
-                                            )
-                                        },
-                                    )
-                                },
-                            )
-                        },
-                    )
-                },
-            )
-        }
+        val parameters = BinaryData.fromObject(parametersSchema.toJsonMap())
+        val stream = ByteArrayOutputStream()
+        val jsonWriter = DefaultJsonWriter.toStream(stream, JsonOptions())
+        parameters.writeTo(jsonWriter)
+        jsonWriter.flush()
 
         // Validate the conversion result
-        assertEquals(expectedJson, jsonResult, "The JSON conversion is not correct.")
+        Assertions.assertThat(Json.parseToJsonElement(stream.toString())).isEqualTo(
+            Json.parseToJsonElement(
+                """{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "The ID of the object"
+    },
+    "name": {
+      "type": "string",
+      "description": "The name of the object"
+    },
+    "category": {
+      "type": "object",
+      "description": "The category object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Category ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Category Name"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "List of tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Tag ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Tag Name"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ]
+}
+        """,
+            ),
+        )
     }
 }

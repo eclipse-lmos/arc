@@ -8,7 +8,7 @@ import org.eclipse.lmos.arc.agents.dsl.BasicFunctionDefinitionContext
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
-import org.eclipse.lmos.arc.agents.functions.ParameterSchema
+import org.eclipse.lmos.arc.agents.functions.ParametersSchema
 
 /**
  * A factory for creating llm functions using the Arc Agent DSL.
@@ -31,9 +31,9 @@ class Functions(private val beanProvider: BeanProvider) {
         name: String,
         description: String,
         group: String? = null,
-        params: List<Pair<ParameterSchema, Boolean>> = emptyList(),
+        params: ParametersSchema = ParametersSchema(),
         isSensitive: Boolean = false,
-        fn: suspend DSLContext.(List<String?>) -> String,
+        fn: suspend DSLContext.(List<Any?>) -> String,
     ): List<LLMFunction> {
         val context = BasicFunctionDefinitionContext(beanProvider)
         context.function(name, description, group, params, isSensitive, fn)

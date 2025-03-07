@@ -4,7 +4,10 @@
 
 package org.eclipse.lmos.arc.agents.dsl
 
-import org.eclipse.lmos.arc.agents.functions.*
+import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.functions.LambdaLLMFunction
+import org.eclipse.lmos.arc.agents.functions.ParameterSchema
+import org.eclipse.lmos.arc.agents.functions.ParametersSchema
 
 @DslMarker
 annotation class FunctionDefinitionContextMarker
@@ -12,22 +15,44 @@ annotation class FunctionDefinitionContextMarker
 @FunctionDefinitionContextMarker
 interface FunctionDefinitionContext {
 
-    fun string(
+    fun string(name: String, description: String, required: Boolean = true, enum: List<String>? = null): ParameterSchema
+
+    fun objectType(
         name: String,
         description: String,
+        properties: List<ParameterSchema>,
         required: Boolean = true,
-        enum: List<String> = emptyList(),
-    ): Pair<ParameterSchema, Boolean>
+    ): ParameterSchema
 
-    fun types(vararg params: Pair<ParameterSchema, Boolean>) = params.toList()
+    fun integer(name: String, description: String, required: Boolean) =
+        ParameterSchema("integer", name, description, isRequired = required)
+
+    fun boolean(name: String, description: String, required: Boolean) =
+        ParameterSchema("boolean", name, description, isRequired = required)
+
+    fun number(name: String, description: String, required: Boolean) =
+        ParameterSchema("number", name, description, isRequired = required)
+
+    fun array(
+        name: String,
+        description: String,
+        itemType: String = "string",
+        required: Boolean = true,
+    ): ParameterSchema
+
+    fun types(vararg params: ParameterSchema) = ParametersSchema(
+        properties = params.associateBy { it.name ?: error("Name required for parameter $it!") },
+        required = params.filter { it.isRequired }.map { it.name ?: error("Name required for parameter $it!") }
+            .toList(),
+    )
 
     fun function(
         name: String,
         description: String,
         group: String? = null,
-        params: List<Pair<ParameterSchema, Boolean>> = emptyList(),
+        params: ParametersSchema = ParametersSchema(),
         isSensitive: Boolean = false,
-        fn: suspend DSLContext.(List<String?>) -> String,
+        fn: suspend DSLContext.(List<Any?>) -> String,
     )
 }
 
@@ -38,18 +63,50 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
 
     val functions = mutableListOf<LLMFunction>()
 
-    override fun string(name: String, description: String, required: Boolean, enum: List<String>) =
-        ParameterSchema(name, description, ParameterType("string"), enum) to required
+    override fun string(name: String, description: String, required: Boolean, enum: List<String>?) =
+        ParameterSchema("string", name, description, enum = enum, isRequired = required)
 
-    override fun types(vararg params: Pair<ParameterSchema, Boolean>) = params.toList()
+    override fun integer(name: String, description: String, required: Boolean) =
+        ParameterSchema("integer", name, description, isRequired = required)
+
+    override fun boolean(name: String, description: String, required: Boolean) =
+        ParameterSchema("boolean", name, description, isRequired = required)
+
+    override fun number(name: String, description: String, required: Boolean) =
+        ParameterSchema("number", name, description, isRequired = required)
+
+    override fun array(name: String, description: String, itemType: String, required: Boolean) =
+        ParameterSchema(
+            "array",
+            name,
+            description,
+            items = ParameterSchema(itemType),
+            isRequired = required,
+        )
+
+    override fun objectType(
+        name: String,
+        description: String,
+        properties: List<ParameterSchema>,
+        required: Boolean,
+    ) =
+        ParameterSchema(
+            "object",
+            name,
+            description,
+            isRequired = required,
+            properties = properties.associateBy { it.name ?: error("Name required for parameter $it!") },
+            required = properties.filter { it.isRequired }.map { it.name ?: error("Name required for parameter $it!") }
+                .toList(),
+        )
 
     override fun function(
         name: String,
         description: String,
         group: String?,
-        params: List<Pair<ParameterSchema, Boolean>>,
+        params: ParametersSchema,
         isSensitive: Boolean,
-        fn: suspend DSLContext.(List<String?>) -> String,
+        fn: suspend DSLContext.(List<Any?>) -> String,
     ) {
         functions.add(
             LambdaLLMFunction(
@@ -57,10 +114,7 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
                 description,
                 group,
                 isSensitive,
-                ParametersSchema(
-                    parameters = params.map { it.first },
-                    required = params.filter { it.second }.map { it.first.name },
-                ),
+                params,
                 BasicDSLContext(beanProvider),
                 wrapOutput(fn),
             ),
@@ -70,7 +124,7 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
     /**
      * Wraps the function and adds the BasicScriptingContext#output to the final result if applicable.
      */
-    private fun wrapOutput(fn: suspend DSLContext.(List<String?>) -> String): suspend DSLContext.(List<String?>) -> String =
+    private fun wrapOutput(fn: suspend DSLContext.(List<Any?>) -> String): suspend DSLContext.(List<Any?>) -> String =
         { args ->
             val result = fn(args)
             if (this is BasicDSLContext) {

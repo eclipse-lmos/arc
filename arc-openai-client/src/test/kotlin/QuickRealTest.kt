@@ -25,21 +25,19 @@ fun main() {
                 get() = "get_current_weather"
             override val parameters: ParametersSchema
                 get() = ParametersSchema(
-                    listOf("location", "unit"),
-                    listOf(
-                        ParameterSchema(
-                            name = "location",
+                    properties = mapOf(
+                        "location" to ParameterSchema(
                             description = "The city and state, e.g., San Francisco, CA.",
-                            type = ParameterType("string"),
+                            type = "string",
                             enum = emptyList(),
                         ),
-                        ParameterSchema(
-                            name = "unit",
+                        "unit" to ParameterSchema(
                             description = "The temperature unit to use.",
-                            type = ParameterType("string"),
+                            type = "string",
                             enum = listOf("celsius", "fahrenheit"),
                         ),
                     ),
+                    required = listOf("location", "unit"),
                 )
             override val description: String
                 get() = "Retrieve the current weather for a specified location."
@@ -57,13 +55,12 @@ fun main() {
                 get() = "dummy"
             override val parameters: ParametersSchema
                 get() = ParametersSchema(
-                    emptyList(),
-                    listOf(
-                        ParameterSchema(
-                            name = "locations",
+                    properties = mapOf(
+                        "locations" to ParameterSchema(
                             description = "The list of cities and states, e.g., San Francisco, CA.",
-                            type = ParameterType("array", items = ParameterType("string")),
+                            type = "array",
                             enum = emptyList(),
+                            items = ParameterSchema("string"),
                         ),
                     ),
                 )
@@ -122,7 +119,7 @@ fun main() {
 }
 
 private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-    val jsonObject = fn.parameters.toOpenAISchemaAsMap()
+    val jsonObject = fn.parameters.toJson()
     println("$jsonObject")
 
     ChatCompletionTool.builder()

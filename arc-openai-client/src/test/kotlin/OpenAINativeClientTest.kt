@@ -81,7 +81,7 @@ class OpenAINativeClientTest {
         val testFunction = mockk<LLMFunction>()
         every { testFunction.name } returns "testFunction"
         every { testFunction.description } returns "testFunction description"
-        every { testFunction.parameters } returns ParametersSchema(emptyList(), emptyList())
+        every { testFunction.parameters } returns ParametersSchema()
         every { testFunction.isSensitive } returns false
         coEvery { testFunction.execute(any()) } returns Success("result")
         return testFunction

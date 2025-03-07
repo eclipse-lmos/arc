@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.agents.functions
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.eclipse.lmos.arc.core.Result
 
 /**
@@ -26,64 +27,26 @@ interface LLMFunction {
 class LLMFunctionException(msg: String, override val cause: Exception? = null) : Exception(msg, cause)
 
 /**
- * Schema tha describes LLM Functions parameters.
+ * Schema that describes a single parameter of an LLM Function.
  */
 @Serializable
-data class ParametersSchema(val required: List<String>, val parameters: List<ParameterSchema>)
+data class ParametersSchema(
+    val type: String = "object",
+    val properties: Map<String, ParameterSchema> = emptyMap(),
+    val required: List<String>? = null,
+)
 
 /**
  * Schema that describes a single parameter of an LLM Function.
  */
 @Serializable
 data class ParameterSchema(
-    val name: String,
-    val description: String,
-    val type: ParameterType,
-    val enum: List<String>,
+    val type: String,
+    @Transient val name: String? = null,
+    val description: String? = null,
+    val items: ParameterSchema? = null,
+    val properties: Map<String, ParameterSchema>? = null,
+    val required: List<String>? = null,
+    @Transient val isRequired: Boolean = true,
+    val enum: List<String>? = null,
 )
-
-/**
- * A parameter type that can be used by LLM Functions.
- */
-
-@Serializable
-class ParameterType(
-    val schemaType: String,
-    val items: ParameterType? = null,
-    val properties: List<ParameterSchema>? = null,
-)
-
-/**
- * Extension functions for ParameterSchema to convert it to a JsonSchema Map.
- */
-fun ParameterSchema.toSchemaMap(): Pair<String, Map<String, Any>> = name to buildMap {
-    put("type", type.schemaType)
-    if (description.isNotEmpty()) put("description", description)
-    if (enum.isNotEmpty()) put("enum", enum)
-
-    when (type.schemaType) {
-        "array" -> {
-            val itemsObject = buildMap {
-                put("type", type.items?.schemaType ?: "unknown")
-
-                val items = type.items
-                if (items?.schemaType == "object") {
-                    items.properties?.let { propertiesList ->
-                        val properties = propertiesList.associate { it.name to it.toSchemaMap() }
-                        put("properties", properties)
-                    }
-                }
-            }
-            put("items", itemsObject)
-        }
-
-        "object" -> {
-            type.properties?.let { props ->
-                val properties = props.associate { it.name to it.toSchemaMap() }
-                put("properties", properties)
-            }
-        }
-    }
-}
-
-fun List<ParameterSchema>.toSchemaMap(): Map<String, Map<String, Any>> = associate { it.toSchemaMap() }
