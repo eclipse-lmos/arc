@@ -13,6 +13,7 @@ import dev.langchain4j.data.message.ImageContent
 import dev.langchain4j.data.message.TextContent
 import dev.langchain4j.data.message.VideoContent
 import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.request.json.JsonArraySchema
 import dev.langchain4j.model.chat.request.json.JsonBooleanSchema
 import dev.langchain4j.model.chat.request.json.JsonEnumSchema
 import dev.langchain4j.model.chat.request.json.JsonIntegerSchema
@@ -187,6 +188,12 @@ class LangChainClient(
             "integer" -> JsonIntegerSchema.builder().description(description).build()
             "number" -> JsonNumberSchema.builder().description(description).build()
             "boolean" -> JsonBooleanSchema.builder().description(description).build()
+
+            "array" -> JsonArraySchema.builder().apply {
+                description(description)
+                items(items?.toJsonElement())
+            }.build()
+
             "object" -> JsonObjectSchema.builder()
                 .apply {
                     description(description)
