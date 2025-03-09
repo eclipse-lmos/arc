@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.spring
 
+import com.azure.ai.openai.OpenAIAsyncClient
 import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.AgentLoader
 import org.eclipse.lmos.arc.agents.AgentProvider
@@ -24,6 +25,13 @@ import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.router.SemanticRouter
 import org.eclipse.lmos.arc.agents.router.SemanticRoutes
 import org.eclipse.lmos.arc.mcp.McpPromptRetriever
+import org.eclipse.lmos.arc.spring.clients.AzureOpenAIConfiguration
+import org.eclipse.lmos.arc.spring.clients.BedrockConfiguration
+import org.eclipse.lmos.arc.spring.clients.ClientsConfiguration
+import org.eclipse.lmos.arc.spring.clients.GeminiConfiguration
+import org.eclipse.lmos.arc.spring.clients.GroqConfiguration
+import org.eclipse.lmos.arc.spring.clients.OllamaConfiguration
+import org.eclipse.lmos.arc.spring.clients.OpenAIConfiguration
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -39,7 +47,6 @@ import kotlin.reflect.KClass
     MetricConfiguration::class,
     TracingConfiguration::class,
     ClientsConfiguration::class,
-    Langchain4jConfiguration::class,
     ScriptingConfiguration::class,
     CompiledScriptsConfiguration::class,
 )
