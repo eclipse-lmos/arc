@@ -9,10 +9,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.spring.AIClientConfig
 import org.eclipse.lmos.arc.spring.AIConfig
-import org.eclipse.lmos.arc.spring.CompiledScriptsConfiguration
-import org.eclipse.lmos.arc.spring.MetricConfiguration
-import org.eclipse.lmos.arc.spring.ScriptingConfiguration
-import org.eclipse.lmos.arc.spring.TracingConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -38,9 +34,9 @@ class ClientsConfiguration {
     ): ChatCompleterProvider {
         val clients = aiConfig.clients.associate { config ->
             config.id to (
-                    clientBuilders.firstNotNullOfOrNull { it.build(config, eventPublisher) }
-                        ?: error("Cannot build client for $config!")
-                    )
+                clientBuilders.firstNotNullOfOrNull { it.build(config, eventPublisher) }
+                    ?: error("Cannot build client for $config!")
+                )
         }
         return ChatCompleterProvider { model -> model?.let { clients[it] } ?: clients.values.first() }
     }
