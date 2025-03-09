@@ -100,9 +100,9 @@ class DSLAgents private constructor(
     /**
      * Get functions.
      */
-    override fun provide(functionName: String) = functionProvider.provide(functionName)
+    override suspend fun provide(functionName: String) = functionProvider.provide(functionName)
 
-    override fun provideAll() = functionProvider.provideAll()
+    override suspend fun provideAll() = functionProvider.provideAll()
 }
 
 /**

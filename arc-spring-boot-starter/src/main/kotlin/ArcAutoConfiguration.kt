@@ -13,6 +13,7 @@ import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.ChatAgentFactory
 import org.eclipse.lmos.arc.agents.dsl.CoroutineBeanProvider
 import org.eclipse.lmos.arc.agents.dsl.MissingBeanException
+import org.eclipse.lmos.arc.agents.dsl.extensions.PromptRetriever
 import org.eclipse.lmos.arc.agents.events.*
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -24,6 +25,8 @@ import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.router.SemanticRouter
 import org.eclipse.lmos.arc.agents.router.SemanticRoutes
 import org.eclipse.lmos.arc.mcp.McpPromptRetriever
+import org.eclipse.lmos.arc.mcp.McpTools
+import org.eclipse.lmos.arc.spring.clients.ClientsConfiguration
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -39,7 +42,6 @@ import kotlin.reflect.KClass
     MetricConfiguration::class,
     TracingConfiguration::class,
     ClientsConfiguration::class,
-    Langchain4jConfiguration::class,
     ScriptingConfiguration::class,
     CompiledScriptsConfiguration::class,
 )
@@ -57,7 +59,7 @@ open class ArcAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty("arc.mcp.prompts.url")
-    fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String) = McpPromptRetriever(url)
+    fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String): PromptRetriever = McpPromptRetriever(url)
 
     @Bean
     fun eventPublisher(eventHandlers: List<EventHandler<*>>) = BasicEventPublisher().apply {
@@ -93,8 +95,12 @@ open class ArcAutoConfiguration {
         CompositeAgentProvider(loaders, agents)
 
     @Bean
-    fun llmFunctionProvider(loaders: List<LLMFunctionLoader>, functions: List<LLMFunction>): LLMFunctionProvider =
-        CompositeLLMFunctionProvider(loaders, functions)
+    fun llmFunctionProvider(
+        loaders: List<LLMFunctionLoader>,
+        functions: List<LLMFunction>,
+        @Value("\${arc.mcp.tools.urls:}") urls: List<String>? = null,
+    ): LLMFunctionProvider =
+        CompositeLLMFunctionProvider(loaders + (urls?.map { url -> McpTools(url) } ?: emptyList()), functions)
 
     @Bean
     fun agentLoader(agentFactory: AgentFactory<*>) = Agents(agentFactory)

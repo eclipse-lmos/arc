@@ -9,6 +9,7 @@ import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
 import java.util.*
+import java.io.Closeable as Closeable
 
 /**
  * Provides LLMFunctions.
@@ -16,9 +17,9 @@ import java.util.*
  */
 interface LLMFunctionProvider {
 
-    fun provide(functionName: String): Result<LLMFunction, FunctionNotFoundException>
+    suspend fun provide(functionName: String): Result<LLMFunction, FunctionNotFoundException>
 
-    fun provideAll(): List<LLMFunction>
+    suspend fun provideAll(): List<LLMFunction>
 }
 
 /**
@@ -28,7 +29,7 @@ interface LLMFunctionProvider {
  */
 fun interface LLMFunctionLoader {
 
-    fun load(): List<LLMFunction>
+    suspend fun load(): List<LLMFunction>
 }
 
 /**
@@ -37,7 +38,7 @@ fun interface LLMFunctionLoader {
 class CompositeLLMFunctionProvider(
     private val loaders: List<LLMFunctionLoader>,
     private val functions: List<LLMFunction> = emptyList(),
-) : LLMFunctionProvider {
+) : LLMFunctionProvider, Closeable {
 
     /**
      * Retrieves a list of LLMFunctions matching the given function name.
@@ -46,14 +47,21 @@ class CompositeLLMFunctionProvider(
      * @return List of LLMFunctions matching the function name.
      * @throws NoSuchElementException if no matching LLMFunction is found.
      */
-
-    override fun provide(functionName: String): Result<LLMFunction, FunctionNotFoundException> =
+    override suspend fun provide(functionName: String): Result<LLMFunction, FunctionNotFoundException> =
         functions().firstOrNull { it.name == functionName }?.let { Success(it) }
             ?: Failure(FunctionNotFoundException("No matching LLMFunction found for name: $functionName"))
 
-    override fun provideAll(): List<LLMFunction> = functions()
+    override suspend fun provideAll(): List<LLMFunction> = functions()
 
-    private fun functions() = loaders.flatMap { it.load() } + functions
+    private suspend fun functions() = loaders.flatMap { it.load() } + functions
+
+    override fun close() {
+        loaders.forEach {
+            if (it is Closeable) {
+                it.close()
+            }
+        }
+    }
 }
 
 /**
@@ -63,7 +71,7 @@ class ListFunctionsLoader : LLMFunctionLoader {
 
     private val allFunctions = Vector<LLMFunction>()
 
-    override fun load(): List<LLMFunction> = allFunctions
+    override suspend fun load(): List<LLMFunction> = allFunctions
 
     fun addAll(functions: List<LLMFunction>) {
         allFunctions.addAll(functions)
