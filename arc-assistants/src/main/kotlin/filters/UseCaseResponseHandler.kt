@@ -34,18 +34,26 @@ class UseCaseResponseHandler : AgentFilter {
 
         if (useCaseId != null) {
             log.info("Use case: $useCaseId used. Step: $stepId")
+            var updatedUseCases: List<String>? = null
 
             if (stepId == null) {
                 val usedUseCases = memory<List<String>>("usedUseCases") ?: emptyList()
                 log.info("All Use cases used: $usedUseCases")
-                memory("usedUseCases", usedUseCases + useCaseId)
+                updatedUseCases = usedUseCases + useCaseId
+                memory("usedUseCases", updatedUseCases)
             }
 
             val loadedUseCases = getCurrentUseCases()
             val useCase = loadedUseCases?.useCases?.find { it.id == useCaseId }
             emit(UseCaseEvent(useCaseId, stepId, version = useCase?.version, description = useCase?.description))
             loadedUseCases?.let {
-                setCurrentUseCases(it.copy(currentUseCaseId = useCaseId, currentStep = stepId))
+                setCurrentUseCases(
+                    it.copy(
+                        currentUseCaseId = useCaseId,
+                        currentStep = stepId,
+                        usedUseCases = updatedUseCases ?: it.usedUseCases
+                    )
+                )
                 addData(Data(name = it.name, data = it.processedUseCases))
                 outputContext("useCase", useCaseId)
             }
