@@ -19,6 +19,7 @@ import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
+import org.eclipse.lmos.arc.agents.dsl.setSystemPrompt
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -151,7 +152,7 @@ class ChatAgent(
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
             ) { tags, _ ->
                 systemPrompt.invoke(dslContext).also {
-                    dslContext.addData(Data("systemPrompt", it))
+                    dslContext.setSystemPrompt(it)
                     tags.tag("prompt", it)
                 }
             }
