@@ -28,6 +28,14 @@ suspend fun DSLContext.addData(data: Data) {
 }
 
 /**
+ * Get system prompt
+ */
+fun DSLContext.getSystemPrompt(): Data? = getData()?.firstOrNull { it.name == "systemPrompt" }
+suspend fun DSLContext.setSystemPrompt(prompt: String) {
+    addData(Data("systemPrompt", prompt))
+}
+
+/**
  * Event that is published when new data is added.
  */
 data class DataAddedEvent(val name: String, val data: String) : Event by BaseEvent()

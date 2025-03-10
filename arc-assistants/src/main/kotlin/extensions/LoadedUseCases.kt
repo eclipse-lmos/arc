@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 data class LoadedUseCases(
     val name: String,
     val useCases: List<UseCase>,
+    val usedUseCases: List<String>,
     val processedUseCases: String,
     val currentStep: String? = null,
     val currentUseCaseId: String? = null,
