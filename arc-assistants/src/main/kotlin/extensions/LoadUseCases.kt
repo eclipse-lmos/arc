@@ -5,7 +5,6 @@
 package org.eclipse.lmos.arc.agents.dsl.extensions
 
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
-import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.assistants.support.extensions.LoadedUseCases
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
@@ -34,7 +33,7 @@ suspend fun DSLContext.useCases(name: String, fallbackLimit: Int = 2, conditions
             useCases.formatToString(usedUseCases.toSet(), fallbackCases, loadConditions() + conditions)
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
-        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, filteredUseCases))
+        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, filteredUseCases))
         tags.tag("compiled", filteredUseCases)
         filteredUseCases
     }
