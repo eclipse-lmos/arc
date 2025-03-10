@@ -28,8 +28,8 @@ import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.graphql.AgentResolver
 import org.eclipse.lmos.arc.graphql.ContextHandler
-import org.eclipse.lmos.arc.graphql.EmptyContextHandler
 import org.eclipse.lmos.arc.graphql.ErrorHandler
+import org.eclipse.lmos.arc.graphql.combine
 import org.eclipse.lmos.arc.graphql.context.AnonymizationEntities
 import org.eclipse.lmos.arc.graphql.context.ContextProvider
 import org.eclipse.lmos.arc.graphql.withLogContext
@@ -39,11 +39,12 @@ import java.time.Duration
 class AgentSubscription(
     private val agentProvider: AgentProvider,
     private val errorHandler: ErrorHandler? = null,
-    private val contextHandler: ContextHandler = EmptyContextHandler(),
+    contextHandlers: List<ContextHandler> = emptyList(),
     private val agentResolver: AgentResolver? = null,
 ) : Subscription {
 
     private val log = LoggerFactory.getLogger(javaClass)
+    private val combinedContextHandler = contextHandlers.combine()
 
     @GraphQLDescription("Executes an Agent and returns the results. If no agent is specified, the first agent is used.")
     fun agent(agentName: String? = null, request: AgentRequest) = channelFlow {
@@ -61,7 +62,7 @@ class AgentSubscription(
                 sendIntermediateMessage(messageChannel, start, anonymizationEntities)
             }
 
-            val result = contextHandler.inject(request) { extraContext ->
+            val result = combinedContextHandler.inject(request) { extraContext ->
                 withLogContext(agent.name, request) {
                     agent.execute(
                         Conversation(

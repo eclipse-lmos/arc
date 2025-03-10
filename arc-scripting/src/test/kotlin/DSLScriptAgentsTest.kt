@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.scripting
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class DSLScriptAgentsTest : TestBase() {
     }
 
     @Test
-    fun `test loading functions`() {
+    fun `test loading functions`(): Unit = runBlocking {
         val agentBuilder = DSLScriptAgents.init(chatCompleterProvider)
         agentBuilder.defineFunctions(
             """
