@@ -18,7 +18,6 @@ import org.springframework.ai.tool.method.MethodToolCallbackProvider
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
 
-
 @SpringBootApplication(proxyBeanMethods = false)
 open class TestApplication {
 
@@ -33,12 +32,13 @@ open class TestApplication {
     @Bean
     open fun prompts(): List<SyncPromptRegistration> {
         val prompt = McpSchema.Prompt(
-            "greeting", "A friendly greeting prompt",
-            listOf(PromptArgument("name", "The name to greet", true))
+            "greeting",
+            "A friendly greeting prompt",
+            listOf(PromptArgument("name", "The name to greet", true)),
         )
 
         val promptRegistration = SyncPromptRegistration(
-            prompt
+            prompt,
         ) { getPromptRequest: GetPromptRequest ->
             var nameArgument = getPromptRequest.arguments()["name"] as String?
             if (nameArgument == null) {

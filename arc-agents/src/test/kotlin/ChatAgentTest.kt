@@ -5,7 +5,7 @@
 package org.eclipse.lmos.arc.agents
 
 import io.mockk.coEvery
-import io.mockk.verify
+import io.mockk.coVerify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.conversation.*
@@ -89,7 +89,7 @@ class ChatAgentTest : TestBase() {
         coEvery { functionProvider.provideAll() } answers { listOf(TestFunction("allToolsTest")) }
 
         executeAgent(agent, "question?")
-        verify { functionProvider.provideAll() }
+        coVerify { functionProvider.provideAll() }
     }
 
     @Test
