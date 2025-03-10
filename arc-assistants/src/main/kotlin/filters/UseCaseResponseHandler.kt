@@ -51,8 +51,8 @@ class UseCaseResponseHandler : AgentFilter {
                     it.copy(
                         currentUseCaseId = useCaseId,
                         currentStep = stepId,
-                        usedUseCases = updatedUseCases ?: it.usedUseCases
-                    )
+                        usedUseCases = updatedUseCases ?: it.usedUseCases,
+                    ),
                 )
                 addData(Data(name = it.name, data = it.processedUseCases))
                 outputContext("useCase", useCaseId)

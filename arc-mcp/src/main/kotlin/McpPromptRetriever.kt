@@ -40,7 +40,9 @@ class McpPromptRetriever(private val url: String) : PromptRetriever, Closeable {
         is McpError -> {
             if (this.jsonRpcError.code == -32603) {
                 NoPromptFoundException(promptName)
-            } else PromptServerException(promptName, this)
+            } else {
+                PromptServerException(promptName, this)
+            }
         }
 
         else -> PromptServerException(promptName, this)
