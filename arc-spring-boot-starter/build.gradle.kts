@@ -30,7 +30,7 @@ dependencies {
     compileOnly("dev.langchain4j:langchain4j-open-ai:$langchain4jVersion")
 
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.4.2")
-    implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.2")
+    implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.4.2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.2")
