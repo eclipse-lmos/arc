@@ -6,7 +6,7 @@ spring-boot-version = "3.4.2"
 ktor-version = "3.1.0"
 lettuce-version = "6.3.2.RELEASE"
 jackson-version = "2.9.8"
-resilience4j-version = "2.2.0"
+resilience4j-version = "2.3.0"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
