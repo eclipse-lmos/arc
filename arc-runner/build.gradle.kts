@@ -24,7 +24,7 @@ dependencies {
 
     // Azure
     implementation("com.azure:azure-identity:1.15.0")
-    implementation("com.azure:azure-core-tracing-opentelemetry:1.0.0-beta.52")
+    implementation("com.azure:azure-core-tracing-opentelemetry:1.0.0-beta.56")
 
     // GraphQL
     implementation("com.expediagroup:graphql-kotlin-ktor-server:$graphqlKotlinVersion")
