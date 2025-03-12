@@ -18,9 +18,9 @@ open class Idea : Runnable {
     private val ideaLibrary = """
    <component name="libraryTable">
   <library name="eclipse.lmos.arc.scripting" type="repository">
-    <properties maven-id="org.eclipse.lmos:arc-scripting:0.1.0-SNAPSHOT" />
+    <properties maven-id="org.eclipse.lmos:arc-scripting:0.121.0" />
     <CLASSES>
-      <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/eclipse/lmos/arc-scripting/0.1.0-SNAPSHOT/arc-scripting-0.1.0-SNAPSHOT.jar!/" />
+      <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/eclipse/lmos/arc-scripting/0.121.0/arc-scripting-0.121.0.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlin/kotlin-stdlib/2.1.10/kotlin-stdlib-2.1.10.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/annotations/13.0/annotations-13.0.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlinx/kotlinx-coroutines-slf4j/1.10.1/kotlinx-coroutines-slf4j-1.10.1.jar!/" />
@@ -32,8 +32,8 @@ open class Idea : Runnable {
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlinx/kotlinx-coroutines-reactive/1.10.1/kotlinx-coroutines-reactive-1.10.1.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.8.0/kotlinx-serialization-json-jvm-1.8.0.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.8.0/kotlinx-serialization-core-jvm-1.8.0.jar!/" />
-      <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/eclipse/lmos/arc-result/0.1.0-SNAPSHOT/arc-result-0.1.0-SNAPSHOT.jar!/" />
-      <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/eclipse/lmos/arc-agents/0.1.0-SNAPSHOT/arc-agents-0.1.0-SNAPSHOT.jar!/" />
+      <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/eclipse/lmos/arc-result/0.121.0/arc-result-0.121.0.jar!/" />
+      <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/eclipse/lmos/arc-agents/0.121.0/arc-agents-0.121.0.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlin/kotlin-scripting-common/2.1.0/kotlin-scripting-common-2.1.0.jar!/" />
       <root url="jar://${'$'}MAVEN_REPOSITORY${'$'}/org/jetbrains/kotlin/kotlin-scripting-jvm/2.1.0/kotlin-scripting-jvm-2.1.0.jar!/" />
