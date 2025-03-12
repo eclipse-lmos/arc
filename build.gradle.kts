@@ -16,7 +16,7 @@ plugins {
     id("org.cyclonedx.bom") version "2.0.0" apply false
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
-    id("net.researchgate.release") version "3.0.2"
+    id("net.researchgate.release") version "3.1.0"
     id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
