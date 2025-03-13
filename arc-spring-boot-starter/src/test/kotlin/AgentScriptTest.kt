@@ -58,7 +58,9 @@ class AgentScriptTest {
             }
         }
 
-        assertThatNoException().isThrownBy { (llmFunctionProvider.provide("get_weather")) }
+        assertThatNoException().isThrownBy {
+            runBlocking { (llmFunctionProvider.provide("get_weather")) }
+        }
     }
 
     @Test
@@ -75,6 +77,8 @@ class AgentScriptTest {
             }
         }
 
-        assertThatNoException().isThrownBy { (llmFunctionProvider.provide("get_travel_info")) }
+        assertThatNoException().isThrownBy {
+            runBlocking { (llmFunctionProvider.provide("get_travel_info")) }
+        }
     }
 }

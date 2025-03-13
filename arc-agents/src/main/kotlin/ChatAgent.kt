@@ -19,6 +19,7 @@ import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
+import org.eclipse.lmos.arc.agents.dsl.setSystemPrompt
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -31,6 +32,7 @@ import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
+import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.recover
@@ -71,7 +73,9 @@ class ChatAgent(
             CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
         val tracer = compositeBeanProvider.provideOptional<AgentTracer>() ?: DefaultAgentTracer()
 
-        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { _, _ ->
+        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { tags, _ ->
+            tags.tag("input.value", input.transcript.lastOrNull()?.content ?: "")
+            tags.tag("input.mime_type", "text/plain")
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
@@ -116,6 +120,9 @@ class ChatAgent(
                     tools = usedFunctions.get()?.map { it.name }?.toSet() ?: emptySet(),
                 ),
             )
+
+            tags.tag("output.value", result.getOrNull()?.transcript?.last()?.content ?: "")
+            tags.tag("output.mime_type", "text/plain")
             result
         }
     }
@@ -151,7 +158,7 @@ class ChatAgent(
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
             ) { tags, _ ->
                 systemPrompt.invoke(dslContext).also {
-                    dslContext.addData(Data("systemPrompt", it))
+                    dslContext.setSystemPrompt(it)
                     tags.tag("prompt", it)
                 }
             }

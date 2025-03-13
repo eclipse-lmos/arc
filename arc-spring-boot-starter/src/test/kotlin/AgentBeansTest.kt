@@ -30,6 +30,6 @@ class AgentBeansTest {
 
     @Test
     fun `test function defined as bean`(): Unit = runBlocking {
-        assertThatNoException().isThrownBy { (functionProvider.provide("get_weather_bean")) }
+        assertThatNoException().isThrownBy { runBlocking { (functionProvider.provide("get_weather_bean")) } }
     }
 }
