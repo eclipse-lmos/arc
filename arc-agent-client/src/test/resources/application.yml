@@ -8,4 +8,4 @@ server:
 logging:
   level:
     root: WARN
-    org.eclipse.lmos.ai: DEBUG
+    org.eclipse.lmos.arc: DEBUG

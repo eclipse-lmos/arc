@@ -77,7 +77,7 @@ class DSLScriptAgents private constructor(
     /**
      * Define functions.
      */
-    fun defineFunctions(functionDSLScript: String) = result<Int, ScriptFailedException> {
+    suspend fun defineFunctions(functionDSLScript: String) = result<Int, ScriptFailedException> {
         functionsLoader.loadFunction(functionDSLScript) failWith { it }
         functionsLoader.load().size
     }
@@ -90,7 +90,7 @@ class DSLScriptAgents private constructor(
     /**
      * Get functions.
      */
-    override fun provide(functionName: String) = functionProvider.provide(functionName)
+    override suspend fun provide(functionName: String) = functionProvider.provide(functionName)
 
-    override fun provideAll() = functionProvider.provideAll()
+    override suspend fun provideAll() = functionProvider.provideAll()
 }
