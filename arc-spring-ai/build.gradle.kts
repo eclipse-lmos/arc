@@ -8,7 +8,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.25")
 
     // spring.ai
-    implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-SNAPSHOT"))
+    implementation(platform("org.springframework.ai:spring-ai-bom:1.0.4"))
     compileOnly("org.springframework.ai:spring-ai-core")
 
     // testing

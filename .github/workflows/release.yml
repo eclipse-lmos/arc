@@ -23,6 +23,7 @@ jobs:
     secrets:
       oss-username: ${{ secrets.OSSRH_USERNAME }}
       oss-password: ${{ secrets.OSSRH_PASSWORD }}
+      bot-token: ${{ secrets.LMOS_BOT_TOKEN }}
       signing-key-id: ${{ secrets.GPG_SUBKEY_ID }}
       signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
       signing-key-password: ${{ secrets.GPG_PASSPHRASE }}
