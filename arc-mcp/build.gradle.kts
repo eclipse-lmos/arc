@@ -15,5 +15,5 @@ dependencies {
 
     // Test
     testImplementation("org.springframework.ai:spring-ai-mcp-server-webmvc-spring-boot-starter:1.0.0-M6")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.2")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.3")
 }
