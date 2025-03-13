@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":arc-agents"))
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("org.slf4j:slf4j-api:2.0.17")
 
     // LangChain4J
     val langchain4jVersion = "0.36.2"
