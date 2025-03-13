@@ -10,6 +10,6 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.16")
 
     // Azure
-    api("com.azure:azure-ai-openai:1.0.0-beta.13")
+    api("com.azure:azure-ai-openai:1.0.0-beta.14")
     api("com.azure:azure-core-tracing-opentelemetry:1.0.0-beta.56")
 }
