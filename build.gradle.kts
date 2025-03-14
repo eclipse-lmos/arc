@@ -121,7 +121,7 @@ subprojects {
             "implementation"(rootProject.libs.kotlinx.serialization.json)
 
             // Testing
-            "testImplementation"("org.junit.jupiter:junit-jupiter:5.11.3")
+            "testImplementation"("org.junit.jupiter:junit-jupiter:5.12.1")
             "testImplementation"("org.assertj:assertj-core:3.26.3")
             "testImplementation"("io.mockk:mockk:1.13.16")
         }
