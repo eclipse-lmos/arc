@@ -6,7 +6,12 @@ package org.eclipse.lmos.arc.client.openai
 
 import com.openai.client.OpenAIClientAsync
 import com.openai.core.JsonValue
-import com.openai.models.*
+import com.openai.models.FunctionDefinition
+import com.openai.models.FunctionParameters
+import com.openai.models.ResponseFormatJsonObject
+import com.openai.models.chat.completions.*
+import com.openai.models.embeddings.EmbeddingCreateParams
+import com.openai.models.embeddings.EmbeddingModel
 import kotlinx.coroutines.future.await
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.*
@@ -115,12 +120,7 @@ class OpenAINativeClient(
                 settings?.maxTokens?.let { maxTokens(it.toLong()) }
                 settings?.format?.takeIf { JSON == it }?.let {
                     responseFormat(
-                        ChatCompletionCreateParams.ResponseFormat.ofResponseFormatJsonObject(
-                            ResponseFormatJsonObject.builder().type(
-                                ResponseFormatJsonObject.Type.JSON_OBJECT,
-                            ).build(),
-                        ),
-                    )
+                        ResponseFormatJsonObject.builder().type(JsonValue.from("json_object")).build())
                 }
             }.build()
 
@@ -146,28 +146,28 @@ class OpenAINativeClient(
 
     private fun toOpenAIMessages(messages: List<ConversationMessage>) = messages.map { msg ->
         when (msg) {
-            is UserMessage -> ChatCompletionMessageParam.ofChatCompletionUserMessageParam(
+            is UserMessage -> ChatCompletionMessageParam.ofUser(
                 ChatCompletionUserMessageParam.builder()
-                    .role(ChatCompletionUserMessageParam.Role.USER)
-                    .content(ChatCompletionUserMessageParam.Content.ofTextContent(msg.content)).build(),
+                    .role(JsonValue.from("user"))
+                    .content(msg.content).build(),
             )
 
-            is SystemMessage -> ChatCompletionMessageParam.ofChatCompletionSystemMessageParam(
+            is SystemMessage -> ChatCompletionMessageParam.ofSystem(
                 ChatCompletionSystemMessageParam.builder()
-                    .role(ChatCompletionSystemMessageParam.Role.SYSTEM)
-                    .content(ChatCompletionSystemMessageParam.Content.ofTextContent(msg.content)).build(),
+                    .role(JsonValue.from("system"))
+                    .content(msg.content).build(),
             )
 
-            is AssistantMessage -> ChatCompletionMessageParam.ofChatCompletionAssistantMessageParam(
+            is AssistantMessage -> ChatCompletionMessageParam.ofAssistant(
                 ChatCompletionAssistantMessageParam.builder()
-                    .role(ChatCompletionAssistantMessageParam.Role.ASSISTANT)
-                    .content(ChatCompletionAssistantMessageParam.Content.ofTextContent(msg.content)).build(),
+                    .role(JsonValue.from("assistant"))
+                    .content(msg.content).build(),
             )
 
-            is DeveloperMessage -> ChatCompletionMessageParam.ofChatCompletionDeveloperMessageParam(
+            is DeveloperMessage -> ChatCompletionMessageParam.ofDeveloper(
                 ChatCompletionDeveloperMessageParam.builder()
-                    .role(ChatCompletionDeveloperMessageParam.Role.DEVELOPER)
-                    .content(ChatCompletionDeveloperMessageParam.Content.ofTextContent(msg.content)).build(),
+                    .role(JsonValue.from("developer"))
+                    .content(msg.content).build(),
             )
         }
     }
@@ -176,9 +176,9 @@ class OpenAINativeClient(
      * Converts functions to openai functions.
      */
     private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-        val jsonObject = fn.parameters.toJson()
+        val jsonObject = fn.parameters.toOpenAISchemaAsMap()
         ChatCompletionTool.builder()
-            .type(ChatCompletionTool.Type.FUNCTION)
+            .type(JsonValue.from("function"))
             .function(
                 FunctionDefinition.builder()
                     .name(fn.name).description(fn.description).parameters(
@@ -187,10 +187,23 @@ class OpenAINativeClient(
                             .putAdditionalProperty("required", JsonValue.from(jsonObject["required"])).build(),
                     ).build(),
             ).build()
+//        val jsonObject = fn.parameters.toOpenAISchemaAsMap()
+//        ChatCompletionTool.builder()
+//            .type(JsonValue.from("function"))
+//            .function(
+//                FunctionDefinition.builder()
+//                    .name(fn.name).description(fn.description).parameters(
+//                        FunctionParameters.builder().
+//
+////                                FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from(jsonObject["type"]))
+////                            .putAdditionalProperty("properties", JsonValue.from(jsonObject["properties"]))
+////                            .putAdditionalProperty("required", JsonValue.from(jsonObject["required"])).build(),
+////                    ).build(),
+//            ).build()
     }.takeIf { it.isNotEmpty() }
 
     override suspend fun embed(texts: List<String>) = result<TextEmbeddings, Exception> {
-        EmbeddingCreateParams.EmbeddingCreateBody.builder().model(EmbeddingModel.of(config.modelName)).build().toBuilder()
+        EmbeddingCreateParams.Body.builder().model(EmbeddingModel.of(config.modelName)).build().toBuilder()
         val embedding = client.embeddings()
             .create(EmbeddingCreateParams.builder().model(EmbeddingModel.of(config.modelName)).build()).await().let { result ->
                 result.data().map { e -> TextEmbedding(texts[e.index().toInt()], e.embedding()) }
