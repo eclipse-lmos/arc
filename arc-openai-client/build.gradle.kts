@@ -13,4 +13,6 @@ dependencies {
 
     // OpenAISDK
     api("com.openai:openai-java:0.34.1")
+
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.1" )
 }

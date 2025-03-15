@@ -9,6 +9,10 @@ import com.openai.models.chat.completions.ChatCompletion
 import com.openai.models.chat.completions.ChatCompletionAssistantMessageParam
 import com.openai.models.chat.completions.ChatCompletionMessageParam
 import com.openai.models.chat.completions.ChatCompletionToolMessageParam
+import com.openai.models.responses.Response
+import com.openai.models.responses.ResponseFunctionToolCall
+import com.openai.models.responses.ResponseInputItem
+import com.openai.models.responses.ResponseInputItem.FunctionCallOutput
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.events.EventPublisher
@@ -93,6 +97,56 @@ class FunctionCallHandler(
                 }
             }
             listOf(assistantMessage) + toolMessages
+        } else {
+            emptyList()
+        }
+    }
+
+    suspend fun handleResponse(responses: Response) = result<List<ResponseInputItem>, ArcException> {
+        if (functionCallCount.incrementAndGet() > functionCallLimit) {
+            failWith {
+                ArcException("Function call limit exceeded!")
+            }
+        }
+
+        if (responses.output().size > 1) {
+            failWith {
+                ArcException("More than one function tool call is not supported.")
+            }
+        }
+
+        val responseOutputItem = responses.output()[0]
+        if (responseOutputItem.isFunctionCall()) {
+            val functionToolCallItem = responseOutputItem.functionCall().get()
+            val functionName = functionToolCallItem.name()
+            val functionArguments = functionToolCallItem.arguments().toJson() failWith { it }
+            val functionCallResult: Result<String, ArcException>
+
+            log.debug("Received ${functionToolCallItem.name()} tool calls..")
+
+            val duration = measureTime {
+                eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
+                functionCallResult = callFunction(functionName, functionArguments)
+            }
+
+            eventHandler?.publish(
+                LLMFunctionCalledEvent(
+                    functionName,
+                    functionArguments,
+                    functionCallResult,
+                    duration = duration,
+                ),
+            )
+
+            val functionToolCall = ResponseFunctionToolCall.builder().callId(functionToolCallItem.callId())
+                .name(functionName).arguments(functionToolCallItem.arguments()).build()
+
+            val functionToolCallOutput = FunctionCallOutput.builder().callId(functionToolCallItem.callId())
+                .output(functionCallResult failWith { it }).build()
+            listOf(
+                ResponseInputItem.ofFunctionCall(functionToolCall),
+                ResponseInputItem.ofFunctionCallOutput(functionToolCallOutput)
+            )
         } else {
             emptyList()
         }

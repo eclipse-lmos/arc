@@ -12,6 +12,7 @@ data class ChatCompletionSettings(
     val n: Int? = null,
     val seed: Long? = null,
     val format: OutputFormat? = null,
+    val api: String = "completions"
 )
 
 enum class OutputFormat {
