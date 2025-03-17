@@ -28,7 +28,7 @@ class ScriptingLLMFunctionLoader(
     private val log = LoggerFactory.getLogger(javaClass)
     private val functions = ConcurrentHashMap<String, LLMFunction>()
 
-    override fun load(): List<LLMFunction> {
+    override suspend fun load(): List<LLMFunction> {
         return functions.values.toList()
     }
 

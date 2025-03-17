@@ -6,7 +6,7 @@ dependencies {
     val ktorVersion = "3.1.1"
     val langchain4jVersion = "0.36.2"
     val graphqlKotlinVersion = "8.3.0"
-    val logbackVersion = "1.5.16"
+    val logbackVersion = "1.5.17"
 
     implementation(project(":arc-agents"))
     implementation(project(":arc-result"))
