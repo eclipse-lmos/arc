@@ -6,11 +6,11 @@ package org.eclipse.lmos.arc.mcp
 
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest
 import io.modelcontextprotocol.spec.McpSchema.TextContent
+import io.modelcontextprotocol.spec.parameters
 import kotlinx.coroutines.reactor.awaitSingle
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionException
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
-import org.eclipse.lmos.arc.agents.functions.ParametersSchema
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.result
@@ -28,12 +28,11 @@ class McpTools(private val url: String) : LLMFunctionLoader, Closeable {
     override suspend fun load(): List<LLMFunction> {
         val result = clientBuilder.execute { client ->
 
-            // TODO tool.inputSchema.convert()
             client.listTools().awaitSingle().tools.map { tool ->
                 log.debug("Loaded tool: ${tool.name} from $url")
                 object : LLMFunction {
                     override val name: String = tool.name
-                    override val parameters = ParametersSchema()
+                    override val parameters = parameters(tool)
                     override val description: String = tool.description
                     override val group: String = "MCP"
                     override val isSensitive: Boolean = false
@@ -52,6 +51,7 @@ class McpTools(private val url: String) : LLMFunctionLoader, Closeable {
                 }
             }
         }
+        log.debug("Loaded tools from $url: $result")
         return result.getOrThrow()
     }
 

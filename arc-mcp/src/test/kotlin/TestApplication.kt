@@ -14,6 +14,7 @@ import io.modelcontextprotocol.spec.McpSchema.Role
 import io.modelcontextprotocol.spec.McpSchema.TextContent
 import org.springframework.ai.tool.ToolCallbackProvider
 import org.springframework.ai.tool.annotation.Tool
+import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.ai.tool.method.MethodToolCallbackProvider
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
@@ -56,7 +57,34 @@ open class TestApplication {
 class AuthorRepository {
 
     @Tool(description = "Gets a list of available books")
-    fun getBooks(): List<Book> {
+    fun getBooks(@ToolParam(description = "A description") id: String?): List<Book> {
+        return listOf(Book("Spring Boot"), Book("Kotlin"))
+    }
+
+    @Tool(description = "Gets a list of available books")
+    fun getBooksByBoolean(@ToolParam(description = "A description") id: Boolean): List<Book> {
+        return listOf(Book("Spring Boot"), Book("Kotlin"))
+    }
+
+    @Tool(description = "Gets a list of available books")
+    fun getBooksByObject(
+        @ToolParam(description = "A description") id: String,
+        @ToolParam(description = "A description") data: Data,
+    ): List<Book> {
+        return listOf(Book("Spring Boot"), Book("Kotlin"))
+    }
+
+    @Tool(description = "Gets a list of available books")
+    fun getBooksByEnum(
+        @ToolParam(description = "A description") enum: Enums,
+    ): List<Book> {
+        return listOf(Book("Spring Boot"), Book("Kotlin"))
+    }
+
+    @Tool(description = "Gets a list of available books")
+    fun getBooksByArray(
+        @ToolParam(description = "A description") list: List<String>,
+    ): List<Book> {
         return listOf(Book("Spring Boot"), Book("Kotlin"))
     }
 
@@ -69,3 +97,9 @@ class AuthorRepository {
 
 data class Book(val name: String)
 data class Author(val name: String)
+data class Data(val name: String)
+enum class Enums {
+    A,
+    B,
+    C,
+}

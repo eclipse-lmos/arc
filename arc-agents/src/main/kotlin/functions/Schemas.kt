@@ -15,7 +15,7 @@ import kotlinx.serialization.json.intOrNull
 /**
  * Helper functions to convert ParametersSchema to different formats.
  */
-
+fun ParametersSchema.toJsonString() = json.encodeToString(ParametersSchema.serializer(), this)
 fun ParametersSchema.toJson() = json.encodeToJsonElement(ParametersSchema.serializer(), this) as JsonObject
 fun ParameterSchema.toJson() = json.encodeToJsonElement(ParameterSchema.serializer(), this) as JsonObject
 
@@ -47,7 +47,7 @@ fun JsonObject.toJsonMap(): Map<String, Any?> = mapValues { (_, value) ->
                         jsonElement.isString -> jsonElement.content
                         else ->
                             jsonElement.booleanOrNull ?: jsonElement.intOrNull ?: jsonElement.floatOrNull
-                                ?: jsonElement.doubleOrNull
+                            ?: jsonElement.doubleOrNull
                     }
                 }
 
