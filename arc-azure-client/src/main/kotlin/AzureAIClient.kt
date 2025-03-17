@@ -110,7 +110,7 @@ class AzureAIClient(
 
         var chatCompletionsResult: Result<ChatCompletions, ArcException>
         var duration: Duration
-        val result = withLLMSpan(settings) { tag ->
+        val result = withLLMSpan(settings, messages) { tag ->
             val pair = doChatCompletions(chatCompletionsOptions)
             chatCompletionsResult = pair.first
             duration = pair.second
@@ -143,6 +143,7 @@ class AzureAIClient(
     @OptIn(ExperimentalContracts::class)
     private suspend fun <T> withLLMSpan(
         settings: ChatCompletionSettings?,
+        inputMessages: List<ChatRequestMessage>,
         fn: suspend ((ChatCompletions) -> Unit) -> T,
     ): T {
         contract {
@@ -169,6 +170,7 @@ class AzureAIClient(
                 tags.tag("gen_ai.usage.input_tokens", completions.usage.promptTokens.toLong())
                 tags.tag("gen_ai.usage.output_tokens", completions.usage.completionTokens.toLong())
                 tags.tag("gen_ai.openai.response.system_fingerprint", completions.systemFingerprint)
+                OpenInference.applyAttributes(tags, config, settings, completions, inputMessages)
             })
         }
     }
