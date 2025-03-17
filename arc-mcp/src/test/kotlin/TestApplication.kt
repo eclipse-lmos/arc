@@ -12,10 +12,19 @@ import io.modelcontextprotocol.spec.McpSchema.PromptArgument
 import io.modelcontextprotocol.spec.McpSchema.PromptMessage
 import io.modelcontextprotocol.spec.McpSchema.Role
 import io.modelcontextprotocol.spec.McpSchema.TextContent
-import org.springframework.ai.tool.ToolCallbackProvider
+import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
+import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
+import org.eclipse.lmos.arc.agents.dsl.string
+import org.eclipse.lmos.arc.agents.dsl.types
+import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.llm.ChatCompleter
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.core.result
+import org.eclipse.lmos.arc.spring.Functions
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
-import org.springframework.ai.tool.method.MethodToolCallbackProvider
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
 
@@ -23,11 +32,28 @@ import org.springframework.context.annotation.Bean
 open class TestApplication {
 
     @Bean
-    open fun tools(): ToolCallbackProvider {
-        return MethodToolCallbackProvider
-            .builder()
-            .toolObjects(AuthorRepository())
-            .build()
+    open fun tool(function: Functions) = function(
+        name = "getBooks",
+        description = "description",
+        params = types(string("id", "the id")),
+    ) { (id) ->
+        """[{"name":"Spring Boot"},{"name":"$id"}]"""
+    }
+
+    @Bean
+    open fun chatCompleterProvider() = ChatCompleterProvider {
+        object : ChatCompleter {
+            override suspend fun complete(
+                messages: List<ConversationMessage>,
+                functions: List<LLMFunction>?,
+                settings: ChatCompletionSettings?,
+            ) = result<AssistantMessage, ArcException> {
+                functions?.forEach { function ->
+                    function.execute(mapOf("param" to "test"))
+                }
+                AssistantMessage("Hello!")
+            }
+        }
     }
 
     @Bean

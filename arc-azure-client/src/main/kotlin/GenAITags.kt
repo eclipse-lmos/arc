@@ -5,12 +5,7 @@
 package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
-import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
-import com.azure.ai.openai.models.ChatRequestSystemMessage
-import com.azure.ai.openai.models.ChatRequestUserMessage
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 
@@ -47,4 +42,3 @@ object GenAITags {
         tags.tag("gen_ai.openai.response.system_fingerprint", completions.systemFingerprint)
     }
 }
-
