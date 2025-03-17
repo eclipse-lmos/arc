@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import java.time.Duration
 import kotlin.reflect.KClass
 
 @AutoConfiguration
@@ -44,6 +45,7 @@ import kotlin.reflect.KClass
     ClientsConfiguration::class,
     ScriptingConfiguration::class,
     CompiledScriptsConfiguration::class,
+    McpConfiguration::class,
 )
 open class ArcAutoConfiguration {
 
@@ -95,12 +97,14 @@ open class ArcAutoConfiguration {
         CompositeAgentProvider(loaders, agents)
 
     @Bean
+    @ConditionalOnMissingBean(LLMFunctionProvider::class)
     fun llmFunctionProvider(
         loaders: List<LLMFunctionLoader>,
         functions: List<LLMFunction>,
         @Value("\${arc.mcp.tools.urls:}") urls: List<String>? = null,
+        @Value("\${arc.mcp.tools.cache.duration:}") cacheDuration: Duration? = null,
     ): LLMFunctionProvider =
-        CompositeLLMFunctionProvider(loaders + (urls?.map { url -> McpTools(url) } ?: emptyList()), functions)
+        CompositeLLMFunctionProvider(loaders + (urls?.map { url -> McpTools(url, cacheDuration) } ?: emptyList()), functions)
 
     @Bean
     fun agentLoader(agentFactory: AgentFactory<*>) = Agents(agentFactory)

@@ -36,7 +36,7 @@ object OpenInferenceTags {
             }
         }
         // tags.tag("llm.input_messages",  )
-        tags.tag("llm.model_name", completions.model)
+        tags.tag("llm.model_name", config.modelName)
         tags.tag("output.value", "assistant: ${completions.choices.first().message.content}")
         tags.tag("output.mime_type", "text/plain") // TODO
         tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())

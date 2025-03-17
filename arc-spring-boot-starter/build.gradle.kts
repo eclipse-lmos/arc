@@ -18,7 +18,7 @@ dependencies {
     compileOnly("com.azure:azure-identity:1.15.0")
 
     // MCP
-    compileOnly("org.springframework.ai:spring-ai-mcp-server-webmvc-spring-boot-starter:1.0.0-M6")
+    compileOnly("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
 
     // Micrometer
     compileOnly("io.micrometer:micrometer-registry-atlas:1.14.5")

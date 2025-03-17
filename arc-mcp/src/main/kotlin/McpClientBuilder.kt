@@ -10,33 +10,36 @@ import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport
 import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.eclipse.lmos.arc.core.Result
+import org.eclipse.lmos.arc.core.closeWith
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.time.Duration
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The MCP client.
+ *
+ * Todo See if we can keep the client open and reuse it. Currently, the client seems to lose connection after a while.
  */
 class McpClientBuilder(private val url: String) : Closeable {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val client = McpClient.async(HttpClientSseClientTransport(url))
-        .requestTimeout(Duration.ofSeconds(10))
-        .capabilities(ClientCapabilities.builder().build())
-        .build()
-    private val initialized = AtomicBoolean(false)
 
     suspend fun <T> execute(fn: suspend (McpAsyncClient) -> T): Result<T, Exception> = result<T, Exception> {
-        if (!initialized.getAndSet(true)) {
-            val result = client.initialize().awaitSingleOrNull()
-            log.debug("Client connected: $url Result: $result")
-        }
+        val client = createClient() closeWith { it.close() }
+        val result = client.initialize().awaitSingleOrNull()
+        log.debug("Client connected: $url Result: $result")
         fn(client)
     }
 
+    private fun createClient(): McpAsyncClient {
+        return McpClient.async(HttpClientSseClientTransport(url))
+            .requestTimeout(Duration.ofSeconds(10))
+            .capabilities(ClientCapabilities.builder().build())
+            .build()
+    }
+
     override fun close() {
-        client.close()
+        // client.close()
     }
 }
