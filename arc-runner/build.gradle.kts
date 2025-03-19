@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":arc-openai-client"))
     implementation(project(":arc-scripting"))
     implementation(project(":arc-graphql-spring-boot-starter"))
+    implementation(project(":arc-view-spring-boot-starter"))
     implementation(project(":arc-reader-html"))
     implementation(project(":arc-reader-pdf"))
 
