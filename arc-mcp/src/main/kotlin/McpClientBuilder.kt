@@ -26,7 +26,7 @@ class McpClientBuilder(private val url: String) : Closeable {
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun <T> execute(fn: suspend (McpAsyncClient) -> T): Result<T, Exception> = result<T, Exception> {
-        val client = createClient() closeWith { it.close() }
+        val client = createClient() closeWith { it.closeGracefully().subscribe() }
         val result = client.initialize().awaitSingleOrNull()
         log.debug("Client connected: $url Result: $result")
         fn(client)
