@@ -24,7 +24,7 @@ class HotReloadTest : TestBase() {
         delay(16_000)
 
         assertThat(scriptingAgentLoader.getAgents()).hasSize(1)
-        assertThat(scriptingLLMFunctionLoader.load()).hasSize(2)
+        assertThat(scriptingLLMFunctionLoader.load(null)).hasSize(2)
     }
 
     @Test
@@ -55,6 +55,6 @@ class HotReloadTest : TestBase() {
         delay(25_000)
 
         assertThat(scriptingAgentLoader.getAgents()).hasSize(1)
-        assertThat(scriptingLLMFunctionLoader.load()).hasSize(2)
+        assertThat(scriptingLLMFunctionLoader.load(null)).hasSize(2)
     }
 }

@@ -15,6 +15,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunctionException
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ParameterSchema
 import org.eclipse.lmos.arc.agents.functions.ParametersSchema
+import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
@@ -43,12 +44,12 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
 
     private val log = LoggerFactory.getLogger(this.javaClass)
 
-    override suspend fun provide(functionName: String) = result<LLMFunction, FunctionNotFoundException> {
+    override suspend fun provide(functionName: String, context: ToolLoaderContext?) = result<LLMFunction, FunctionNotFoundException> {
         provideAll().firstOrNull { it.name == functionName }
             ?: failWith { FunctionNotFoundException(functionName) }
     }
 
-    override suspend fun provideAll(): List<LLMFunction> {
+    override suspend fun provideAll(context: ToolLoaderContext?): List<LLMFunction> {
         return request.systemContext.filter { it.key.startsWith("function") }.mapNotNull {
             log.info("Loading Function from Request: ${it.key}")
             try {

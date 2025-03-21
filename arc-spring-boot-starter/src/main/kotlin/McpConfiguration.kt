@@ -7,6 +7,9 @@ package org.eclipse.lmos.arc.spring
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
+import org.eclipse.lmos.arc.agents.dsl.CoroutineBeanProvider
+import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toJsonMap
@@ -51,37 +54,48 @@ class McpConfiguration {
             result.get()
         }
     }
-}
 
-/**
- * Wrapper for an LLMFunction to be used as a ToolCallback.
- */
-class FunctionToolCallback(private val llmFunction: LLMFunction) : ToolCallback {
+    /**
+     * Wrapper for an LLMFunction to be used as a ToolCallback.
+     */
+    class FunctionToolCallback(private val llmFunction: LLMFunction) : ToolCallback {
 
-    private val scope = CoroutineScope(SupervisorJob())
-    private val log = LoggerFactory.getLogger(javaClass)
+        private val scope = CoroutineScope(SupervisorJob())
+        private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun call(toolInput: String): String {
-        log.warn("Calling MCP function: $toolInput")
-        val args = toolInput.toJsonMap()
-        val result = AtomicReference<String>()
-        val wait = Semaphore(0)
-        scope.launch {
-            val functionResult = llmFunction.execute(args)
-            result.set(functionResult.getOrThrow())
-            wait.release()
+        override fun call(toolInput: String): String {
+            log.warn("Calling MCP function: $toolInput")
+            val args = toolInput.toJsonMap()
+            val result = AtomicReference<String?>()
+            val error = AtomicReference<Exception?>()
+            val wait = Semaphore(0)
+            scope.launch {
+                try {
+                    val functionResult = if (llmFunction is FunctionWithContext) {
+                        val context = BasicDSLContext(CoroutineBeanProvider())
+                        llmFunction.withContext(context).execute(args)
+                    } else {
+                        llmFunction.execute(args)
+                    }
+                    result.set(functionResult.getOrThrow())
+                } catch (e: Exception) {
+                    log.error("Failed to execute tool: ${llmFunction.name}!!", e)
+                    error.set(e)
+                }
+                wait.release()
+            }
+            wait.tryAcquire(1, TimeUnit.MINUTES)
+            return result.get() ?: error.get()?.let { throw it } ?: ""
         }
-        wait.tryAcquire(1, TimeUnit.MINUTES)
-        return result.get()
-    }
 
-    override fun getToolDefinition(): ToolDefinition {
-        return object : ToolDefinition {
-            override fun name(): String = llmFunction.name
+        override fun getToolDefinition(): ToolDefinition {
+            return object : ToolDefinition {
+                override fun name(): String = llmFunction.name
 
-            override fun description(): String = llmFunction.description
+                override fun description(): String = llmFunction.description
 
-            override fun inputSchema(): String = llmFunction.parameters.toJsonString()
+                override fun inputSchema(): String = llmFunction.parameters.toJsonString()
+            }
         }
     }
 }

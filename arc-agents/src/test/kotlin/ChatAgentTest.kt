@@ -86,10 +86,10 @@ class ChatAgentTest : TestBase() {
             tools = AllTools
             systemPrompt = { "does stuff" }
         } as ChatAgent
-        coEvery { functionProvider.provideAll() } answers { listOf(TestFunction("allToolsTest")) }
+        coEvery { functionProvider.provideAll(any()) } answers { listOf(TestFunction("allToolsTest")) }
 
         executeAgent(agent, "question?")
-        coVerify { functionProvider.provideAll() }
+        coVerify { functionProvider.provideAll(any()) }
     }
 
     @Test
