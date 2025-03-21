@@ -21,3 +21,10 @@ object Unresolved : ConversationClassification {
 object AgentHandover : ConversationClassification {
     override fun toString() = "AGENT_HANDOVER"
 }
+
+/**
+ * A classification to indicate that the agent hallucinated.
+ */
+object HallucinationDetected : ConversationClassification {
+    override fun toString() = "HALLUCINATION_DETECTED"
+}

@@ -11,14 +11,14 @@ import com.azure.ai.openai.models.ChatRequestSystemMessage
 import com.azure.ai.openai.models.ChatRequestUserMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 
 /**
- * Helper object to apply attributes to the tags for OpenAI inference.
+ * Helper object to apply attributes to the tags following the OpenInference spec.
+ * https://github.com/Arize-ai/openinference/tree/main/spec
  */
-object OpenInference {
+object OpenInferenceTags {
 
     fun applyAttributes(
         tags: Tags,
@@ -35,9 +35,13 @@ object OpenInference {
                 else -> null
             }
         }
-        tags.tag("llm.input_messages", Json.encodeToString(messages))
+        // tags.tag("llm.input_messages",  )
+        tags.tag("llm.model_name", config.modelName)
         tags.tag("output.value", "assistant: ${completions.choices.first().message.content}")
         tags.tag("output.mime_type", "text/plain") // TODO
+        tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())
+        tags.tag("llm.token_count.completion", completions.usage.completionTokens.toLong())
+        tags.tag("llm.token_count.total", completions.usage.totalTokens.toLong())
     }
 }
 
