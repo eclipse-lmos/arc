@@ -5,11 +5,15 @@
 package org.eclipse.lmos.arc.agents.functions
 
 import org.eclipse.lmos.arc.agents.FunctionNotFoundException
+import org.eclipse.lmos.arc.agents.dsl.MissingBeanException
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
+import org.eclipse.lmos.arc.core.getOrNull
+import org.eclipse.lmos.arc.core.result
+import java.io.Closeable
 import java.util.*
-import java.io.Closeable as Closeable
+import kotlin.reflect.KClass
 
 /**
  * Provides LLMFunctions.
@@ -17,9 +21,12 @@ import java.io.Closeable as Closeable
  */
 interface LLMFunctionProvider {
 
-    suspend fun provide(functionName: String): Result<LLMFunction, FunctionNotFoundException>
+    suspend fun provide(
+        functionName: String,
+        context: ToolContext
+    ): Result<LLMFunction, FunctionNotFoundException>
 
-    suspend fun provideAll(): List<LLMFunction>
+    suspend fun provideAll(context: ToolContext): List<LLMFunction>
 }
 
 /**
@@ -29,7 +36,7 @@ interface LLMFunctionProvider {
  */
 fun interface LLMFunctionLoader {
 
-    suspend fun load(): List<LLMFunction>
+    suspend fun load(context: ToolContext): List<LLMFunction>
 }
 
 /**
@@ -47,13 +54,16 @@ class CompositeLLMFunctionProvider(
      * @return List of LLMFunctions matching the function name.
      * @throws NoSuchElementException if no matching LLMFunction is found.
      */
-    override suspend fun provide(functionName: String): Result<LLMFunction, FunctionNotFoundException> =
-        functions().firstOrNull { it.name == functionName }?.let { Success(it) }
+    override suspend fun provide(
+        functionName: String,
+        context: ToolContext
+    ): Result<LLMFunction, FunctionNotFoundException> =
+        functions(context).firstOrNull { it.name == functionName }?.let { Success(it) }
             ?: Failure(FunctionNotFoundException("No matching LLMFunction found for name: $functionName"))
 
-    override suspend fun provideAll(): List<LLMFunction> = functions()
+    override suspend fun provideAll(context: ToolContext): List<LLMFunction> = functions(context)
 
-    private suspend fun functions() = loaders.flatMap { it.load() } + functions
+    private suspend fun functions(context: ToolContext) = loaders.flatMap { it.load(context) } + functions
 
     override fun close() {
         loaders.forEach {
@@ -71,9 +81,34 @@ class ListFunctionsLoader : LLMFunctionLoader {
 
     private val allFunctions = Vector<LLMFunction>()
 
-    override suspend fun load(): List<LLMFunction> = allFunctions
+    override suspend fun load(context: ToolContext): List<LLMFunction> = allFunctions
 
     fun addAll(functions: List<LLMFunction>) {
         allFunctions.addAll(functions)
     }
 }
+
+/**
+ * Context for loading functions. This enabled the dynamic loading of functions, for example, based on requests.
+ */
+interface ToolContext {
+
+    /**
+     * Provides access to Beans in the context.
+     * May throw a [MissingBeanException] if the bean is not available.
+     * The getOptional() extension function can be used to get a null instead of an exception.
+     */
+    suspend fun <T : Any> context(type: KClass<T>): T
+}
+
+/**
+ * Shorthand to access classes from the context.
+ */
+suspend inline fun <reified T : Any> ToolContext.get(): T = context(T::class)
+
+/**
+ * Returns the requested bean or null if it is not available.
+ */
+suspend inline fun <reified T : Any> ToolContext.getOptional() =
+    result<T, MissingBeanException> { context(T::class) }.getOrNull()
+

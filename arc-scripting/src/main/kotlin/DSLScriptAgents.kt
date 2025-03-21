@@ -15,6 +15,7 @@ import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.ToolContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.core.failWith
@@ -90,7 +91,7 @@ class DSLScriptAgents private constructor(
     /**
      * Get functions.
      */
-    override suspend fun provide(functionName: String) = functionProvider.provide(functionName)
+    override suspend fun provide(functionName: String, context: ToolContext) = functionProvider.provide(functionName, context)
 
-    override suspend fun provideAll() = functionProvider.provideAll()
+    override suspend fun provideAll(context: ToolContext) = functionProvider.provideAll(context)
 }
