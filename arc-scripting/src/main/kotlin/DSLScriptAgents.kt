@@ -15,8 +15,8 @@ import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
-import org.eclipse.lmos.arc.agents.functions.ToolContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.result
@@ -80,7 +80,7 @@ class DSLScriptAgents private constructor(
      */
     suspend fun defineFunctions(functionDSLScript: String) = result<Int, ScriptFailedException> {
         functionsLoader.loadFunction(functionDSLScript) failWith { it }
-        functionsLoader.load().size
+        functionsLoader.load(null).size
     }
 
     /**
@@ -91,7 +91,7 @@ class DSLScriptAgents private constructor(
     /**
      * Get functions.
      */
-    override suspend fun provide(functionName: String, context: ToolContext) = functionProvider.provide(functionName, context)
+    override suspend fun provide(functionName: String, context: ToolLoaderContext?) = functionProvider.provide(functionName, context)
 
-    override suspend fun provideAll(context: ToolContext) = functionProvider.provideAll(context)
+    override suspend fun provideAll(context: ToolLoaderContext?) = functionProvider.provideAll(context)
 }

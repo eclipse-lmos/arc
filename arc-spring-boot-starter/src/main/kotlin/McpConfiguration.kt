@@ -7,6 +7,9 @@ package org.eclipse.lmos.arc.spring
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
+import org.eclipse.lmos.arc.agents.dsl.CoroutineBeanProvider
+import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toJsonMap
@@ -64,15 +67,26 @@ class FunctionToolCallback(private val llmFunction: LLMFunction) : ToolCallback 
     override fun call(toolInput: String): String {
         log.warn("Calling MCP function: $toolInput")
         val args = toolInput.toJsonMap()
-        val result = AtomicReference<String>()
+        val result = AtomicReference<String?>()
+        val error = AtomicReference<Exception?>()
         val wait = Semaphore(0)
         scope.launch {
-            val functionResult = llmFunction.execute(args)
-            result.set(functionResult.getOrThrow())
+            try {
+                val functionResult = if (llmFunction is FunctionWithContext) {
+                    val context = BasicDSLContext(CoroutineBeanProvider())
+                    llmFunction.withContext(context).execute(args)
+                } else {
+                    llmFunction.execute(args)
+                }
+                result.set(functionResult.getOrThrow())
+            } catch (e: Exception) {
+                log.error("Failed to execute tool: ${llmFunction.name}!!", e)
+                error.set(e)
+            }
             wait.release()
         }
         wait.tryAcquire(1, TimeUnit.MINUTES)
-        return result.get()
+        return result.get() ?: error.get()?.let { throw it } ?: ""
     }
 
     override fun getToolDefinition(): ToolDefinition {
