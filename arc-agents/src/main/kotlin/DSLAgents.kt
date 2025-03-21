@@ -17,9 +17,9 @@ import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
-import org.eclipse.lmos.arc.agents.functions.ToolContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListFunctionsLoader
+import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 
@@ -101,10 +101,10 @@ class DSLAgents private constructor(
     /**
      * Get functions.
      */
-    override suspend fun provide(functionName: String, context: ToolContext) =
+    override suspend fun provide(functionName: String, context: ToolLoaderContext?) =
         functionProvider.provide(functionName, context)
 
-    override suspend fun provideAll(context: ToolContext) = functionProvider.provideAll(context)
+    override suspend fun provideAll(context: ToolLoaderContext?) = functionProvider.provideAll(context)
 }
 
 /**
@@ -114,3 +114,8 @@ fun arcAgents(chatCompleter: ChatCompleter, beans: Set<Any> = emptySet()): DSLAg
     val chatCompleterProvider = ChatCompleterProvider { chatCompleter }
     return DSLAgents.init(chatCompleterProvider, beans)
 }
+
+/**
+ * Get a ChatAgent by name.
+ */
+fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } as ChatAgent

@@ -6,11 +6,11 @@ package org.eclipse.lmos.arc.mcp
 
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest
 import io.modelcontextprotocol.spec.McpSchema.TextContent
-import io.modelcontextprotocol.spec.parameters
 import kotlinx.coroutines.reactor.awaitSingle
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionException
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
+import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.failWith
@@ -34,7 +34,7 @@ class McpTools(private val url: String, private val cacheDuration: Duration?) :
     private val toolCache = AtomicReference<ToolCacheEntry>()
     private val defaultCacheDuration = Duration.ofMinutes(1)
 
-    override suspend fun load(): List<LLMFunction> {
+    override suspend fun load(context: ToolLoaderContext?): List<LLMFunction> {
         val cached = toolCache.get()
         if (cached != null && cached.createdAt.isAfter(now().minus(cacheDuration ?: defaultCacheDuration))) {
             return cached.tools
