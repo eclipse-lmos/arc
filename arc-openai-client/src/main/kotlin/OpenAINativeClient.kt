@@ -17,7 +17,6 @@ import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.*
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
-import org.eclipse.lmos.arc.agents.functions.toJson
 import org.eclipse.lmos.arc.agents.llm.*
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.core.*
@@ -120,7 +119,8 @@ class OpenAINativeClient(
                 settings?.maxTokens?.let { maxTokens(it.toLong()) }
                 settings?.format?.takeIf { JSON == it }?.let {
                     responseFormat(
-                        ResponseFormatJsonObject.builder().type(JsonValue.from("json_object")).build())
+                        ResponseFormatJsonObject.builder().type(JsonValue.from("json_object")).build(),
+                    )
                 }
             }.build()
 
@@ -195,10 +195,10 @@ class OpenAINativeClient(
 //                    .name(fn.name).description(fn.description).parameters(
 //                        FunctionParameters.builder().
 //
-////                                FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from(jsonObject["type"]))
-////                            .putAdditionalProperty("properties", JsonValue.from(jsonObject["properties"]))
-////                            .putAdditionalProperty("required", JsonValue.from(jsonObject["required"])).build(),
-////                    ).build(),
+// //                                FunctionParameters.builder().putAdditionalProperty("type", JsonValue.from(jsonObject["type"]))
+// //                            .putAdditionalProperty("properties", JsonValue.from(jsonObject["properties"]))
+// //                            .putAdditionalProperty("required", JsonValue.from(jsonObject["required"])).build(),
+// //                    ).build(),
 //            ).build()
     }.takeIf { it.isNotEmpty() }
 

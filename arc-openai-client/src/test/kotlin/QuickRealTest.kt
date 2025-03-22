@@ -93,7 +93,7 @@ fun main() {
                         .role(JsonValue.from("user"))
                         .content("What's the weather like in New York today?").build(),
                 ),
-            )
+            ),
         )
         .tools(toOpenAIFunctions(functions) ?: emptyList())
         .model(ChatModel.GPT_4O_MINI)
@@ -130,4 +130,3 @@ private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn
                 ).build(),
         ).build()
 }.takeIf { it.isNotEmpty() }
-
