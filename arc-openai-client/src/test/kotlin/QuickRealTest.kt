@@ -7,6 +7,7 @@ package org.eclipse.lmos.arc.client.openai
 import com.openai.client.okhttp.OpenAIOkHttpClientAsync
 import com.openai.core.JsonValue
 import com.openai.models.*
+import com.openai.models.chat.completions.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.arc.agents.functions.*
@@ -82,17 +83,15 @@ fun main() {
     val params = ChatCompletionCreateParams.builder()
         .messages(
             listOf(
-                ChatCompletionMessageParam.ofChatCompletionDeveloperMessageParam(
+                ChatCompletionMessageParam.ofDeveloper(
                     ChatCompletionDeveloperMessageParam.builder()
-                        .role(ChatCompletionDeveloperMessageParam.Role.DEVELOPER)
-                        .content(ChatCompletionDeveloperMessageParam.Content.ofTextContent("You are a helpful assistant."))
-                        .build(),
+                        .role(JsonValue.from("developer"))
+                        .content("You are a helpful assistant.").build(),
                 ),
-                ChatCompletionMessageParam.ofChatCompletionUserMessageParam(
+                ChatCompletionMessageParam.ofUser(
                     ChatCompletionUserMessageParam.builder()
-                        .role(ChatCompletionUserMessageParam.Role.USER)
-                        .content(ChatCompletionUserMessageParam.Content.ofTextContent("What's the weather like in New York today?"))
-                        .build(),
+                        .role(JsonValue.from("user"))
+                        .content("What's the weather like in New York today?").build(),
                 ),
             ),
         )
@@ -119,11 +118,9 @@ fun main() {
 }
 
 private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-    val jsonObject = fn.parameters.toJson()
-    println("$jsonObject")
-
+    val jsonObject = fn.parameters.toOpenAISchemaAsMap()
     ChatCompletionTool.builder()
-        .type(ChatCompletionTool.Type.FUNCTION)
+        .type(JsonValue.from("function"))
         .function(
             FunctionDefinition.builder()
                 .name(fn.name).description(fn.description).parameters(
