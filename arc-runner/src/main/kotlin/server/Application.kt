@@ -53,6 +53,7 @@ fun runApp(appConfig: AppConfig) {
         }
 
         install(RoutingRoot) {
+            staticResources("/chat", "/chat")
             graphQLPostRoute()
             graphQLSubscriptionsRoute()
         }

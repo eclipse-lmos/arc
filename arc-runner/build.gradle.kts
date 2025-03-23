@@ -3,21 +3,27 @@
 // SPDX-License-Identifier: Apache-2.0
 
 dependencies {
-    val ktorVersion = "3.1.0"
+    val ktorVersion = "3.1.1"
     val langchain4jVersion = "0.36.2"
     val graphqlKotlinVersion = "8.3.0"
     val logbackVersion = "1.5.17"
+    val arcVersion = "0.121.0"
 
-    implementation(project(":arc-agents"))
-    implementation(project(":arc-result"))
-    implementation(project(":arc-api"))
-    implementation(project(":arc-azure-client"))
-    implementation(project(":arc-langchain4j-client"))
-    implementation(project(":arc-openai-client"))
-    implementation(project(":arc-scripting"))
-    implementation(project(":arc-graphql-spring-boot-starter"))
-    implementation(project(":arc-reader-html"))
-    implementation(project(":arc-reader-pdf"))
+    // Arc
+    implementation(project(":arc-view-spring-boot-starter"))
+    implementation("org.eclipse.lmos:arc-azure-client:$arcVersion")
+    implementation("org.eclipse.lmos:arc-spring-boot-starter:$arcVersion")
+    implementation("org.eclipse.lmos:arc-reader-pdf:$arcVersion")
+    implementation("org.eclipse.lmos:arc-reader-html:$arcVersion")
+    implementation("org.eclipse.lmos:arc-assistants:$arcVersion")
+    implementation("org.eclipse.lmos:arc-reader-html:$arcVersion")
+    implementation("org.eclipse.lmos:arc-api:$arcVersion")
+    implementation("org.eclipse.lmos:arc-graphql-spring-boot-starter:$arcVersion")
+    implementation("org.eclipse.lmos:arc-agents:$arcVersion")
+    implementation("org.eclipse.lmos:arc-result:$arcVersion")
+    implementation("org.eclipse.lmos:arc-langchain4j-client:$arcVersion")
+    implementation("org.eclipse.lmos:arc-openai-client:$arcVersion")
+    implementation("org.eclipse.lmos:arc-scripting:$arcVersion")
 
     // Picocli
     implementation("info.picocli:picocli:4.7.6")
