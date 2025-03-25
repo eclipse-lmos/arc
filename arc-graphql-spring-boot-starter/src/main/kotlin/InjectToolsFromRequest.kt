@@ -4,6 +4,7 @@
 package org.eclipse.lmos.arc.graphql
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -44,17 +45,18 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
 
     private val log = LoggerFactory.getLogger(this.javaClass)
 
-    override suspend fun provide(functionName: String, context: ToolLoaderContext?) = result<LLMFunction, FunctionNotFoundException> {
-        provideAll().firstOrNull { it.name == functionName }
-            ?: failWith { FunctionNotFoundException(functionName) }
-    }
+    override suspend fun provide(functionName: String, context: ToolLoaderContext?) =
+        result<LLMFunction, FunctionNotFoundException> {
+            provideAll().firstOrNull { it.name == functionName }
+                ?: failWith { FunctionNotFoundException(functionName) }
+        }
 
     override suspend fun provideAll(context: ToolLoaderContext?): List<LLMFunction> {
         return request.systemContext.filter { it.key.startsWith("function") }.mapNotNull {
             log.info("Loading Function from Request: ${it.key}")
             try {
                 val fn = Json.parseToJsonElement(it.value).jsonObject
-                val parameters = fn["parameters"]?.jsonArray?.map {
+                val parameters = fn["parameters"]?.takeIf { it is JsonArray }?.jsonArray?.map {
                     ParameterSchema(
                         name = it.jsonObject["name"]!!.jsonPrimitive.content,
                         description = it.jsonObject["description"]!!.jsonPrimitive.content,
