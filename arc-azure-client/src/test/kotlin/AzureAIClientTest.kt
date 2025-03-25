@@ -9,6 +9,7 @@ import com.azure.ai.openai.models.ChatChoice
 import com.azure.ai.openai.models.ChatCompletions
 import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
 import com.azure.ai.openai.models.ChatResponseMessage
+import com.azure.ai.openai.models.ChatRole
 import com.azure.ai.openai.models.CompletionsFinishReason.STOPPED
 import com.azure.ai.openai.models.CompletionsFinishReason.TOOL_CALLS
 import com.azure.ai.openai.models.CompletionsUsage
@@ -101,6 +102,7 @@ class AzureAIClientTest {
         val chatResponseMessage = mockk<ChatResponseMessage>()
         every { chatResponseMessage.content } returns "answer"
         every { chatResponseMessage.toolCalls } returns null
+        every { chatResponseMessage.role } returns ChatRole.USER
 
         val chatChoice = mockk<ChatChoice>()
         every { chatChoice.finishReason } returns STOPPED
@@ -122,6 +124,7 @@ class AzureAIClientTest {
     private fun toolsChatCompletions(functions: List<String>): Mono<ChatCompletions> {
         val chatResponseMessage = mockk<ChatResponseMessage>()
         every { chatResponseMessage.content } returns ""
+        every { chatResponseMessage.role } returns ChatRole.USER
         every { chatResponseMessage.toolCalls } returns functions.mapIndexed { index, it ->
             ChatCompletionsFunctionToolCall("$index", FunctionCall(it, ""))
         }
