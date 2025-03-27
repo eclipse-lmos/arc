@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
 //
 // SPDX-License-Identifier: Apache-2.0
-package io.modelcontextprotocol.spec
+package org.eclipse.lmos.arc.mcp
 
 import io.modelcontextprotocol.spec.McpSchema.Tool
 import org.eclipse.lmos.arc.agents.functions.ParameterSchema

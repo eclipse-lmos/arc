@@ -19,6 +19,7 @@ dependencies {
 
     // MCP
     compileOnly("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
+    compileOnly("io.modelcontextprotocol.sdk:mcp-spring-webflux:0.7.0")
 
     // Micrometer
     compileOnly("io.micrometer:micrometer-registry-atlas:1.14.5")

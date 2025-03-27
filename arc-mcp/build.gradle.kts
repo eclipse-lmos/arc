@@ -10,7 +10,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.17")
 
     // MCP
-    implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:0.7.0"))
+    implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:0.8.0"))
     implementation("io.modelcontextprotocol.sdk:mcp")
 
     // Test

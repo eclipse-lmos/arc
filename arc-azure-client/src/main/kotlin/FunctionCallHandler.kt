@@ -30,7 +30,7 @@ import kotlin.time.measureTime
  * Finds function calls in ChatCompletions and calls the callback function if any are found.
  */
 class FunctionCallHandler(
-    private val functions: List<LLMFunction>,
+    val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
     private val functionCallLimit: Int = 60,
 ) {

@@ -5,12 +5,10 @@
 package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
-import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
-import com.azure.ai.openai.models.ChatRequestSystemMessage
-import com.azure.ai.openai.models.ChatRequestUserMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.eclipse.lmos.arc.agents.functions.toJsonString
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 
@@ -26,17 +24,21 @@ object OpenInferenceTags {
         settings: ChatCompletionSettings?,
         completions: ChatCompletions,
         inputMessages: List<ChatRequestMessage>,
+        functionCallHandler: FunctionCallHandler,
     ) {
-        val messages = inputMessages.mapNotNull {
-            when (it) {
-                is ChatRequestAssistantMessage -> InputMessage(it.role.toString(), it.content.toString())
-                is ChatRequestUserMessage -> InputMessage(it.role.toString(), it.content.toString())
-                is ChatRequestSystemMessage -> InputMessage(it.role.toString(), it.content.toString())
-                else -> null
-            }
-        }
-        // tags.tag("llm.input_messages",  )
+        tags.tag("openinference.span.kind", "LLM")
         tags.tag("llm.model_name", config.modelName)
+        tags.tag("llm.provider", "azure")
+        tags.tag("llm.system", "openai")
+
+        completions.choices.filter { it?.message?.content != null }.forEachIndexed { i, choice ->
+            tags.tag("llm.output_messages.$i.message.role", choice.message.role.toString())
+            tags.tag("llm.output_messages.$i.message.content", choice.message.content)
+        }
+        functionCallHandler.functions.forEachIndexed { i, tool ->
+            tags.tag("llm.tools.$i.tool.name", tool.name)
+            tags.tag("llm.tools.$i.tool.json_schema", tool.parameters.toJsonString())
+        }
         tags.tag("output.value", "assistant: ${completions.choices.first().message.content}")
         tags.tag("output.mime_type", "text/plain") // TODO
         tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())

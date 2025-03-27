@@ -26,6 +26,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
 import org.eclipse.lmos.arc.agents.functions.TraceableLLMFunction
+import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
@@ -196,7 +197,7 @@ class ChatAgent(
         val toolsContext = ToolsDSLContext(context)
         val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools }
         return if (tools.isNotEmpty()) {
-            getFunctions(tools, beanProvider).map { fn ->
+            getFunctions(tools, beanProvider, context).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn
             }.map { fn ->
                 ListenableFunction(fn) { context.addData(Data(fn.name, it)) }
@@ -206,12 +207,17 @@ class ChatAgent(
         }
     }
 
-    private suspend fun getFunctions(tools: List<String>, beanProvider: BeanProvider): List<LLMFunction> {
+    private suspend fun getFunctions(
+        tools: List<String>,
+        beanProvider: BeanProvider,
+        context: DSLContext,
+    ): List<LLMFunction> {
         val functionProvider = beanProvider.provide(LLMFunctionProvider::class)
+        val toolContext = context.toToolLoaderContext()
         return if (tools.contains(AllTools.symbol)) {
-            functionProvider.provideAll()
+            functionProvider.provideAll(toolContext)
         } else {
-            tools.map { functionProvider.provide(it).getOrThrow() }
+            tools.map { functionProvider.provide(it, toolContext).getOrThrow() }
         }
     }
 

@@ -24,7 +24,6 @@ fun String.toJsonMap() = (json.parseToJsonElement(this) as JsonObject).toJsonMap
 val json = Json {
     encodeDefaults = true
     ignoreUnknownKeys = true
-    prettyPrint = true
     explicitNulls = false
 }
 

@@ -84,4 +84,4 @@ data class AnonymizationEntity(val type: String, val value: String, val replacem
 /**
  * Converts a string to a conversation object.
  */
-fun String.toConversation(user: User) = Conversation(user = user, transcript = listOf(UserMessage(this)))
+fun String.toConversation(user: User? = null) = Conversation(user = user, transcript = listOf(UserMessage(this)))

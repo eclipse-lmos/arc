@@ -18,6 +18,6 @@ class ScriptingLLMFunctionLoaderTest : TestBase() {
             it.writeText(readScript("weather.functions.kts"))
         }
         scriptingLLMFunctionLoader.loadFunctions(scriptFile)
-        assertThat(scriptingLLMFunctionLoader.load()).hasSize(2)
+        assertThat(scriptingLLMFunctionLoader.load(null)).hasSize(2)
     }
 }
