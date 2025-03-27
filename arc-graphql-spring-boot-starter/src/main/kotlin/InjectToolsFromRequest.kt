@@ -38,19 +38,63 @@ class InjectToolsFromRequest(private val functionProvider: LLMFunctionProvider) 
 }
 
 /**
- * A provider for functions that are passed in the request.
+ * A provider for LLM functions that are passed in the agent request.
+ * 
+ * This class implements the LLMFunctionProvider interface and is responsible for:
+ * 1. Extracting function definitions from the agent request's system context
+ * 2. Parsing these definitions from JSON format
+ * 3. Creating dynamic LLMFunction implementations based on the parsed definitions
+ * 4. Delegating to another function provider for additional functions not defined in the request
+ * 
+ * Functions in the request are expected to be in JSON format with the following structure:
+ * ```
+ * {
+ *   "name": "functionName",
+ *   "description": "Function description",
+ *   "parameters": [
+ *     {
+ *       "name": "paramName",
+ *       "description": "Parameter description",
+ *       "type": "paramType"
+ *     }
+ *   ],
+ *   "value": "returnValue"
+ * }
+ * ```
+ * 
+ * @param request The agent request containing function definitions in its system context
+ * @param functionProvider A delegate provider for additional functions not defined in the request
  */
 class RequestFunctionProvider(private val request: AgentRequest, private val functionProvider: LLMFunctionProvider) :
     LLMFunctionProvider {
 
     private val log = LoggerFactory.getLogger(this.javaClass)
 
+    /**
+     * Provides a specific LLM function by name.
+     *
+     * @param functionName The name of the function to provide
+     * @param context Optional context for loading tools
+     * @return A Result containing either the requested function or a FunctionNotFoundException
+     */
     override suspend fun provide(functionName: String, context: ToolLoaderContext?) =
         result<LLMFunction, FunctionNotFoundException> {
             provideAll().firstOrNull { it.name == functionName }
                 ?: failWith { FunctionNotFoundException(functionName) }
         }
 
+    /**
+     * Provides all available LLM functions by combining functions from the request and the delegate provider.
+     *
+     * This method:
+     * 1. Extracts function definitions from the request's system context (keys starting with "function")
+     * 2. Parses each function from JSON format
+     * 3. Creates dynamic LLMFunction implementations
+     * 4. Combines these with functions from the delegate provider
+     *
+     * @param context Optional context for loading tools (not used in this implementation)
+     * @return A list of all available LLM functions
+     */
     override suspend fun provideAll(context: ToolLoaderContext?): List<LLMFunction> {
         return request.systemContext.filter { it.key.startsWith("function") }.mapNotNull {
             log.info("Loading Function from Request: ${it.key}")

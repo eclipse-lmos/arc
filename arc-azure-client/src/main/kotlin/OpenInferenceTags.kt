@@ -26,6 +26,7 @@ object OpenInferenceTags {
         inputMessages: List<ChatRequestMessage>,
         functionCallHandler: FunctionCallHandler,
     ) {
+        tags.tag("openinference.span.kind", "LLM")
         tags.tag("llm.model_name", config.modelName)
         tags.tag("llm.provider", "azure")
         tags.tag("llm.system", "openai")
