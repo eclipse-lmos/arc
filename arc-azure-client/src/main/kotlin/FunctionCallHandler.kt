@@ -17,6 +17,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionStartedEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -33,6 +34,7 @@ class FunctionCallHandler(
     val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
     private val functionCallLimit: Int = 60,
+    private val tracer: AgentTracer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
@@ -67,7 +69,9 @@ class FunctionCallHandler(
                     val functionCallResult: Result<String, ArcException>
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
-                        functionCallResult = callFunction(functionName, functionArguments)
+                        functionCallResult = tracer.withSpan("tool") { tags, _ ->
+                            callFunction(functionName, functionArguments)
+                        }
                     }
                     eventHandler?.publish(
                         LLMFunctionCalledEvent(

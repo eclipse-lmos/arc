@@ -71,7 +71,8 @@ class AzureAIClient(
         result<AssistantMessage, ArcException> {
             val openAIMessages = toOpenAIMessages(messages)
             val openAIFunctions = if (functions != null) toOpenAIFunctions(functions) else null
-            val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+            val functionCallHandler =
+                FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer = tracer ?: DefaultAgentTracer())
             val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
 
             eventHandler?.publish(LLMStartedEvent(config.modelName))

@@ -5,7 +5,10 @@
 package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
+import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
+import com.azure.ai.openai.models.ChatRequestSystemMessage
+import com.azure.ai.openai.models.ChatRequestUserMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.functions.toJsonString
@@ -31,6 +34,18 @@ object OpenInferenceTags {
         tags.tag("llm.provider", "azure")
         tags.tag("llm.system", "openai")
 
+        inputMessages.forEachIndexed { i, message ->
+            val content = when (message) {
+                is ChatRequestUserMessage -> message.content
+                is ChatRequestAssistantMessage -> message.content
+                is ChatRequestSystemMessage -> message.content
+                else -> null
+            }
+            if (content != null) {
+                tags.tag("llm.input_messages.$i.message.role", message.role.toString())
+                tags.tag("llm.input_messages.$i.message.content", content.toString())
+            }
+        }
         completions.choices.filter { it?.message?.content != null }.forEachIndexed { i, choice ->
             tags.tag("llm.output_messages.$i.message.role", choice.message.role.toString())
             tags.tag("llm.output_messages.$i.message.content", choice.message.content)
@@ -44,6 +59,16 @@ object OpenInferenceTags {
         tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())
         tags.tag("llm.token_count.completion", completions.usage.completionTokens.toLong())
         tags.tag("llm.token_count.total", completions.usage.totalTokens.toLong())
+    }
+
+    fun applyToolAttributes(
+        functionName: String,
+        functionArguments: String,
+        tags: Tags,
+    ) {
+        tags.tag("openinference.span.kind", "TOOL")
+        tags.tag("tool_call.function.name", functionName)
+        tags.tag("tool_call.function.arguments", functionArguments)
     }
 }
 
