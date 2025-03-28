@@ -25,7 +25,6 @@ import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
-import org.eclipse.lmos.arc.agents.functions.TraceableLLMFunction
 import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
@@ -142,7 +141,7 @@ class ChatAgent(
         result<Conversation, Exception> {
             val chatCompleter = compositeBeanProvider.chatCompleter(model = model)
 
-            val functions = functions(dslContext, compositeBeanProvider)?.map { TraceableLLMFunction(tracer, it) }
+            val functions = functions(dslContext, compositeBeanProvider)
             usedFunctions.set(functions)
 
             val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->

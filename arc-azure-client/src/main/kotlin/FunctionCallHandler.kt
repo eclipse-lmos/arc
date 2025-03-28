@@ -18,6 +18,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionStartedEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -70,7 +71,10 @@ class FunctionCallHandler(
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
                         functionCallResult = tracer.withSpan("tool") { tags, _ ->
-                            callFunction(functionName, functionArguments)
+                            OpenInferenceTags.applyToolAttributes(functionName, toolCall.function.arguments, tags)
+                            callFunction(functionName, functionArguments, tags).also {
+                                OpenInferenceTags.applyToolAttributes(it, tags)
+                            }
                         }
                     }
                     eventHandler?.publish(
@@ -91,13 +95,14 @@ class FunctionCallHandler(
         }
     }
 
-    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>) =
+    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>, tags: Tags) =
         result<String, ArcException> {
             val function = functions.find { it.name == functionName }
                 ?: failWith { ArcException("Cannot find function called $functionName!") }
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = function
+            OpenInferenceTags.applyToolAttributes(function, tags)
             function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
         }
 

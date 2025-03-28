@@ -11,9 +11,13 @@ import com.azure.ai.openai.models.ChatRequestSystemMessage
 import com.azure.ai.openai.models.ChatRequestUserMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonString
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
+import org.eclipse.lmos.arc.core.Result
+import org.eclipse.lmos.arc.core.getOrNull
 
 /**
  * Helper object to apply attributes to the tags following the OpenInference spec.
@@ -69,6 +73,18 @@ object OpenInferenceTags {
         tags.tag("openinference.span.kind", "TOOL")
         tags.tag("tool_call.function.name", functionName)
         tags.tag("tool_call.function.arguments", functionArguments)
+        tags.tag("input.value", functionArguments)
+        tags.tag("input.mime_type", "application/json")
+    }
+
+    fun applyToolAttributes(function: LLMFunction, tags: Tags) {
+        tags.tag("tool.name", function.name)
+        tags.tag("tool.description", function.description)
+        tags.tag("tool.parameters", function.parameters.toJsonString())
+    }
+
+    fun applyToolAttributes(result: Result<String, ArcException>, tags: Tags) {
+        tags.tag("output.value", result.getOrNull() ?: "")
     }
 }
 
