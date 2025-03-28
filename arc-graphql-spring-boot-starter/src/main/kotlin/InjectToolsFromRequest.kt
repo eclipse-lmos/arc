@@ -39,13 +39,13 @@ class InjectToolsFromRequest(private val functionProvider: LLMFunctionProvider) 
 
 /**
  * A provider for LLM functions that are passed in the agent request.
- * 
+ *
  * This class implements the LLMFunctionProvider interface and is responsible for:
  * 1. Extracting function definitions from the agent request's system context
  * 2. Parsing these definitions from JSON format
  * 3. Creating dynamic LLMFunction implementations based on the parsed definitions
  * 4. Delegating to another function provider for additional functions not defined in the request
- * 
+ *
  * Functions in the request are expected to be in JSON format with the following structure:
  * ```
  * {
@@ -61,7 +61,7 @@ class InjectToolsFromRequest(private val functionProvider: LLMFunctionProvider) 
  *   "value": "returnValue"
  * }
  * ```
- * 
+ *
  * @param request The agent request containing function definitions in its system context
  * @param functionProvider A delegate provider for additional functions not defined in the request
  */

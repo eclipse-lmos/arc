@@ -77,6 +77,9 @@ class ChatAgent(
         return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { tags, _ ->
             tags.tag("input.value", input.transcript.lastOrNull()?.content ?: "")
             tags.tag("input.mime_type", "text/plain")
+            tags.tag("openinference.span.kind", "Agent")
+            tags.tag("conversation", input.conversationId)
+
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
