@@ -11,9 +11,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.channelFlow
+import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.ChatAgent
 import org.eclipse.lmos.arc.agents.User
+import org.eclipse.lmos.arc.agents.conversation.AIAgentHandover
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.latest
@@ -24,7 +26,9 @@ import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
 import org.eclipse.lmos.arc.api.ContextEntry
 import org.eclipse.lmos.arc.core.Failure
+import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
+import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.graphql.AgentResolver
 import org.eclipse.lmos.arc.graphql.ContextHandler
@@ -41,6 +45,7 @@ class AgentSubscription(
     private val errorHandler: ErrorHandler? = null,
     contextHandlers: List<ContextHandler> = emptyList(),
     private val agentResolver: AgentResolver? = null,
+    private val agentHandoverRecursionLimit: Int = 20,
 ) : Subscription {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -64,7 +69,7 @@ class AgentSubscription(
 
             val result = combinedContextHandler.inject(request) { extraContext ->
                 withLogContext(agent.name, request) {
-                    agent.execute(
+                    val output = agent.execute(
                         Conversation(
                             user = request.userContext.userId?.let { User(it) },
                             conversationId = request.conversationContext.conversationId,
@@ -82,6 +87,7 @@ class AgentSubscription(
                             outputContext,
                         ) + extraContext,
                     )
+                    handleAIAgentHandover(output, extraContext)
                 }
             }
 
@@ -111,6 +117,27 @@ class AgentSubscription(
             }
             messageChannel.close()
         }
+    }
+
+    private suspend fun handleAIAgentHandover(
+        output: Result<Conversation, AgentFailedException>,
+        context: Set<Any>,
+        recursionCount: Int = 0,
+    ): Result<Conversation, AgentFailedException> {
+        if (recursionCount > agentHandoverRecursionLimit) {
+            log.error("Recursion limit reached for agent handover! Stopping here and returning current result.")
+            return output
+        }
+        output.getOrNull()?.takeIf { it.classification is AIAgentHandover }?.let { conversation ->
+            val handover = conversation.classification as AIAgentHandover
+            log.info("Agent handover to $handover")
+            val nextAgent = agentProvider.getAgentByName(handover.name) as? ChatAgent?
+            if (nextAgent != null) {
+                val newOutput = nextAgent.execute(conversation.copy(classification = null), context)
+                return handleAIAgentHandover(newOutput, context, recursionCount + 1)
+            }
+        }
+        return output
     }
 
     private fun findAgent(agentName: String?, request: AgentRequest): ChatAgent =

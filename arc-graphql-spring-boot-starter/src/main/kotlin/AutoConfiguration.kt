@@ -36,7 +36,14 @@ open class AgentGraphQLAutoConfiguration {
         errorHandler: ErrorHandler? = null,
         contextHandlers: List<ContextHandler>? = null,
         agentResolver: AgentResolver? = null,
-    ) = AgentSubscription(agentProvider, errorHandler, contextHandlers ?: emptyList(), agentResolver)
+        @Value("\${arc.agent.handover.limit:20}") agentHandoverRecursionLimit: Int,
+    ) = AgentSubscription(
+        agentProvider,
+        errorHandler,
+        contextHandlers ?: emptyList(),
+        agentResolver,
+        agentHandoverRecursionLimit,
+    )
 
     @Bean
     @ConditionalOnProperty("arc.cors.enabled", havingValue = "true")
