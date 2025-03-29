@@ -5,6 +5,8 @@
 package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
+import org.eclipse.lmos.arc.agents.agent.agentTracer
+import org.eclipse.lmos.arc.agents.agent.withAgentSpan
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.toLogString
@@ -25,12 +27,10 @@ import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
-import org.eclipse.lmos.arc.agents.functions.TraceableLLMFunction
 import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -72,14 +72,9 @@ class ChatAgent(
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =
             CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
-        val tracer = compositeBeanProvider.provideOptional<AgentTracer>() ?: DefaultAgentTracer()
+        val tracer = compositeBeanProvider.agentTracer()
 
-        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { tags, _ ->
-            tags.tag("input.value", input.transcript.lastOrNull()?.content ?: "")
-            tags.tag("input.mime_type", "text/plain")
-            tags.tag("openinference.span.kind", "AGENT")
-            tags.tag("conversation", input.conversationId)
-
+        return tracer.withAgentSpan(name, input) { tags, _ ->
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
