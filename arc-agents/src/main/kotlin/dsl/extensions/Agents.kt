@@ -38,10 +38,18 @@ fun AgentDefinition.nextAgent(name: String) {
  */
 suspend fun DSLContext.callAgent(
     name: String,
-    conversation: Conversation? = null,
+    input: Conversation,
     context: Set<Any> = emptySet(),
 ) = result<Conversation, AgentFailedException> {
     val agent = get<AgentProvider>().getAgentByName(name) as? ChatAgent
         ?: failWith { AgentFailedException("Unknown agent '$name'!") }
-    return agent.execute(input = conversation ?: get<Conversation>(), context = context)
+    return agent.execute(input = input, context = context)
+}
+
+/**
+ * Cancels the current execution of the Agent and hands over the conversation to the given agent.
+ */
+suspend fun DSLContext.breakToAgent(name: String, conversation: Conversation? = null, reason: String? = null): Nothing {
+    val conversationResult = (conversation ?: get<Conversation>()).copy(classification = AIAgentHandover(name))
+    throw InterruptProcessingException(conversationResult, reason)
 }

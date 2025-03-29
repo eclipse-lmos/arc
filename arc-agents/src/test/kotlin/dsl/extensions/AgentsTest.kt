@@ -41,7 +41,7 @@ class AgentsTest : TestBase() {
                 scriptingContext = dslContext,
                 input = input,
                 output = output,
-                systemPrompt = "System prompt"
+                systemPrompt = "System prompt",
             )
         }
 
@@ -57,10 +57,12 @@ class AgentsTest : TestBase() {
     fun `test callAgent with existing agent returns conversation`(): Unit = runBlocking {
         // Create a conversation with a user message
         val inputConversation = Conversation(transcript = listOf(UserMessage("Hello")))
-        val outputConversation = Conversation(transcript = listOf(
-            UserMessage("Hello"),
-            AssistantMessage("Hi there!")
-        ))
+        val outputConversation = Conversation(
+            transcript = listOf(
+                UserMessage("Hello"),
+                AssistantMessage("Hi there!"),
+            ),
+        )
 
         // Mock ChatAgent
         val mockChatAgent = mockk<ChatAgent>()
@@ -76,7 +78,7 @@ class AgentsTest : TestBase() {
             val dslContext = BasicDSLContext(testBeanProvider)
 
             // Call the callAgent function
-            val result = dslContext.callAgent("testAgent")
+            val result = dslContext.callAgent("testAgent", inputConversation)
 
             // Verify the result
             assertThat(result).isInstanceOf(Success::class.java)
@@ -98,7 +100,7 @@ class AgentsTest : TestBase() {
             val dslContext = BasicDSLContext(testBeanProvider)
 
             // Call the callAgent function and expect an exception
-            val result = dslContext.callAgent("nonExistentAgent")
+            val result = dslContext.callAgent("nonExistentAgent", inputConversation)
 
             // Verify the result
             assertThat(result).isInstanceOf(Failure::class.java)
@@ -126,13 +128,36 @@ class AgentsTest : TestBase() {
             val dslContext = BasicDSLContext(testBeanProvider)
 
             // Call the callAgent function and expect an exception
-            val result = dslContext.callAgent("testAgent")
+            val result = dslContext.callAgent("testAgent", inputConversation)
 
             // Verify the result
             assertThat(result).isInstanceOf(Failure::class.java)
             val failure = result as Failure
             assertThat(failure.reason).isInstanceOf(AgentFailedException::class.java)
             assertThat(failure.reason.message).contains("Unknown agent 'testAgent'")
+        }
+    }
+
+    @Test
+    fun `test breakToAgent throws InterruptProcessingException with correct parameters`(): Unit = runBlocking {
+        // Create a conversation with a user message
+        val inputConversation = Conversation(transcript = listOf(UserMessage("Hello")))
+
+        // Set up the test environment
+        testBeanProvider.setContext(setOf(inputConversation)) {
+            val dslContext = BasicDSLContext(testBeanProvider)
+
+            // Call the breakToAgent function and expect an exception
+            try {
+                dslContext.breakToAgent("testAgent", reason = "Test reason")
+                // If we get here, the test should fail because an exception should have been thrown
+                assertThat(false).isTrue().withFailMessage("Expected InterruptProcessingException was not thrown")
+            } catch (e: InterruptProcessingException) {
+                // Verify the exception properties
+                assertThat(e.conversation.classification).isInstanceOf(AIAgentHandover::class.java)
+                assertThat((e.conversation.classification as AIAgentHandover).name).isEqualTo("testAgent")
+                assertThat(e.message).contains("Test reason")
+            }
         }
     }
 }
