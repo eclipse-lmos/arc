@@ -71,7 +71,8 @@ class AzureAIClient(
         result<AssistantMessage, ArcException> {
             val openAIMessages = toOpenAIMessages(messages)
             val openAIFunctions = if (functions != null) toOpenAIFunctions(functions) else null
-            val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+            val functionCallHandler =
+                FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer = tracer ?: DefaultAgentTracer())
             val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
 
             eventHandler?.publish(LLMStartedEvent(config.modelName))
@@ -110,7 +111,7 @@ class AzureAIClient(
 
         var chatCompletionsResult: Result<ChatCompletions, ArcException>
         var duration: Duration
-        val result = withLLMSpan(settings, messages) { tag ->
+        val result = withLLMSpan(settings, messages, functionCallHandler) { tag ->
             val pair = doChatCompletions(chatCompletionsOptions)
             chatCompletionsResult = pair.first
             duration = pair.second
@@ -144,6 +145,7 @@ class AzureAIClient(
     private suspend fun <T> withLLMSpan(
         settings: ChatCompletionSettings?,
         inputMessages: List<ChatRequestMessage>,
+        functionCallHandler: FunctionCallHandler,
         fn: suspend ((ChatCompletions) -> Unit) -> T,
     ): T {
         contract {
@@ -153,8 +155,19 @@ class AzureAIClient(
         return (tracer ?: DefaultAgentTracer()).withSpan(name) { tags, _ ->
             fn({ completions ->
                 // TODO
-                GenAITags.applyAttributes(tags, config, settings, completions, inputMessages)
-                OpenInferenceTags.applyAttributes(tags, config, settings, completions, inputMessages)
+                val spec = System.getenv("OTEL_SPEC")
+                if ("GEN_AI" == spec) {
+                    GenAITags.applyAttributes(tags, config, settings, completions, inputMessages)
+                } else {
+                    OpenInferenceTags.applyAttributes(
+                        tags,
+                        config,
+                        settings,
+                        completions,
+                        inputMessages,
+                        functionCallHandler,
+                    )
+                }
             })
         }
     }

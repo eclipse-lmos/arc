@@ -18,16 +18,16 @@ import org.eclipse.lmos.arc.core.result
  * Extensions enabling accessing LLMs in the DSLContext.
  */
 suspend fun DSLContext.llm(
-    userMessage: String? = null,
-    systemMessage: String? = null,
+    user: String? = null,
+    system: String? = null,
     model: String? = null,
     settings: ChatCompletionSettings? = null,
 ) = result<AssistantMessage, ArcException> {
     val chatCompleterProvider = get<ChatCompleterProvider>()
     val chatCompleter = chatCompleterProvider.provideByModel(model = model)
     val messages = buildList {
-        if (systemMessage != null) add(SystemMessage(systemMessage))
-        if (userMessage != null) add(UserMessage(userMessage))
+        if (system != null) add(SystemMessage(system))
+        if (user != null) add(UserMessage(user))
     }
     return chatCompleter.complete(messages, null, settings = settings)
 }
