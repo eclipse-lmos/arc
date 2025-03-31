@@ -78,10 +78,17 @@ inline fun <reified T : ConversationMessage> Conversation.latest(): T? = transcr
  */
 interface ConversationClassification
 
+/**
+ * Indicates that the conversation is to be handed over to another AI agent.
+ */
+class AIAgentHandover(val name: String) : ConversationClassification {
+    override fun toString() = "AGENT_HANDOVER[$name]"
+}
+
 @Serializable
 data class AnonymizationEntity(val type: String, val value: String, val replacement: String)
 
 /**
  * Converts a string to a conversation object.
  */
-fun String.toConversation(user: User) = Conversation(user = user, transcript = listOf(UserMessage(this)))
+fun String.toConversation(user: User? = null) = Conversation(user = user, transcript = listOf(UserMessage(this)))

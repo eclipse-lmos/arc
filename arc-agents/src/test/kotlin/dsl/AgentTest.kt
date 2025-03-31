@@ -77,7 +77,7 @@ class AgentTest : TestBase() {
             tools = listOf("myFunctions")
         }
         val functionGroup = slot<String>()
-        coEvery { functionProvider.provide(capture(functionGroup)) } answers {
+        coEvery { functionProvider.provide(capture(functionGroup), any()) } answers {
             Success(object : LLMFunction {
                 override val name = "MyFunction"
                 override val parameters = ParametersSchema()
@@ -103,7 +103,7 @@ class AgentTest : TestBase() {
             tools { +"myDynamicFunctions" }
         }
         val functionGroup = slot<String>()
-        coEvery { functionProvider.provide(capture(functionGroup)) } answers {
+        coEvery { functionProvider.provide(capture(functionGroup), any()) } answers {
             Success(object : LLMFunction {
                 override val name = "MyFunction"
                 override val parameters = ParametersSchema()

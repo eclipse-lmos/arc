@@ -6,6 +6,9 @@ package org.eclipse.lmos.arc.client.openai
 
 import com.openai.client.OpenAIClientAsync
 import com.openai.models.*
+import com.openai.models.chat.completions.ChatCompletion
+import com.openai.models.chat.completions.ChatCompletionMessage
+import com.openai.models.chat.completions.ChatCompletionMessageToolCall
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

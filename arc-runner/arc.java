@@ -8,7 +8,7 @@
 //COMPILE_OPTIONS -Xlint:-options
 
 //REPOS mavencentral,snapshots=https://oss.sonatype.org/content/repositories/snapshots/
-//DEPS org.eclipse.lmos:arc-runner:0.121.0
+//DEPS org.eclipse.lmos:arc-runner:0.122.0-SNAPSHOT
 //DEPS org.slf4j:slf4j-api:2.0.16
 //DEPS com.fasterxml.jackson.core:jackson-databind:2.17.2
 //DEPS io.projectreactor:reactor-core:3.6.9

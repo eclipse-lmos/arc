@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.channelFlow
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.ChatAgent
 import org.eclipse.lmos.arc.agents.User
+import org.eclipse.lmos.arc.agents.agent.AgentHandoverLimit
+import org.eclipse.lmos.arc.agents.agent.executeWithHandover
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.latest
@@ -41,6 +43,7 @@ class AgentSubscription(
     private val errorHandler: ErrorHandler? = null,
     contextHandlers: List<ContextHandler> = emptyList(),
     private val agentResolver: AgentResolver? = null,
+    private val agentHandoverRecursionLimit: Int = 20,
 ) : Subscription {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -64,7 +67,7 @@ class AgentSubscription(
 
             val result = combinedContextHandler.inject(request) { extraContext ->
                 withLogContext(agent.name, request) {
-                    agent.execute(
+                    agent.executeWithHandover(
                         Conversation(
                             user = request.userContext.userId?.let { User(it) },
                             conversationId = request.conversationContext.conversationId,
@@ -76,11 +79,13 @@ class AgentSubscription(
                         ),
                         setOf(
                             request,
+                            AgentHandoverLimit(agentHandoverRecursionLimit),
                             anonymizationEntities,
                             MessagePublisherChannel(messageChannel),
                             ContextProvider(request),
                             outputContext,
                         ) + extraContext,
+                        agentProvider,
                     )
                 }
             }

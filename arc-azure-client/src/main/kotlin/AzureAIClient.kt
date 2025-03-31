@@ -71,7 +71,8 @@ class AzureAIClient(
         result<AssistantMessage, ArcException> {
             val openAIMessages = toOpenAIMessages(messages)
             val openAIFunctions = if (functions != null) toOpenAIFunctions(functions) else null
-            val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+            val functionCallHandler =
+                FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer = tracer ?: DefaultAgentTracer())
             val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
 
             eventHandler?.publish(LLMStartedEvent(config.modelName))
@@ -110,7 +111,7 @@ class AzureAIClient(
 
         var chatCompletionsResult: Result<ChatCompletions, ArcException>
         var duration: Duration
-        val result = withLLMSpan(settings, messages) { tag ->
+        val result = withLLMSpan(settings, messages, functionCallHandler) { tag ->
             val pair = doChatCompletions(chatCompletionsOptions)
             chatCompletionsResult = pair.first
             duration = pair.second
@@ -144,6 +145,7 @@ class AzureAIClient(
     private suspend fun <T> withLLMSpan(
         settings: ChatCompletionSettings?,
         inputMessages: List<ChatRequestMessage>,
+        functionCallHandler: FunctionCallHandler,
         fn: suspend ((ChatCompletions) -> Unit) -> T,
     ): T {
         contract {
@@ -152,25 +154,20 @@ class AzureAIClient(
         val name = "chat ${config.modelName}"
         return (tracer ?: DefaultAgentTracer()).withSpan(name) { tags, _ ->
             fn({ completions ->
-                tags.tag("gen_ai.request.model", config.modelName)
-                tags.tag("gen_ai.operation.name", "chat")
-                tags.tag(
-                    "gen_ai.response.finish_reasons",
-                    completions.choices.joinToString(
-                        prefix = "[",
-                        postfix = "]",
-                        separator = ",",
-                    ) { it.finishReason.toString() },
-                )
-                settings?.seed?.let { tags.tag("gen_ai.request.seed", it) }
-                settings?.temperature?.let { tags.tag("gen_ai.request.temperature", it.toString()) }
-                settings?.topP?.let { tags.tag("gen_ai.request.top_p", it.toString()) }
-                // tags.tag("gen_ai.user.message", event.messages.last().content)
-                // tags.tag("gen_ai.choice", event.result.getOrNull()?.content ?: "")
-                tags.tag("gen_ai.usage.input_tokens", completions.usage.promptTokens.toLong())
-                tags.tag("gen_ai.usage.output_tokens", completions.usage.completionTokens.toLong())
-                tags.tag("gen_ai.openai.response.system_fingerprint", completions.systemFingerprint)
-                OpenInference.applyAttributes(tags, config, settings, completions, inputMessages)
+                // TODO
+                val spec = System.getenv("OTEL_SPEC")
+                if ("GEN_AI" == spec) {
+                    GenAITags.applyAttributes(tags, config, settings, completions, inputMessages)
+                } else {
+                    OpenInferenceTags.applyAttributes(
+                        tags,
+                        config,
+                        settings,
+                        completions,
+                        inputMessages,
+                        functionCallHandler,
+                    )
+                }
             })
         }
     }
