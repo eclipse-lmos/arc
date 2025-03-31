@@ -37,6 +37,14 @@ object OpenInferenceTags {
         tags.tag("llm.model_name", config.modelName)
         tags.tag("llm.provider", "azure")
         tags.tag("llm.system", "openai")
+        settings?.let {
+            tags.tag(
+                "llm.invocation_parameters",
+                """
+                {"model_name": "${config.modelName}", "temperature": "${it.temperature}", "seed": "${it.seed}"}
+                """.trimIndent(),
+            )
+        }
 
         inputMessages.forEachIndexed { i, message ->
             val content = when (message) {
