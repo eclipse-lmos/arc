@@ -9,11 +9,14 @@ import java.io.InputStreamReader
 import java.lang.System.getenv
 import java.net.URI
 
+group = "org.eclipse.lmos"
+version = project.findProperty("version") as String
+
 plugins {
     kotlin("jvm") version "2.1.10" apply false
     kotlin("plugin.serialization") version "2.1.10" apply false
     id("org.jetbrains.dokka") version "2.0.0"
-    id("org.cyclonedx.bom") version "2.0.0" apply false
+    id("org.cyclonedx.bom") version "2.0.0"
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     id("net.researchgate.release") version "3.1.0"
@@ -23,7 +26,6 @@ plugins {
 subprojects {
     group = "org.eclipse.lmos"
 
-    apply(plugin = "org.cyclonedx.bom")
     apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "kotlinx-serialization")
