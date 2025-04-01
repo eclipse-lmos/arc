@@ -123,6 +123,6 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
                 log.error("Error parsing function: ${it.key}", e)
                 null
             }
-        } + functionProvider.provideAll()
+        } + functionProvider.provideAll(context)
     }
 }
