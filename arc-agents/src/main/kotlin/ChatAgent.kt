@@ -80,6 +80,7 @@ class ChatAgent(
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))
+            dslContext.setLocal("agent", this)
 
             var flowBreak = false
             val usedFunctions = AtomicReference<List<LLMFunction>?>(null)
