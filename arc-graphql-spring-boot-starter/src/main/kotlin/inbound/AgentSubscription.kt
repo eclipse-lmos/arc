@@ -12,7 +12,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.channelFlow
 import org.eclipse.lmos.arc.agents.AgentProvider
-import org.eclipse.lmos.arc.agents.ChatAgent
+import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.User
 import org.eclipse.lmos.arc.agents.agent.AgentHandoverLimit
 import org.eclipse.lmos.arc.agents.agent.executeWithHandover
@@ -118,10 +118,10 @@ class AgentSubscription(
         }
     }
 
-    private fun findAgent(agentName: String?, request: AgentRequest): ChatAgent =
-        agentName?.let { agentProvider.getAgentByName(it) } as ChatAgent?
-            ?: agentResolver?.resolveAgent(agentName, request) as ChatAgent?
-            ?: agentProvider.getAgents().firstOrNull() as ChatAgent?
+    private fun findAgent(agentName: String?, request: AgentRequest): ConversationAgent =
+        agentName?.let { agentProvider.getAgentByName(it) } as ConversationAgent?
+            ?: agentResolver?.resolveAgent(agentName, request) as ConversationAgent?
+            ?: agentProvider.getAgents().firstOrNull() as ConversationAgent?
             ?: error("No Agent defined!")
 
     private suspend fun ProducerScope<AgentResult>.sendIntermediateMessage(

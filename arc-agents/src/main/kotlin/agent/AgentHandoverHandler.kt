@@ -5,7 +5,7 @@ package org.eclipse.lmos.arc.agents.agent
 
 import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.AgentProvider
-import org.eclipse.lmos.arc.agents.ChatAgent
+import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.conversation.AIAgentHandover
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.getAgentByName
@@ -22,7 +22,7 @@ private val log = LoggerFactory.getLogger("HandoverHandler")
  *
  * This function will have no effect if an [AgentProvider] is not available.
  */
-suspend fun ChatAgent.executeWithHandover(
+suspend fun ConversationAgent.executeWithHandover(
     input: Conversation,
     context: Set<Any>,
     agentProvider: AgentProvider,
@@ -32,7 +32,7 @@ suspend fun ChatAgent.executeWithHandover(
     return handleAIAgentHandover(output, context, agentProvider, handoverLimit)
 }
 
-private suspend fun ChatAgent.handleAIAgentHandover(
+private suspend fun ConversationAgent.handleAIAgentHandover(
     output: Result<Conversation, AgentFailedException>,
     context: Set<Any>,
     agentProvider: AgentProvider,
@@ -48,7 +48,7 @@ private suspend fun ChatAgent.handleAIAgentHandover(
         val nextAgent = if (handover.name == this.name) {
             this
         } else {
-            agentProvider.getAgentByName(handover.name) as? ChatAgent?
+            agentProvider.getAgentByName(handover.name) as? ConversationAgent?
         }
         if (nextAgent != null) {
             val updatedCount = agentHandoverLimit.increment()
