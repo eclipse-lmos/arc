@@ -61,7 +61,7 @@ class ChatAgent(
     private val filterOutput: suspend OutputFilterContext.() -> Unit,
     private val filterInput: suspend InputFilterContext.() -> Unit,
     val init: DSLContext.() -> Unit,
-) : Agent<Conversation, Conversation> {
+) : ConversationAgent {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
