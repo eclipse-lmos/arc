@@ -15,7 +15,7 @@ dependencies {
     compileOnly(project(":arc-openai-client"))
 
     // Azure
-    compileOnly("com.azure:azure-identity:1.15.0")
+    compileOnly("com.azure:azure-identity:1.15.4")
 
     // MCP
     compileOnly("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
