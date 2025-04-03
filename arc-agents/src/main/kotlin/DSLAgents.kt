@@ -118,4 +118,4 @@ fun arcAgents(chatCompleter: ChatCompleter, beans: Set<Any> = emptySet()): DSLAg
 /**
  * Get a ChatAgent by name.
  */
-fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } as ChatAgent
+fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } as ConversationAgent

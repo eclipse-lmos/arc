@@ -6,6 +6,8 @@ package org.eclipse.lmos.arc.agents.dsl.extensions
 
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.Data
+import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.extensions.MemoryScope.LONG_TERM
 import org.eclipse.lmos.arc.agents.dsl.extensions.MemoryScope.SHORT_TERM
 import org.eclipse.lmos.arc.agents.dsl.get
@@ -45,7 +47,9 @@ suspend fun <T> DSLContext.memory(key: String): T? {
     val memory = get<Memory>()
     val owner = conversation.user?.id ?: conversation.conversationId
     getOptional<EventPublisher>()?.publish(MemoryRetrieveEvent(key))
-    return memory.fetch(owner, key, conversation.conversationId)
+    return memory.fetch<T?>(owner, key, conversation.conversationId).also {
+        addData(Data(key, it.toString()))
+    }
 }
 
 /**

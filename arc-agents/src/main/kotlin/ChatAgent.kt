@@ -61,7 +61,7 @@ class ChatAgent(
     private val filterOutput: suspend OutputFilterContext.() -> Unit,
     private val filterInput: suspend InputFilterContext.() -> Unit,
     val init: DSLContext.() -> Unit,
-) : Agent<Conversation, Conversation> {
+) : ConversationAgent {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -80,6 +80,7 @@ class ChatAgent(
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))
+            dslContext.setLocal("agent", this)
 
             var flowBreak = false
             val usedFunctions = AtomicReference<List<LLMFunction>?>(null)
