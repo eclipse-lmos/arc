@@ -46,6 +46,7 @@ object OpenInferenceTags {
             )
         }
 
+        tags.tag("input.mime_type", "application/json")
         inputMessages.forEachIndexed { i, message ->
             val content = when (message) {
                 is ChatRequestUserMessage -> message.content
@@ -54,6 +55,8 @@ object OpenInferenceTags {
                 else -> null
             }
             if (content != null) {
+                tags.tag("input.value.messages.$i.role", message.role.toString())
+                tags.tag("input.value.messages.$i.content", content.toString())
                 tags.tag("llm.input_messages.$i.message.role", message.role.toString())
                 tags.tag("llm.input_messages.$i.message.content", content.toString())
             }
@@ -66,6 +69,7 @@ object OpenInferenceTags {
             tags.tag("llm.tools.$i.tool.name", tool.name)
             tags.tag("llm.tools.$i.tool.json_schema", tool.parameters.toJsonString())
         }
+
         tags.tag("output.value", "assistant: ${completions.choices.first().message.content}")
         tags.tag("output.mime_type", "text/plain") // TODO
         tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())
