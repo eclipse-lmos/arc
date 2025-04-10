@@ -106,6 +106,7 @@ class ChatAgent(
                         }
                     }.mapFailure {
                         log.error("Agent $name failed!", it)
+                        tags.error(it)
                         AgentFailedException("Agent $name failed!", it)
                     }
             }

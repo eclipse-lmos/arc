@@ -25,6 +25,8 @@ interface Tags {
     fun tag(key: String, value: String)
 
     fun tag(key: String, value: Long)
+
+    fun error(ex: Throwable)
 }
 
 object NoopTags : Tags {
@@ -33,6 +35,10 @@ object NoopTags : Tags {
     }
 
     override fun tag(key: String, value: Long) {
+        // no-op
+    }
+
+    override fun error(ex: Throwable) {
         // no-op
     }
 }
