@@ -34,6 +34,7 @@ suspend fun <T> AgentTracer.withAgentSpan(
         tags.tag("openinference.span.kind", "AGENT")
         tags.tag("conversation", input.conversationId)
         tags.tag("session.id", input.conversationId)
+        input.user?.id?.let { tags.tag("user.id", it) }
         fn(tags, events)
     }
 }
