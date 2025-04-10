@@ -204,6 +204,7 @@ private suspend fun <T> DSLContext.trace(name: String, fn: suspend DSLContext.()
     var output = ""
     val tracer = tracer()
     val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) { tags, _ ->
+        tags.tag("openinference.span.kind", "CHAIN")
         measureTime {
             result = fn()
             output = if (result is ConversationMessage) (result as ConversationMessage).content else result.toString()
