@@ -11,7 +11,7 @@ dependencies {
 
     // Spring
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
     implementation(libs.spring.boot.starter.webflux)
     implementation(libs.spring.boot.starter.websocket)
 
