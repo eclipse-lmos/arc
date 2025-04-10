@@ -47,6 +47,7 @@ object OpenInferenceTags {
         }
 
         tags.tag("input.mime_type", "application/json")
+        tags.tag("input.value.model", completions.model)
         inputMessages.forEachIndexed { i, message ->
             val content = when (message) {
                 is ChatRequestUserMessage -> message.content
