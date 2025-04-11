@@ -46,8 +46,7 @@ object OpenInferenceTags {
             )
         }
 
-        tags.tag("input.mime_type", "application/json")
-        tags.tag("input.value.model", completions.model)
+        tags.tag("input.mime_type", "text/plain")
         inputMessages.forEachIndexed { i, message ->
             val content = when (message) {
                 is ChatRequestUserMessage -> message.content
@@ -56,10 +55,11 @@ object OpenInferenceTags {
                 else -> null
             }
             if (content != null) {
-                tags.tag("input.value.messages.$i.role", message.role.toString())
-                tags.tag("input.value.messages.$i.content", content.toString())
                 tags.tag("llm.input_messages.$i.message.role", message.role.toString())
                 tags.tag("llm.input_messages.$i.message.content", content.toString())
+            }
+            if (i == inputMessages.size - 1) {
+                tags.tag("input.value", content.toString())
             }
         }
         completions.choices.filter { it?.message?.content != null }.forEachIndexed { i, choice ->
