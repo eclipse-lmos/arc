@@ -114,20 +114,20 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
     protected val jobs = AtomicReference<List<Deferred<Unit>>>(emptyList())
 
     suspend infix fun String.replaces(s: String) = this@FilterContext.mapLatest { message ->
-        trace("Replace $s with ${this@replaces}") {
+        trace("Replace $s with ${this@replaces}", message) {
             message.update(message.content.replace(s, this@replaces))
         }
     }
 
     suspend infix fun String.replaces(s: Regex) = this@FilterContext.mapLatest { message ->
-        trace("Replace $s with ${this@replaces}") {
+        trace("Replace $s with ${this@replaces}", message) {
             message.update(message.content.replace(s, this@replaces))
         }
     }
 
     suspend operator fun String.unaryMinus() {
         this@FilterContext.mapLatest { message ->
-            trace("Remove ${this@unaryMinus}") {
+            trace("Remove ${this@unaryMinus}", message) {
                 message.update(message.content.replace(this@unaryMinus, ""))
             }
         }
@@ -135,7 +135,7 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun Regex.unaryMinus() {
         this@FilterContext.mapLatest { message ->
-            trace("Remove ${this@unaryMinus}") {
+            trace("Remove ${this@unaryMinus}", message) {
                 message.update(message.content.replace(this@unaryMinus, ""))
             }
         }
@@ -143,13 +143,13 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun AgentFilter.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            trace(this@unaryPlus::class.simpleName ?: "unknown") { filter(msg) }
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg) }
         }
     }
 
     suspend operator fun KClass<out AgentFilter>.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            trace(this@unaryPlus::class.simpleName ?: "unknown") {
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) {
                 context(this@unaryPlus).filter(msg)
             }
         }
@@ -199,16 +199,19 @@ data class FilterExecutedEvent(
 /**
  * Add tracing and log events for each filter execution.
  */
-private suspend fun <T> DSLContext.trace(name: String, fn: suspend DSLContext.() -> T): T {
+private suspend fun <T> DSLContext.trace(name: String, input: ConversationMessage, fn: suspend DSLContext.() -> T): T {
     var result: T? = null
     var output = ""
     val tracer = tracer()
     val duration = tracer.withSpan("filter $name", mapOf("filter" to (name), "step" to (name))) { tags, _ ->
         tags.tag("openinference.span.kind", "CHAIN")
         measureTime {
+            tags.tag("input.value", input.content)
+            tags.tag("input.mime_type", "text/plain")
             result = fn()
             output = if (result is ConversationMessage) (result as ConversationMessage).content else result.toString()
-            tags.tag("output", output)
+            tags.tag("output.value", output)
+            tags.tag("output.mime_type", "text/plain")
         }
     }
     emit(FilterExecutedEvent(name, duration, output = output))
