@@ -75,7 +75,7 @@ object OpenInferenceTags {
             )
         }
 
-        tags.tag("output.value", completions.choices.first().message.content)
+        tags.tag("output.value", completions.choices.firstOrNull()?.message?.content ?: "")
         tags.tag("output.mime_type", "text/plain") // TODO
         tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())
         tags.tag("llm.token_count.completion", completions.usage.completionTokens.toLong())
