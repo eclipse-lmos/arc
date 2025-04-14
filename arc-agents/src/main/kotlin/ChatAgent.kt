@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
+import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
 import org.eclipse.lmos.arc.agents.agent.onError
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
@@ -34,7 +35,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
-import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.recover
@@ -47,6 +47,8 @@ const val AGENT_LOG_CONTEXT_KEY = "agent"
 const val PHASE_LOG_CONTEXT_KEY = "phase"
 const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 const val INPUT_LOG_CONTEXT_KEY = "input"
+const val AGENT_LOCAL_CONTEXT_KEY = "agent"
+const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
@@ -81,7 +83,8 @@ class ChatAgent(
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))
-            dslContext.setLocal("agent", this)
+            dslContext.setLocal(AGENT_LOCAL_CONTEXT_KEY, this)
+            dslContext.setLocal(AGENT_TAGS_LOCAL_CONTEXT_KEY, tags)
 
             var flowBreak = false
             val usedFunctions = AtomicReference<List<LLMFunction>?>(null)
@@ -123,8 +126,7 @@ class ChatAgent(
                 ),
             )
 
-            tags.tag("output.value", result.getOrNull()?.transcript?.last()?.content ?: "")
-            tags.tag("output.mime_type", "text/plain")
+            tags.addResultTags(result, flowBreak)
             result
         }
     }
