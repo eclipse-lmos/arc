@@ -70,7 +70,7 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
     tag("output.value", result.getOrNull()?.transcript?.last()?.content ?: "")
     tag("output.mime_type", "text/plain")
 
-    val status = when (result) {
+    val status: String = when (result) {
         is Success -> {
             val response = result.value.latest<AssistantMessage>()?.content
             if (result.value.classification != null) {
@@ -91,6 +91,6 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
     }
     tag("status", status)
     val mdc = MDC.getCopyOfContextMap() ?: emptyMap()
-    val details = mapOf("status" to status, "flowBreak" to flowBreak)
+    val details = mapOf("status" to status, "flowBreak" to "$flowBreak")
     tag("metadata", Json.encodeToString(mdc + details))
 }
