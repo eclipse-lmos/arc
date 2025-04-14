@@ -90,7 +90,7 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
         is Failure -> "FAILURE"
     }
     tag("status", status)
-    val mdc = MDC.getCopyOfContextMap() ?: emptyMap()
-    val details = mapOf("status" to status, "flowBreak" to "$flowBreak")
+    val mdc: Map<String, String> = MDC.getCopyOfContextMap() ?: emptyMap()
+    val details: Map<String, String> = mapOf("status" to status, "flowBreak" to "$flowBreak")
     tag("metadata", Json.encodeToString(mdc + details))
 }
