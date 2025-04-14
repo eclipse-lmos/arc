@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.agents.agent
 
+import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agents.AGENT_LOG_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -18,6 +19,7 @@ import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrNull
+import org.slf4j.MDC
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -88,5 +90,7 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
         is Failure -> "FAILURE"
     }
     tag("status", status)
-    tag("metadata", """{"status": "$status", "flowBreak": $flowBreak}""")
+    val mdc = MDC.getCopyOfContextMap() ?: emptyMap()
+    val details = mapOf("status" to status, "flowBreak" to flowBreak)
+    tag("metadata", Json.encodeToString(mdc + details))
 }
