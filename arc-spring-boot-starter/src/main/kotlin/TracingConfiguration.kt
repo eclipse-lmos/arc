@@ -65,6 +65,10 @@ class SpanTracer(private val tracer: Tracer) : AgentTracer {
                                             newSpan.tag(key, value)
                                         }
 
+                                        override fun tag(key: String, value: Boolean) {
+                                            newSpan.tag(key, value)
+                                        }
+
                                         override fun error(ex: Throwable) {
                                             newSpan.error(ex)
                                         }
@@ -94,6 +98,10 @@ class SpanTracer(private val tracer: Tracer) : AgentTracer {
                                 }
 
                                 override fun tag(key: String, value: Long) {
+                                    newSpan.tag(key, value)
+                                }
+
+                                override fun tag(key: String, value: Boolean) {
                                     newSpan.tag(key, value)
                                 }
 

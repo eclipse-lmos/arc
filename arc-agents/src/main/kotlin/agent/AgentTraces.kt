@@ -11,6 +11,8 @@ import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.agents.tracing.Events
 import org.eclipse.lmos.arc.agents.tracing.Tags
+import java.io.PrintWriter
+import java.io.StringWriter
 
 /**
  * Provides an [AgentTracer] instance.
@@ -37,4 +39,17 @@ suspend fun <T> AgentTracer.withAgentSpan(
         input.user?.id?.let { tags.tag("user.id", it) }
         fn(tags, events)
     }
+}
+
+/**
+ * Sets the tracing attributes for an exception.
+ */
+fun Tags.onError(error: Throwable) {
+    val st = StringWriter()
+    error.printStackTrace(PrintWriter(st))
+    tag("exception.escaped", true)
+    tag("exception.message", error.message ?: "")
+    tag("exception.stacktrace", st.toString())
+    tag("exception.type", error::class.simpleName ?: "")
+    error(error)
 }

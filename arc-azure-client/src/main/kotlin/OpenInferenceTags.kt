@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
+import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
 import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
 import com.azure.ai.openai.models.ChatRequestSystemMessage
@@ -68,7 +69,10 @@ object OpenInferenceTags {
         }
         functionCallHandler.functions.forEachIndexed { i, tool ->
             tags.tag("llm.tools.$i.tool.name", tool.name)
-            tags.tag("llm.tools.$i.tool.json_schema", tool.parameters.toJsonString())
+            tags.tag(
+                "llm.tools.$i.tool.json_schema",
+                """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()}","description":"${tool.description}"}""",
+            )
         }
 
         tags.tag("output.value", completions.choices.first().message.content)
@@ -80,9 +84,10 @@ object OpenInferenceTags {
 
     fun applyToolAttributes(
         functionName: String,
-        functionArguments: String,
+        toolCall: ChatCompletionsFunctionToolCall,
         tags: Tags,
     ) {
+        val functionArguments = toolCall.function.arguments
         tags.tag("openinference.span.kind", "TOOL")
         tags.tag("tool_call.function.name", functionName)
         tags.tag("tool_call.function.arguments", functionArguments)
@@ -92,6 +97,7 @@ object OpenInferenceTags {
 
     fun applyToolAttributes(function: LLMFunction, tags: Tags) {
         tags.tag("tool.name", function.name)
+        tags.tag("tool.id", function.name)
         tags.tag("tool.description", function.description)
         tags.tag("tool.parameters", function.parameters.toJsonString())
     }
