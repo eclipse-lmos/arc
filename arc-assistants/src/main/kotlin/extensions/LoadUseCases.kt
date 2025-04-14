@@ -35,7 +35,8 @@ suspend fun DSLContext.useCases(name: String, fallbackLimit: Int = 2, conditions
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
         setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, filteredUseCases))
-        tags.tag("compiled", filteredUseCases)
+        tags.tag("document.id", name)
+        tags.tag("document.content", filteredUseCases)
         filteredUseCases
     }
 }

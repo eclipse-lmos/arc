@@ -71,7 +71,7 @@ class FunctionCallHandler(
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
                         functionCallResult = tracer.withSpan("tool") { tags, _ ->
-                            OpenInferenceTags.applyToolAttributes(functionName, toolCall.function.arguments, tags)
+                            OpenInferenceTags.applyToolAttributes(functionName, toolCall, tags)
                             callFunction(functionName, functionArguments, tags).also {
                                 OpenInferenceTags.applyToolAttributes(it, tags)
                             }

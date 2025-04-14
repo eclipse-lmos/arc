@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.agent.agentTracer
+import org.eclipse.lmos.arc.agents.agent.onError
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
@@ -106,7 +107,7 @@ class ChatAgent(
                         }
                     }.mapFailure {
                         log.error("Agent $name failed!", it)
-                        tags.error(it)
+                        tags.onError(it)
                         AgentFailedException("Agent $name failed!", it)
                     }
             }
