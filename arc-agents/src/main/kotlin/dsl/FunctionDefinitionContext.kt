@@ -24,14 +24,11 @@ interface FunctionDefinitionContext {
         required: Boolean = true,
     ): ParameterSchema
 
-    fun integer(name: String, description: String, required: Boolean) =
-        ParameterSchema("integer", name, description, isRequired = required)
+    fun integer(name: String, description: String, required: Boolean = true): ParameterSchema
 
-    fun boolean(name: String, description: String, required: Boolean) =
-        ParameterSchema("boolean", name, description, isRequired = required)
+    fun boolean(name: String, description: String, required: Boolean = true): ParameterSchema
 
-    fun number(name: String, description: String, required: Boolean) =
-        ParameterSchema("number", name, description, isRequired = required)
+    fun number(name: String, description: String, required: Boolean = true): ParameterSchema
 
     fun array(
         name: String,
@@ -134,3 +131,49 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
             }
         }
 }
+
+/**
+ * Helper functions for creating parameter schemas.
+ */
+fun string(name: String, description: String, required: Boolean = true, enum: List<String>? = null) =
+    ParameterSchema("string", name, description, enum = enum, isRequired = required)
+
+fun integer(name: String, description: String, required: Boolean = true) =
+    ParameterSchema("integer", name, description, isRequired = required)
+
+fun boolean(name: String, description: String, required: Boolean = true) =
+    ParameterSchema("boolean", name, description, isRequired = required)
+
+fun number(name: String, description: String, required: Boolean = true) =
+    ParameterSchema("number", name, description, isRequired = required)
+
+fun array(name: String, description: String, itemType: String, required: Boolean = true) =
+    ParameterSchema(
+        "array",
+        name,
+        description,
+        items = ParameterSchema(itemType),
+        isRequired = required,
+    )
+
+fun objectType(
+    name: String,
+    description: String,
+    properties: List<ParameterSchema>,
+    required: Boolean = true,
+) =
+    ParameterSchema(
+        "object",
+        name,
+        description,
+        isRequired = required,
+        properties = properties.associateBy { it.name ?: error("Name required for parameter $it!") },
+        required = properties.filter { it.isRequired }.map { it.name ?: error("Name required for parameter $it!") }
+            .toList(),
+    )
+
+fun types(vararg params: ParameterSchema) = ParametersSchema(
+    properties = params.associateBy { it.name ?: error("Name required for parameter $it!") },
+    required = params.filter { it.isRequired }.map { it.name ?: error("Name required for parameter $it!") }
+        .toList(),
+)

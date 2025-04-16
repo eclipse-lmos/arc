@@ -12,8 +12,10 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.channelFlow
 import org.eclipse.lmos.arc.agents.AgentProvider
-import org.eclipse.lmos.arc.agents.ChatAgent
+import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.User
+import org.eclipse.lmos.arc.agents.agent.AgentHandoverLimit
+import org.eclipse.lmos.arc.agents.agent.executeWithHandover
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.latest
@@ -28,8 +30,8 @@ import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.graphql.AgentResolver
 import org.eclipse.lmos.arc.graphql.ContextHandler
-import org.eclipse.lmos.arc.graphql.EmptyContextHandler
 import org.eclipse.lmos.arc.graphql.ErrorHandler
+import org.eclipse.lmos.arc.graphql.combine
 import org.eclipse.lmos.arc.graphql.context.AnonymizationEntities
 import org.eclipse.lmos.arc.graphql.context.ContextProvider
 import org.eclipse.lmos.arc.graphql.withLogContext
@@ -39,11 +41,13 @@ import java.time.Duration
 class AgentSubscription(
     private val agentProvider: AgentProvider,
     private val errorHandler: ErrorHandler? = null,
-    private val contextHandler: ContextHandler = EmptyContextHandler(),
+    contextHandlers: List<ContextHandler> = emptyList(),
     private val agentResolver: AgentResolver? = null,
+    private val agentHandoverRecursionLimit: Int = 20,
 ) : Subscription {
 
     private val log = LoggerFactory.getLogger(javaClass)
+    private val combinedContextHandler = contextHandlers.combine()
 
     @GraphQLDescription("Executes an Agent and returns the results. If no agent is specified, the first agent is used.")
     fun agent(agentName: String? = null, request: AgentRequest) = channelFlow {
@@ -61,9 +65,9 @@ class AgentSubscription(
                 sendIntermediateMessage(messageChannel, start, anonymizationEntities)
             }
 
-            val result = contextHandler.inject(request) { extraContext ->
+            val result = combinedContextHandler.inject(request) { extraContext ->
                 withLogContext(agent.name, request) {
-                    agent.execute(
+                    agent.executeWithHandover(
                         Conversation(
                             user = request.userContext.userId?.let { User(it) },
                             conversationId = request.conversationContext.conversationId,
@@ -75,11 +79,13 @@ class AgentSubscription(
                         ),
                         setOf(
                             request,
+                            AgentHandoverLimit(agentHandoverRecursionLimit),
                             anonymizationEntities,
                             MessagePublisherChannel(messageChannel),
                             ContextProvider(request),
                             outputContext,
                         ) + extraContext,
+                        agentProvider,
                     )
                 }
             }
@@ -112,10 +118,10 @@ class AgentSubscription(
         }
     }
 
-    private fun findAgent(agentName: String?, request: AgentRequest): ChatAgent =
-        agentName?.let { agentProvider.getAgentByName(it) } as ChatAgent?
-            ?: agentResolver?.resolveAgent(agentName, request) as ChatAgent?
-            ?: agentProvider.getAgents().firstOrNull() as ChatAgent?
+    private fun findAgent(agentName: String?, request: AgentRequest): ConversationAgent =
+        agentName?.let { agentProvider.getAgentByName(it) } as ConversationAgent?
+            ?: agentResolver?.resolveAgent(agentName, request) as ConversationAgent?
+            ?: agentProvider.getAgents().firstOrNull() as ConversationAgent?
             ?: error("No Agent defined!")
 
     private suspend fun ProducerScope<AgentResult>.sendIntermediateMessage(

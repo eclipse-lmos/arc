@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.graphql
 
 import com.expediagroup.graphql.server.spring.GraphQLAutoConfiguration
 import org.eclipse.lmos.arc.agents.AgentProvider
+import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.graphql.inbound.AccessControlHeaders
 import org.eclipse.lmos.arc.graphql.inbound.AgentQuery
 import org.eclipse.lmos.arc.graphql.inbound.AgentSubscription
@@ -27,12 +28,22 @@ open class AgentGraphQLAutoConfiguration {
     fun agentQuery(agentProvider: AgentProvider) = AgentQuery(agentProvider)
 
     @Bean
+    fun injectToolsFromRequest(functionProvider: LLMFunctionProvider) = InjectToolsFromRequest(functionProvider)
+
+    @Bean
     fun agentSubscription(
         agentProvider: AgentProvider,
         errorHandler: ErrorHandler? = null,
-        contextHandler: ContextHandler? = null,
+        contextHandlers: List<ContextHandler>? = null,
         agentResolver: AgentResolver? = null,
-    ) = AgentSubscription(agentProvider, errorHandler, contextHandler ?: EmptyContextHandler(), agentResolver)
+        @Value("\${arc.agent.handover.limit:20}") agentHandoverRecursionLimit: Int,
+    ) = AgentSubscription(
+        agentProvider,
+        errorHandler,
+        contextHandlers ?: emptyList(),
+        agentResolver,
+        agentHandoverRecursionLimit,
+    )
 
     @Bean
     @ConditionalOnProperty("arc.cors.enabled", havingValue = "true")

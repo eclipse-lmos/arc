@@ -4,7 +4,11 @@
 
 package org.eclipse.lmos.arc.client.openai
 
-import com.openai.models.*
+import com.openai.core.JsonValue
+import com.openai.models.chat.completions.ChatCompletion
+import com.openai.models.chat.completions.ChatCompletionAssistantMessageParam
+import com.openai.models.chat.completions.ChatCompletionMessageParam
+import com.openai.models.chat.completions.ChatCompletionToolMessageParam
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.events.EventPublisher
@@ -49,10 +53,9 @@ class FunctionCallHandler(
         // The LLM is requesting the calling of the function we defined in the original request
         if (ChatCompletion.Choice.FinishReason.TOOL_CALLS == choice.finishReason()) {
             val message = choice.message()
-
-            val assistantMessage = ChatCompletionMessageParam.ofChatCompletionAssistantMessageParam(
+            val assistantMessage = ChatCompletionMessageParam.ofAssistant(
                 ChatCompletionAssistantMessageParam.builder()
-                    .role(ChatCompletionAssistantMessageParam.Role.ASSISTANT)
+                    .role(JsonValue.from("assistant"))
                     .toolCalls(message.toolCalls().get())
                     .build(),
             )
@@ -79,11 +82,11 @@ class FunctionCallHandler(
                     )
 
                     add(
-                        ChatCompletionMessageParam.ofChatCompletionToolMessageParam(
+                        ChatCompletionMessageParam.ofTool(
                             ChatCompletionToolMessageParam.builder()
-                                .content(ChatCompletionToolMessageParam.Content.ofTextContent(functionCallResult failWith { it }))
+                                .content(functionCallResult failWith { it })
                                 .toolCallId(toolCall.id())
-                                .role(ChatCompletionToolMessageParam.Role.TOOL)
+                                .role(JsonValue.from("tool"))
                                 .build(),
                         ),
                     )

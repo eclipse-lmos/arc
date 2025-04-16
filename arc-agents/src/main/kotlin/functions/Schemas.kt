@@ -9,20 +9,21 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.intOrNull
 
 /**
  * Helper functions to convert ParametersSchema to different formats.
  */
-
+fun ParametersSchema.toJsonString() = json.encodeToString(ParametersSchema.serializer(), this)
 fun ParametersSchema.toJson() = json.encodeToJsonElement(ParametersSchema.serializer(), this) as JsonObject
 fun ParameterSchema.toJson() = json.encodeToJsonElement(ParameterSchema.serializer(), this) as JsonObject
+fun String.toJsonMap() = (json.parseToJsonElement(this) as JsonObject).toJsonMap()
 
 val json = Json {
     encodeDefaults = true
     ignoreUnknownKeys = true
-    prettyPrint = true
     explicitNulls = false
 }
 

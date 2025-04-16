@@ -9,6 +9,7 @@ import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
+import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
@@ -28,7 +29,7 @@ class ScriptingLLMFunctionLoader(
     private val log = LoggerFactory.getLogger(javaClass)
     private val functions = ConcurrentHashMap<String, LLMFunction>()
 
-    override fun load(): List<LLMFunction> {
+    override suspend fun load(context: ToolLoaderContext?): List<LLMFunction> {
         return functions.values.toList()
     }
 

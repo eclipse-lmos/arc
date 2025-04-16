@@ -5,6 +5,10 @@
 package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
+import org.eclipse.lmos.arc.agents.agent.addResultTags
+import org.eclipse.lmos.arc.agents.agent.agentTracer
+import org.eclipse.lmos.arc.agents.agent.onError
+import org.eclipse.lmos.arc.agents.agent.withAgentSpan
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.toLogString
@@ -19,16 +23,16 @@ import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
+import org.eclipse.lmos.arc.agents.dsl.setSystemPrompt
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
-import org.eclipse.lmos.arc.agents.functions.TraceableLLMFunction
+import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -43,6 +47,8 @@ const val AGENT_LOG_CONTEXT_KEY = "agent"
 const val PHASE_LOG_CONTEXT_KEY = "phase"
 const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 const val INPUT_LOG_CONTEXT_KEY = "input"
+const val AGENT_LOCAL_CONTEXT_KEY = "agent"
+const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
@@ -58,7 +64,7 @@ class ChatAgent(
     private val filterOutput: suspend OutputFilterContext.() -> Unit,
     private val filterInput: suspend InputFilterContext.() -> Unit,
     val init: DSLContext.() -> Unit,
-) : Agent<Conversation, Conversation> {
+) : ConversationAgent {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -69,14 +75,16 @@ class ChatAgent(
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =
             CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
-        val tracer = compositeBeanProvider.provideOptional<AgentTracer>() ?: DefaultAgentTracer()
+        val tracer = compositeBeanProvider.agentTracer()
 
-        return tracer.withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { _, _ ->
+        return tracer.withAgentSpan(name, input) { tags, _ ->
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))
+            dslContext.setLocal(AGENT_LOCAL_CONTEXT_KEY, this)
+            dslContext.setLocal(AGENT_TAGS_LOCAL_CONTEXT_KEY, tags)
 
             var flowBreak = false
             val usedFunctions = AtomicReference<List<LLMFunction>?>(null)
@@ -102,6 +110,7 @@ class ChatAgent(
                         }
                     }.mapFailure {
                         log.error("Agent $name failed!", it)
+                        tags.onError(it)
                         AgentFailedException("Agent $name failed!", it)
                     }
             }
@@ -116,6 +125,8 @@ class ChatAgent(
                     tools = usedFunctions.get()?.map { it.name }?.toSet() ?: emptySet(),
                 ),
             )
+
+            tags.addResultTags(result, flowBreak)
             result
         }
     }
@@ -131,7 +142,7 @@ class ChatAgent(
         result<Conversation, Exception> {
             val chatCompleter = compositeBeanProvider.chatCompleter(model = model)
 
-            val functions = functions(dslContext, compositeBeanProvider)?.map { TraceableLLMFunction(tracer, it) }
+            val functions = functions(dslContext, compositeBeanProvider)
             usedFunctions.set(functions)
 
             val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
@@ -151,7 +162,7 @@ class ChatAgent(
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
             ) { tags, _ ->
                 systemPrompt.invoke(dslContext).also {
-                    dslContext.addData(Data("systemPrompt", it))
+                    dslContext.setSystemPrompt(it)
                     tags.tag("prompt", it)
                 }
             }
@@ -189,7 +200,7 @@ class ChatAgent(
         val toolsContext = ToolsDSLContext(context)
         val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools }
         return if (tools.isNotEmpty()) {
-            getFunctions(tools, beanProvider).map { fn ->
+            getFunctions(tools, beanProvider, context).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn
             }.map { fn ->
                 ListenableFunction(fn) { context.addData(Data(fn.name, it)) }
@@ -199,12 +210,17 @@ class ChatAgent(
         }
     }
 
-    private suspend fun getFunctions(tools: List<String>, beanProvider: BeanProvider): List<LLMFunction> {
+    private suspend fun getFunctions(
+        tools: List<String>,
+        beanProvider: BeanProvider,
+        context: DSLContext,
+    ): List<LLMFunction> {
         val functionProvider = beanProvider.provide(LLMFunctionProvider::class)
+        val toolContext = context.toToolLoaderContext()
         return if (tools.contains(AllTools.symbol)) {
-            functionProvider.provideAll()
+            functionProvider.provideAll(toolContext)
         } else {
-            tools.map { functionProvider.provide(it).getOrThrow() }
+            tools.map { functionProvider.provide(it, toolContext).getOrThrow() }
         }
     }
 

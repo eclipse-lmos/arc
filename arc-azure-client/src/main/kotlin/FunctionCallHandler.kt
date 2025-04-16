@@ -17,6 +17,8 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionStartedEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -30,9 +32,10 @@ import kotlin.time.measureTime
  * Finds function calls in ChatCompletions and calls the callback function if any are found.
  */
 class FunctionCallHandler(
-    private val functions: List<LLMFunction>,
+    val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
     private val functionCallLimit: Int = 60,
+    private val tracer: AgentTracer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
@@ -67,7 +70,12 @@ class FunctionCallHandler(
                     val functionCallResult: Result<String, ArcException>
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
-                        functionCallResult = callFunction(functionName, functionArguments)
+                        functionCallResult = tracer.withSpan("tool") { tags, _ ->
+                            OpenInferenceTags.applyToolAttributes(functionName, toolCall, tags)
+                            callFunction(functionName, functionArguments, tags).also {
+                                OpenInferenceTags.applyToolAttributes(it, tags)
+                            }
+                        }
                     }
                     eventHandler?.publish(
                         LLMFunctionCalledEvent(
@@ -87,13 +95,14 @@ class FunctionCallHandler(
         }
     }
 
-    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>) =
+    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>, tags: Tags) =
         result<String, ArcException> {
             val function = functions.find { it.name == functionName }
                 ?: failWith { ArcException("Cannot find function called $functionName!") }
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = function
+            OpenInferenceTags.applyToolAttributes(function, tags)
             function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
         }
 

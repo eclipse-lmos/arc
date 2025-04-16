@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.assistants.support.filters
 
+import org.eclipse.lmos.arc.agents.AGENT_TAGS_LOCAL_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
@@ -14,6 +15,7 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.extensions.outputContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.setCurrentUseCases
+import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.assistants.support.events.UseCaseEvent
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseStepId
@@ -34,18 +36,30 @@ class UseCaseResponseHandler : AgentFilter {
 
         if (useCaseId != null) {
             log.info("Use case: $useCaseId used. Step: $stepId")
+            var updatedUseCases: List<String>? = null
 
             if (stepId == null) {
                 val usedUseCases = memory<List<String>>("usedUseCases") ?: emptyList()
                 log.info("All Use cases used: $usedUseCases")
-                memory("usedUseCases", usedUseCases + useCaseId)
+                updatedUseCases = usedUseCases + useCaseId
+                memory("usedUseCases", updatedUseCases)
+                getLocal(AGENT_TAGS_LOCAL_CONTEXT_KEY)?.takeIf { it is Tags }?.let {
+                    val tags = it as Tags
+                    usedUseCases.forEachIndexed { i, uc -> tags.tag("tag.tags.$i", uc) }
+                }
             }
 
             val loadedUseCases = getCurrentUseCases()
             val useCase = loadedUseCases?.useCases?.find { it.id == useCaseId }
             emit(UseCaseEvent(useCaseId, stepId, version = useCase?.version, description = useCase?.description))
             loadedUseCases?.let {
-                setCurrentUseCases(it.copy(currentUseCaseId = useCaseId, currentStep = stepId))
+                setCurrentUseCases(
+                    it.copy(
+                        currentUseCaseId = useCaseId,
+                        currentStep = stepId,
+                        usedUseCases = updatedUseCases ?: it.usedUseCases,
+                    ),
+                )
                 addData(Data(name = it.name, data = it.processedUseCases))
                 outputContext("useCase", useCaseId)
             }

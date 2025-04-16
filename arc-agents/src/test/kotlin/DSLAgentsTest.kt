@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.agents
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -25,7 +26,7 @@ class DSLAgentsTest : TestBase() {
     }
 
     @Test
-    fun `test loading functions`() {
+    fun `test loading functions`(): Unit = runBlocking {
         val agentBuilder = DSLAgents.init(chatCompleterProvider)
         agentBuilder.defineFunctions {
             function(
