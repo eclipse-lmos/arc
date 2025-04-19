@@ -5,8 +5,8 @@
 package org.eclipse.lmos.arc.spring.clients
 
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel
+import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
-import org.eclipse.lmos.arc.client.langchain4j.LangChainConfig
 import org.eclipse.lmos.arc.client.langchain4j.builders.geminiBuilder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
@@ -21,11 +21,9 @@ class GeminiConfiguration {
     fun geminiClient() = ClientBuilder { config, eventPublisher ->
         if (config.client != "gemini") return@ClientBuilder null
         LangChainClient(
-            LangChainConfig(
+            AIClientConfig(
                 modelName = config.modelName,
-                url = config.url,
-                accessKeyId = null,
-                secretAccessKey = null,
+                endpoint = config.url,
                 apiKey = config.apiKey,
             ),
             geminiBuilder(),

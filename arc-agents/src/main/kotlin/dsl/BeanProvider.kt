@@ -75,7 +75,7 @@ class SetBeanProvider(private val beans: Set<Any>) : BeanProvider {
 /**
  * Creates a SetBeanProvider with the provided beans.
  */
-fun beans(vararg beans: Any) = SetBeanProvider(beans.toSet())
+fun beans(vararg beans: Any?) = SetBeanProvider(beans.filterNotNull().toSet())
 
 /**
  * Composite BeanProvider

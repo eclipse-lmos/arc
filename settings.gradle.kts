@@ -6,7 +6,6 @@ rootProject.name = "arc"
 
 include("arc-scripting")
 include("arc-azure-client")
-include("arc-ollama-client")
 include("arc-reader-html")
 include("arc-reader-pdf")
 include("arc-result")
@@ -27,3 +26,4 @@ include("arc-streaming-spring-boot-starter")
 include("arc-openai-realtime-client")
 include("arc-memory-redis")
 include("arc-mcp")
+include("examples")
