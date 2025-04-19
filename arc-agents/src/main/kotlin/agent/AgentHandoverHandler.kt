@@ -41,7 +41,6 @@ private suspend fun ConversationAgent.handleAIAgentHandover(
     agentProvider: AgentProvider,
     agentHandoverLimit: AgentHandoverLimit,
 ): Result<Conversation, AgentFailedException> {
-
     /**
      * Handles agent to agent handover.
      */
@@ -92,7 +91,6 @@ private suspend fun ConversationAgent.handleAIAgentHandover(
 
     return output
 }
-
 
 /**
  * The maximum number of times an agent can hand over the conversation to another agent.
