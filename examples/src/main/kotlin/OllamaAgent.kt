@@ -6,27 +6,29 @@ package org.eclipse.lmos.arc.agents.examples
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.arc.agents.agent.ask
 import org.eclipse.lmos.arc.agents.agents
-import org.eclipse.lmos.arc.agents.dsl.AllTools
 import org.eclipse.lmos.arc.agents.getChatAgent
 import org.eclipse.lmos.arc.core.getOrNull
 
+/**
+ * Setup:
+ *  - Start the Ollama server.
+ */
 fun main() = runBlocking {
-    val agents = agents(functions = {
-        function(name = "get_weather", description = "Get the weather") {
-            """The weather is sunny. A lovely 32 degrees celsius."""
-        }
-    }) {
+    // Only the client name is required.
+    System.setProperty("ARC_CLIENT", "ollama")
+
+    val agents = agents {
         agent {
             name = "MyAgent"
-            tools = AllTools
+            model { "gemma3:12b" }
             prompt {
                 """
-                You are a professional weather service. You provide weather data to your users.
+                You are a professional write. Help me to write a professional email.
                 """
             }
         }
     }
 
-    val reply = agents.getChatAgent("MyAgent").ask("What is the weather?").getOrNull()
+    val reply = agents.getChatAgent("MyAgent").ask("Write me an email about bananas, please").getOrNull()
     println(reply)
 }

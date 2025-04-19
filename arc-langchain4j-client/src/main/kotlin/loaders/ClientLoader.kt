@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.client.langchain4j.loaders
 
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
-import org.eclipse.lmos.arc.agents.env.EnvironmentCompleterLoader
-import org.eclipse.lmos.arc.agents.env.getEnvironmentValue
 import org.eclipse.lmos.arc.agents.events.EventPublisher
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
+import org.eclipse.lmos.arc.agents.llm.CompleterLoaderService
+import org.eclipse.lmos.arc.agents.llm.getEnvironmentValue
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.slf4j.LoggerFactory
 
@@ -16,7 +16,7 @@ abstract class ClientLoader(
     private val dependOnClass: String,
     private val clientNames: Set<String>,
 ) :
-    EnvironmentCompleterLoader {
+    CompleterLoaderService {
 
     private val log = LoggerFactory.getLogger(ClientLoader::class.java)
 
@@ -34,7 +34,7 @@ abstract class ClientLoader(
             return@buildMap
         }
 
-        if (configs != null) {
+        if (!configs.isNullOrEmpty()) {
             configs.forEach { config ->
                 if (clientNames.contains(config.client)) {
                     putAll(loadClient(config, tracer, eventPublisher))
@@ -49,7 +49,7 @@ abstract class ClientLoader(
                     AIClientConfig(
                         modelName = modelName,
                         endpoint = getEnvironmentValue("ARC_${name}_ENDPOINT"),
-                        apiKey = getEnvironmentValue("ARC_${name}_API_KEY")
+                        apiKey = getEnvironmentValue("ARC_${name}_API_KEY"),
                     ),
                     tracer,
                     eventPublisher,
@@ -65,23 +65,23 @@ abstract class ClientLoader(
                     loadClient(
                         AIClientConfig(modelName = modelName, endpoint = endpoint, apiKey = apiKey),
                         tracer,
-                        eventPublisher
-                    )
+                        eventPublisher,
+                    ),
                 )
             }
         }
 
         // Handle legacy properties
         getEnvironmentValue("ARC_CLIENT")?.takeIf { clientNames.contains(it) }?.let {
-            val modelName = getEnvironmentValue("ARC_MODEL") ?: error("Missing property ARC_MODEL!")
+            val modelName = getEnvironmentValue("ARC_MODEL")
             val endpoint = getEnvironmentValue("ARC_AI_URL")
             val apiKey = getEnvironmentValue("ARC_AI_KEY")
             putAll(
                 loadClient(
                     AIClientConfig(modelName = modelName, endpoint = endpoint, apiKey = apiKey),
                     tracer,
-                    eventPublisher
-                )
+                    eventPublisher,
+                ),
             )
         }
     }

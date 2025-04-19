@@ -1,20 +1,21 @@
-package org.eclipse.lmos.arc.agents.env
+// SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+//
+// SPDX-License-Identifier: Apache-2.0
+package org.eclipse.lmos.arc.agents.llm
 
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.agents.events.EventPublisher
-import org.eclipse.lmos.arc.agents.llm.ChatCompleter
-import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
-import org.eclipse.lmos.arc.agents.llm.toChatCompleterProvider
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
+import java.lang.System.getProperty
+import java.lang.System.getenv
 import java.util.*
 
 /**
- * Loads a [ChatCompleter] that is configured by environment variables.
+ * Loads [ChatCompleter]s through services discovered using the ServiceLoader.
  */
-interface EnvironmentCompleterLoader {
+interface CompleterLoaderService {
 
     fun load(
         tracer: AgentTracer?,
@@ -24,15 +25,15 @@ interface EnvironmentCompleterLoader {
 }
 
 /**
- * An implementation of [ChatCompleterProvider] that loads [ChatCompleter]s from the environment.
+ * An implementation of [ChatCompleterProvider] that loads [ChatCompleter]s discovered using the ServiceLoader.
  *
  */
-class EnvironmentCompleterProvider : ChatCompleterProvider {
+class ServiceCompleterProvider(private val configs: List<AIClientConfig>? = null) : ChatCompleterProvider {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val completerProvider: ChatCompleterProvider by lazy {
-        loadCompletersFromEnvironment()
+        loadCompletersProviders()
     }
 
     override fun provideByModel(model: String?): ChatCompleter {
@@ -46,33 +47,41 @@ class EnvironmentCompleterProvider : ChatCompleterProvider {
      * @param eventPublisher the event publisher to use
      * @return a [ChatCompleterProvider] that loads [ChatCompleter]s from the environment
      */
-    private fun loadCompletersFromEnvironment(
+    private fun loadCompletersProviders(
         tracer: AgentTracer? = null,
         eventPublisher: EventPublisher? = null,
     ): ChatCompleterProvider {
-        val loader = ServiceLoader.load(EnvironmentCompleterLoader::class.java)
+        val loader = ServiceLoader.load(CompleterLoaderService::class.java)
         return buildMap {
             loader.forEach {
-                it.load(tracer, eventPublisher, null).forEach { (key, completer) ->
+                it.load(tracer, eventPublisher, configs).forEach { (key, completer) ->
                     put(key, completer)
                     log.info("[CLIENT] Loaded ChatCompleter $key to $completer")
                 }
+            }
+            if (isEmpty()) {
+                log.warn("[CLIENT] No ChatCompleters found!")
+            } else {
+                log.info("[CLIENT] Found $size ChatCompleters!")
             }
         }.toChatCompleterProvider()
     }
 }
 
 fun getEnvironmentValue(name: String): String? {
-    return System.getenv(name) ?: System.getProperty(name) ?: loadArcProperties().getProperty(name)
+    return getenv(name) ?: getProperty(name) ?: loadArcProperties().getProperty(name)
 }
 
 private fun home(): File {
-    val home = File(System.getProperty("user.home"), ".arc")
+    val home = File(getProperty("user.home"), ".arc")
     home.mkdirs()
     return home
 }
 
 private fun loadArcProperties(): Properties {
+    if ((getenv("ARC_IGNORE_ARC_PROPERTIES") ?: getProperty("ARC_IGNORE_ARC_PROPERTIES")) == "true") {
+        return Properties()
+    }
     val properties = Properties()
     val propertiesFile = File(home(), "arc.properties")
     if (propertiesFile.exists()) {

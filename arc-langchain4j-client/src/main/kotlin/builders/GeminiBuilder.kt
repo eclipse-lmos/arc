@@ -7,7 +7,7 @@ package org.eclipse.lmos.arc.client.langchain4j.builders
 import dev.langchain4j.model.chat.ChatLanguageModel
 import dev.langchain4j.model.chat.request.ResponseFormat
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.OutputFormat
 

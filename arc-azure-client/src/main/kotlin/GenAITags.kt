@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
 import com.azure.ai.openai.models.ChatRequestMessage
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 
@@ -17,7 +18,7 @@ object GenAITags {
 
     fun applyAttributes(
         tags: Tags,
-        config: AzureClientConfig,
+        config: AIClientConfig,
         settings: ChatCompletionSettings?,
         completions: ChatCompletions,
         inputMessages: List<ChatRequestMessage>,

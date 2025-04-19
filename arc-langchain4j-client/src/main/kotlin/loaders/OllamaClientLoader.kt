@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.client.langchain4j.loaders
 
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.agents.events.EventPublisher
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ANY_MODEL
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient

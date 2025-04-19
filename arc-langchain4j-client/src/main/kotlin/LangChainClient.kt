@@ -24,7 +24,6 @@ import dev.langchain4j.model.chat.request.json.JsonStringSchema
 import dev.langchain4j.model.output.Response
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.MissingModelNameException
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.BinaryData
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -33,6 +32,7 @@ import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.ParameterSchema
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent

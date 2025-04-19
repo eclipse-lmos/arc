@@ -8,25 +8,35 @@ import com.azure.ai.openai.OpenAIClientBuilder
 import com.azure.core.credential.AzureKeyCredential
 import com.azure.core.credential.KeyCredential
 import com.azure.identity.DefaultAzureCredentialBuilder
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
-import org.eclipse.lmos.arc.agents.env.EnvironmentCompleterLoader
-import org.eclipse.lmos.arc.agents.env.getEnvironmentValue
 import org.eclipse.lmos.arc.agents.events.EventPublisher
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ANY_MODEL
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
+import org.eclipse.lmos.arc.agents.llm.CompleterLoaderService
+import org.eclipse.lmos.arc.agents.llm.getEnvironmentValue
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class AzureClientLoader : EnvironmentCompleterLoader {
+class AzureClientLoader : CompleterLoaderService {
 
     private val log = LoggerFactory.getLogger(AzureClientLoader::class.java.name)
+
+    private val clientNames = setOf("azure", "openai")
 
     override fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
         configs: List<AIClientConfig>?,
     ): Map<String, ChatCompleter> = buildMap {
+        if (!configs.isNullOrEmpty()) {
+            configs.forEach { config ->
+                if (clientNames.contains(config.client)) {
+                    putAll(loadAzure(config.modelName, config.endpoint, config.apiKey, tracer, eventPublisher))
+                }
+            }
+            if (isNotEmpty()) return@buildMap
+        }
+
         putAll(
             loadAzure(
                 getEnvironmentValue("ARC_AZURE_MODEL_NAME"),
@@ -46,7 +56,7 @@ class AzureClientLoader : EnvironmentCompleterLoader {
         }
 
         // Handle legacy properties
-        getEnvironmentValue("ARC_CLIENT")?.takeIf { it == "azure" || it == "openai" }?.let {
+        getEnvironmentValue("ARC_CLIENT")?.takeIf { clientNames.contains(it) }?.let {
             val modelName = getEnvironmentValue("ARC_MODEL")
             val endpoint = getEnvironmentValue("ARC_AI_URL")
             val apiKey = getEnvironmentValue("ARC_AI_KEY")
@@ -61,14 +71,14 @@ class AzureClientLoader : EnvironmentCompleterLoader {
         buildMap<String, ChatCompleter> {
             getEnvironmentValue("ARC_OPENAI_API_KEY")?.let { openAIApiKey ->
                 put(
-                    ANY_MODEL, AzureAIClient(AzureClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
+                    ANY_MODEL, AzureAIClient(AIClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
                 )
             } ?: getEnvironmentValue("OPENAI_API_KEY")?.let { openAIApiKey ->
                 if (useOpenAIKey) {
                     log.info("[CLIENT] Using OPENAI_API_KEY to create Azure OpenAI client.")
                     put(
                         ANY_MODEL,
-                        AzureAIClient(AzureClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
+                        AzureAIClient(AIClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
                     )
                 }
             }
@@ -92,7 +102,7 @@ class AzureClientLoader : EnvironmentCompleterLoader {
             put(
                 modelName ?: ANY_MODEL,
                 AzureAIClient(
-                    AzureClientConfig(modelName),
+                    AIClientConfig(modelName = modelName),
                     azureClient,
                     eventPublisher,
                     tracer,

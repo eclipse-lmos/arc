@@ -9,9 +9,9 @@ import com.azure.ai.openai.OpenAIClientBuilder
 import com.azure.core.credential.AzureKeyCredential
 import com.azure.core.credential.KeyCredential
 import com.azure.identity.DefaultAzureCredentialBuilder
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.client.azure.AzureAIClient
-import org.eclipse.lmos.arc.client.azure.AzureClientConfig
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
 
@@ -42,7 +42,7 @@ class AzureOpenAIConfiguration {
             else -> return@ClientBuilder null
         }
         AzureAIClient(
-            AzureClientConfig(config.modelName, config.url ?: "", config.apiKey ?: ""),
+            AIClientConfig(config.modelName, config.url, config.apiKey),
             azureClient,
             eventPublisher,
             tracer,
@@ -65,7 +65,7 @@ class AzureOpenAIConfiguration {
             else -> return@ClientBuilder null
         }
         AzureAIClient(
-            AzureClientConfig(config.modelName, config.url ?: "", config.apiKey ?: ""),
+            AIClientConfig(config.modelName, config.url, config.apiKey),
             azureClient,
             eventPublisher,
             tracer,
