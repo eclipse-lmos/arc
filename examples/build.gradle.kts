@@ -7,5 +7,5 @@ dependencies {
     implementation(project(":arc-agents"))
     implementation(project(":arc-azure-client"))
     implementation(project(":arc-langchain4j-client"))
-    implementation(libs.slf4j.log4j)
+    implementation(libs.slf4j.log4j12)
 }

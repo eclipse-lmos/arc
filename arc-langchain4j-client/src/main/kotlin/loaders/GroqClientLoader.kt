@@ -8,12 +8,13 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.llm.ANY_MODEL
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
+import org.eclipse.lmos.arc.client.langchain4j.builders.groqBuilder
 import org.eclipse.lmos.arc.client.langchain4j.builders.ollamaBuilder
 
-class OllamaClientLoader : ClientLoader(
-    name = "OLLAMA",
-    dependOnClass = "dev.langchain4j.model.ollama.OllamaChatModel",
-    clientNames = setOf("ollama"),
+class GroqClientLoader : ClientLoader(
+    name = "GROQ",
+    dependOnClass = "dev.langchain4j.model.openai.OpenAiChatModel",
+    clientNames = setOf("groq"),
 ) {
 
     override fun loadClient(
@@ -21,9 +22,15 @@ class OllamaClientLoader : ClientLoader(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
     ) = buildMap {
+        config.apiKey ?: error("API key is required for Groq!")
+        config.endpoint ?: error("Model endpoint is required for Groq!")
         val client = LangChainClient(
-            AIClientConfig(modelName = config.modelName, endpoint = config.endpoint),
-            ollamaBuilder(),
+            AIClientConfig(
+                modelName = config.modelName,
+                endpoint = config.endpoint,
+                apiKey = config.apiKey,
+            ),
+            groqBuilder(),
             eventPublisher,
         )
         put(config.id ?: config.modelName ?: ANY_MODEL, client)

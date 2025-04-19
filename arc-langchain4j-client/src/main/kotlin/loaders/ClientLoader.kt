@@ -20,7 +20,7 @@ abstract class ClientLoader(
 
     private val log = LoggerFactory.getLogger(ClientLoader::class.java)
 
-    override fun loadCompleter(
+    override fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
         configs: List<AIClientConfig>?,
