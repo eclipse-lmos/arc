@@ -23,6 +23,8 @@ import dev.langchain4j.model.chat.request.json.JsonSchemaElement
 import dev.langchain4j.model.chat.request.json.JsonStringSchema
 import dev.langchain4j.model.output.Response
 import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.MissingModelNameException
+import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.BinaryData
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -52,8 +54,8 @@ import kotlin.time.measureTime
  * Wraps a LangChain4j ChatLanguageModel to provide a ChatCompleter interface.
  */
 class LangChainClient(
-    private val languageModel: LangChainConfig,
-    private val clientBuilder: (LangChainConfig, ChatCompletionSettings?) -> ChatLanguageModel,
+    private val config: AIClientConfig,
+    private val clientBuilder: (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel,
     private val eventHandler: EventPublisher? = null,
 ) : ChatCompleter {
 
@@ -67,8 +69,10 @@ class LangChainClient(
         val langChainMessages = toLangChainMessages(messages)
         val langChainFunctions = if (functions != null) toLangChainFunctions(functions) else null
         val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+        val model =
+            config.modelName ?: settings?.deploymentNameOrModel() ?: failWith { MissingModelNameException() }
 
-        eventHandler?.publish(LLMStartedEvent(languageModel.modelName))
+        eventHandler?.publish(LLMStartedEvent(model))
 
         val result: Result<Response<AiMessage>, ArcException>
         val duration = measureTime {
@@ -95,7 +99,7 @@ class LangChainClient(
                 result,
                 messages,
                 functions,
-                languageModel.modelName,
+                config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown",
                 totalTokens = response?.tokenUsage()?.totalTokenCount() ?: -1,
                 promptTokens = response?.tokenUsage()?.inputTokenCount() ?: -1,
                 completionTokens = response?.tokenUsage()?.outputTokenCount() ?: -1,
@@ -113,7 +117,7 @@ class LangChainClient(
         functionCallHandler: FunctionCallHandler,
     ): Result<Response<AiMessage>, ArcException> {
         return try {
-            val client = clientBuilder(languageModel, settings)
+            val client = clientBuilder(config, settings)
             val response = if (langChainFunctions?.isNotEmpty() == true) {
                 client.generate(messages, langChainFunctions)
             } else {

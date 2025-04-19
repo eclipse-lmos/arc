@@ -29,9 +29,11 @@ import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
+import org.eclipse.lmos.arc.agents.functions.NoopFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
@@ -177,7 +179,8 @@ class ChatAgent(
                     INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
                 ),
             ) { tags, _ ->
-                conversation + chatCompleter.complete(fullConversation, functions, settings.invoke(dslContext))
+                val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
+                conversation + chatCompleter.complete(fullConversation, functions, completionSettings)
                     .getOrThrow().also { tags.tag("response", it.content) }
             }
 
@@ -215,7 +218,7 @@ class ChatAgent(
         beanProvider: BeanProvider,
         context: DSLContext,
     ): List<LLMFunction> {
-        val functionProvider = beanProvider.provide(LLMFunctionProvider::class)
+        val functionProvider = beanProvider.provideOptional<LLMFunctionProvider>() ?: NoopFunctionProvider()
         val toolContext = context.toToolLoaderContext()
         return if (tools.contains(AllTools.symbol)) {
             functionProvider.provideAll(toolContext)

@@ -5,9 +5,9 @@
 package org.eclipse.lmos.arc.client.azure
 
 data class AzureClientConfig(
-    val modelName: String,
-    val url: String,
-    val apiKey: String,
+    val modelName: String? = null,
+    val url: String? = null,
+    val apiKey: String? = null,
 ) {
 
     override fun toString(): String {

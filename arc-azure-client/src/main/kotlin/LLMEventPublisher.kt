@@ -36,7 +36,7 @@ class LLMEventPublisher(
                 result,
                 messages,
                 functions,
-                config.modelName,
+                config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown",
                 chatCompletions?.usage?.totalTokens ?: -1,
                 chatCompletions?.usage?.promptTokens ?: -1,
                 chatCompletions?.usage?.completionTokens ?: -1,

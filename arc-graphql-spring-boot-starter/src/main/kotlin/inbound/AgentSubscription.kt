@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.channelFlow
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.User
-import org.eclipse.lmos.arc.agents.agent.AgentChain
 import org.eclipse.lmos.arc.agents.agent.AgentHandoverLimit
 import org.eclipse.lmos.arc.agents.agent.executeWithHandover
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage

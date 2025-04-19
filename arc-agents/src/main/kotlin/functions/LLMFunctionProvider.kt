@@ -31,6 +31,20 @@ interface LLMFunctionProvider {
 }
 
 /**
+ * Default implementation of the [LLMFunctionProvider] that does not provide any functions.
+ * This is useful when no function provider is available or when you want to disable function loading.
+ */
+class NoopFunctionProvider : LLMFunctionProvider {
+    override suspend fun provide(
+        functionName: String,
+        context: ToolLoaderContext?,
+    ): Result<LLMFunction, FunctionNotFoundException> =
+        Failure(FunctionNotFoundException("No LLMFunctionProvider available!"))
+
+    override suspend fun provideAll(context: ToolLoaderContext?): List<LLMFunction> = emptyList()
+}
+
+/**
  * Loads Functions.
  * Typically, a [LLMFunctionProvider] uses [LLMFunctionLoader]s to load Arc Functions from different sources.
  * There can be many implementations of [LLMFunctionLoader]s in an application.

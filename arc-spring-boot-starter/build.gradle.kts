@@ -7,12 +7,12 @@ dependencies {
     api(project(":arc-agents"))
     implementation(project(":arc-scripting"))
     implementation(project(":arc-mcp"))
-    implementation(project(":arc-langchain4j-client"))
 
+    compileOnly(project(":arc-langchain4j-client"))
     compileOnly(project(":arc-azure-client"))
     compileOnly(project(":arc-ollama-client"))
-    compileOnly(project(":arc-gen"))
     compileOnly(project(":arc-openai-client"))
+    compileOnly(project(":arc-gen"))
 
     // Azure
     compileOnly("com.azure:azure-identity:1.15.4")

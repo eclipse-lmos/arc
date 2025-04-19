@@ -22,7 +22,7 @@ object GenAITags {
         completions: ChatCompletions,
         inputMessages: List<ChatRequestMessage>,
     ) {
-        tags.tag("gen_ai.request.model", config.modelName)
+        tags.tag("gen_ai.request.model", config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown")
         tags.tag("gen_ai.operation.name", "chat")
         tags.tag(
             "gen_ai.response.finish_reasons",
