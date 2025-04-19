@@ -52,6 +52,7 @@ open class TestBase {
         val input = slot<List<ConversationMessage>>()
         coEvery { chatCompleter.complete(capture(input)) } answers { Success(AssistantMessage(llmResponse)) }
         coEvery { chatCompleter.complete(capture(input), any()) } answers { Success(AssistantMessage(llmResponse)) }
+        coEvery { chatCompleter.complete(capture(input), any(), any()) } answers { Success(AssistantMessage(llmResponse)) }
 
         var result: Conversation
         testBeanProvider.setContext(context ?: contextBeans) {

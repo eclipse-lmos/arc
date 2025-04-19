@@ -8,12 +8,12 @@ import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ANY_MODEL
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
-import org.eclipse.lmos.arc.client.langchain4j.builders.ollamaBuilder
+import org.eclipse.lmos.arc.client.langchain4j.builders.bedrockBuilder
 
-class GeminiClientLoader : ClientLoader(
-    name = "GEMINI",
-    dependOnClass = "dev.langchain4j.model.googleai.GoogleAiGeminiChatModel",
-    clientNames = setOf("gemini"),
+class BedrockClientLoader : ClientLoader(
+    name = "BEDROCK",
+    dependOnClass = "dev.langchain4j.model.bedrock.BedrockAnthropicMessageChatModel",
+    clientNames = setOf("bedrock"),
 ) {
 
     override fun loadClient(
@@ -21,10 +21,17 @@ class GeminiClientLoader : ClientLoader(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
     ) = buildMap {
-        config.apiKey ?: error("API key is required for Gemini!")
+        config.accessKey ?: error("AccessKey is required for bedrock!")
+        config.accessSecret ?: error("AccessSecret is required for bedrock!")
+        config.endpoint ?: error("Endpoint is required for bedrock!")
         val client = LangChainClient(
-            config,
-            ollamaBuilder(),
+            AIClientConfig(
+                modelName = config.modelName,
+                endpoint = config.endpoint,
+                accessKey = config.accessKey,
+                accessSecret = config.accessSecret,
+            ),
+            bedrockBuilder(),
             eventPublisher,
         )
         put(config.id ?: config.modelName ?: ANY_MODEL, client)

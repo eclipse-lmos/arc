@@ -5,7 +5,7 @@
 package org.eclipse.lmos.arc.spring.clients
 
 import dev.langchain4j.model.bedrock.BedrockAnthropicMessageChatModel
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
 import org.eclipse.lmos.arc.client.langchain4j.builders.bedrockBuilder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass

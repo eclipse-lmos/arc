@@ -10,6 +10,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
 import org.eclipse.lmos.arc.core.Result
@@ -19,7 +20,7 @@ import kotlin.time.Duration
  * Publishes LLM events
  */
 class LLMEventPublisher(
-    private val config: AzureClientConfig,
+    private val config: AIClientConfig,
     private val functions: List<LLMFunction>?,
     private val eventHandler: EventPublisher?,
     private val messages: List<ConversationMessage>,

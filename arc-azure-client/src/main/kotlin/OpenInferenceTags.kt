@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonString
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
@@ -28,7 +29,7 @@ object OpenInferenceTags {
 
     fun applyAttributes(
         tags: Tags,
-        config: AzureClientConfig,
+        config: AIClientConfig,
         settings: ChatCompletionSettings?,
         completions: ChatCompletions,
         inputMessages: List<ChatRequestMessage>,

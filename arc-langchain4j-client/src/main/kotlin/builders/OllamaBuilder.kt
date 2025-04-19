@@ -6,11 +6,11 @@ package org.eclipse.lmos.arc.client.langchain4j.builders
 
 import dev.langchain4j.model.chat.ChatLanguageModel
 import dev.langchain4j.model.ollama.OllamaChatModel
-import org.eclipse.lmos.arc.agents.agent.AIClientConfig
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 
 /**
- * Builds a ollama client.
+ * Builds an ollama client.
  */
 fun ollamaBuilder(): (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel {
     return { config, settings ->

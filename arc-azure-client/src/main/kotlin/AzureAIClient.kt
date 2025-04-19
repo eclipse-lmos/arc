@@ -28,6 +28,7 @@ import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonMap
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
@@ -55,7 +56,7 @@ import kotlin.time.measureTime
  * Calls the OpenAI endpoints and automatically handles LLM function calls.
  */
 class AzureAIClient(
-    private val config: AzureClientConfig,
+    private val config: AIClientConfig,
     private val client: OpenAIAsyncClient,
     private val eventHandler: EventPublisher? = null,
     private val tracer: AgentTracer? = null,
