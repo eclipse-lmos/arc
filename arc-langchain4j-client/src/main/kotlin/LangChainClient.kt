@@ -35,19 +35,16 @@ import org.eclipse.lmos.arc.agents.functions.ParameterSchema
 import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
-import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
-import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.failWith
-import org.eclipse.lmos.arc.core.finally
 import org.eclipse.lmos.arc.core.getOrThrow
+import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.time.Duration
 import kotlin.time.measureTime
 
 /**
@@ -69,45 +66,14 @@ class LangChainClient(
         val langChainMessages = toLangChainMessages(messages)
         val langChainFunctions = if (functions != null) toLangChainFunctions(functions) else null
         val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+        val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
         val model =
             config.modelName ?: settings?.deploymentNameOrModel() ?: failWith { MissingModelNameException() }
 
         eventHandler?.publish(LLMStartedEvent(model))
 
-        val result: Result<Response<AiMessage>, ArcException>
-        val duration = measureTime {
-            result = chat(langChainMessages, langChainFunctions, settings, functionCallHandler)
-        }
-
-        var response: Response<AiMessage>? = null
-        finally { publishEvent(it, messages, functions, response, duration, settings, functionCallHandler) }
-        response = result failWith { ArcException("Failed to call LLM!", it) }
-        AssistantMessage(response.content().text(), sensitive = false)
-    }
-
-    private fun publishEvent(
-        result: Result<AssistantMessage, ArcException>,
-        messages: List<ConversationMessage>,
-        functions: List<LLMFunction>?,
-        response: Response<AiMessage>?,
-        duration: Duration,
-        settings: ChatCompletionSettings?,
-        functionCallHandler: FunctionCallHandler,
-    ) {
-        eventHandler?.publish(
-            LLMFinishedEvent(
-                result,
-                messages,
-                functions,
-                config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown",
-                totalTokens = response?.tokenUsage()?.totalTokenCount() ?: -1,
-                promptTokens = response?.tokenUsage()?.inputTokenCount() ?: -1,
-                completionTokens = response?.tokenUsage()?.outputTokenCount() ?: -1,
-                functionCallHandler.calledFunctions.size,
-                duration,
-                settings = settings,
-            ),
-        )
+        val result = chat(langChainMessages, langChainFunctions, settings, functionCallHandler, llmEventPublisher)
+        result failWith { it }
     }
 
     private suspend fun chat(
@@ -115,23 +81,44 @@ class LangChainClient(
         langChainFunctions: List<ToolSpecification>? = null,
         settings: ChatCompletionSettings?,
         functionCallHandler: FunctionCallHandler,
-    ): Result<Response<AiMessage>, ArcException> {
+        eventPublisher: LLMEventPublisher,
+    ): Result<AssistantMessage, ArcException> {
         return try {
             val client = clientBuilder(config, settings)
-            val response = if (langChainFunctions?.isNotEmpty() == true) {
-                client.generate(messages, langChainFunctions)
-            } else {
-                client.generate(messages)
+            val result: Result<AssistantMessage, ArcException>
+            var response: Response<AiMessage>? = null
+
+            // Call the LLM
+            val duration = measureTime {
+                result = result<AssistantMessage, Exception> {
+                    response = if (langChainFunctions?.isNotEmpty() == true) {
+                        client.generate(messages, langChainFunctions)
+                    } else {
+                        client.generate(messages)
+                    }
+                    AssistantMessage(
+                        response!!.content().text(),
+                        sensitive = functionCallHandler.calledSensitiveFunction(),
+                    )
+                }.mapFailure { ArcException("Failed to call LLM!", it) }
             }
+            eventPublisher.publishEvent(result, response, duration, functionCallHandler)
 
-            log.debug("ChatCompletions: ${response.finishReason()} (${response.content().toolExecutionRequests()})")
+            // Return if the result is a failures
+            if (result is Failure) {
+                return result
+            }
+            log.debug("ChatCompletions: ${response?.finishReason()} (${response?.content()?.toolExecutionRequests()})")
 
-            val newMessages = functionCallHandler.handle(response.content()).getOrThrow()
+            // Check if the response contains any function calls
+            val newMessages = functionCallHandler.handle(response!!.content()).getOrThrow()
             return if (newMessages.isNotEmpty()) {
-                chat(messages + newMessages, langChainFunctions, settings, functionCallHandler)
+                chat(messages + newMessages, langChainFunctions, settings, functionCallHandler, eventPublisher)
             } else {
-                Success(response)
+                result
             }
+        } catch (e: ArcException) {
+            Failure(e)
         } catch (e: Exception) {
             Failure(ArcException("Failed to call LLM!", e))
         }

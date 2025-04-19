@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 dependencies {
-    implementation(project(":arc-result"))
     implementation(project(":arc-agents"))
     implementation(project(":arc-azure-client"))
     implementation(project(":arc-langchain4j-client"))

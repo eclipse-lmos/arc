@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono.just
 class AzureAIClientTest {
 
     private val testLanguageModel =
-        AIClientConfig(endpoint = "url", apiKey = "apiKey", modelName = "modelName")
+        AIClientConfig(client = "azure", endpoint = "url", apiKey = "apiKey", modelName = "modelName")
 
     @Test
     fun `test chatCompletions`(): Unit = runBlocking {

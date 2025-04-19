@@ -150,11 +150,14 @@ fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } 
  * @param builder The function used to define agents.
  */
 fun agents(
-    chatCompleterProvider: ChatCompleterProvider = ServiceCompleterProvider(),
+    tracer: AgentTracer? = null,
+    eventPublisher: EventPublisher? = null,
+    chatCompleterProvider: ChatCompleterProvider = ServiceCompleterProvider(
+        tracer = tracer,
+        eventPublisher = eventPublisher,
+    ),
     functionLoaders: List<LLMFunctionLoader> = emptyList(),
     memory: Memory? = InMemoryMemory(),
-    eventPublisher: EventPublisher? = null,
-    tracer: AgentTracer? = null,
     context: Set<Any> = emptySet(),
     handlers: List<EventHandler<out Event>> = emptyList(),
     functions: FunctionDefinitionContext.() -> Unit = {},
