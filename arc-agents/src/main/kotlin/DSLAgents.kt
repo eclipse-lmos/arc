@@ -12,7 +12,7 @@ import org.eclipse.lmos.arc.agents.dsl.ChatAgentFactory
 import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.dsl.FunctionDefinitionContext
 import org.eclipse.lmos.arc.agents.dsl.beans
-import org.eclipse.lmos.arc.agents.env.EnvironmentCompleterProvider
+import org.eclipse.lmos.arc.agents.llm.ServiceCompleterProvider
 import org.eclipse.lmos.arc.agents.events.BasicEventPublisher
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
@@ -140,7 +140,7 @@ fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } 
  * Convenience function to set up the Arc agent system.
  */
 fun agents(
-    chatCompleterProvider: ChatCompleterProvider = EnvironmentCompleterProvider(),
+    chatCompleterProvider: ChatCompleterProvider = ServiceCompleterProvider(),
     functionLoaders: List<LLMFunctionLoader> = emptyList(),
     memory: Memory? = InMemoryMemory(),
     eventPublisher: EventPublisher? = null,

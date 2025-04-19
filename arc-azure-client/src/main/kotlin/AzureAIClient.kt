@@ -20,6 +20,7 @@ import com.azure.core.util.BinaryData
 import kotlinx.coroutines.reactive.awaitFirst
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.MissingModelNameException
+import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.MessageFormat
@@ -55,7 +56,7 @@ import kotlin.time.measureTime
  * Calls the OpenAI endpoints and automatically handles LLM function calls.
  */
 class AzureAIClient(
-    private val config: AzureClientConfig,
+    private val config: AIClientConfig,
     private val client: OpenAIAsyncClient,
     private val eventHandler: EventPublisher? = null,
     private val tracer: AgentTracer? = null,

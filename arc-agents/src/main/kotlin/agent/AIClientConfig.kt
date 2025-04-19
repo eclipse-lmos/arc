@@ -12,4 +12,11 @@ data class AIClientConfig(
     val accessKey: String? = null,
     val accessSecret: String? = null,
     val toolSupported: Boolean = false,
-)
+) {
+    override fun toString(): String {
+        val apiKeyMasked = apiKey?.let { "****" } ?: "null"
+        val accessKeyMasked = accessKey?.let { "****" } ?: "null"
+        val accessSecretMasked = accessSecret?.let { "****" } ?: "null"
+        return "AIClientConfig(id=$id, client=$client, modelName=$modelName, endpoint=$endpoint, apiKey=$apiKeyMasked, accessKey=$accessKeyMasked, accessSecret=$accessSecretMasked, toolSupported=$toolSupported)"
+    }
+}

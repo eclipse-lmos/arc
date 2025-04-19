@@ -12,6 +12,9 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
+import java.util.concurrent.atomic.AtomicReference
+
+val globalAwsCredentialsProvider = AtomicReference<Any>()
 
 /**
  * Builds a BedrockAnthropicMessageChatModel for the given LangChainConfig and ChatCompletionSettings.
@@ -22,7 +25,9 @@ fun bedrockBuilder(
     return { config, settings ->
         BedrockAnthropicMessageChatModel.builder()
             .credentialsProvider(
-                awsCredentialsProvider ?: StaticCredentialsProvider.create(
+                awsCredentialsProvider ?: globalAwsCredentialsProvider.get()?.takeIf { it is AwsCredentialsProvider }
+                    ?.let { it as AwsCredentialsProvider }
+                ?: StaticCredentialsProvider.create(
                     AwsBasicCredentials.create(config.accessKey, config.accessSecret),
                 ),
             )

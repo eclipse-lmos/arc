@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
 import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.agent.AIClientConfig
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
@@ -19,7 +20,7 @@ import kotlin.time.Duration
  * Publishes LLM events
  */
 class LLMEventPublisher(
-    private val config: AzureClientConfig,
+    private val config: AIClientConfig,
     private val functions: List<LLMFunction>?,
     private val eventHandler: EventPublisher?,
     private val messages: List<ConversationMessage>,

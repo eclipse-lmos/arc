@@ -4,10 +4,10 @@
 package org.eclipse.lmos.arc.client.langchain4j.loaders
 
 import org.eclipse.lmos.arc.agents.agent.AIClientConfig
-import org.eclipse.lmos.arc.agents.env.EnvironmentCompleterLoader
-import org.eclipse.lmos.arc.agents.env.getEnvironmentValue
+import org.eclipse.lmos.arc.agents.llm.getEnvironmentValue
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
+import org.eclipse.lmos.arc.agents.llm.CompleterLoaderService
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.slf4j.LoggerFactory
 
@@ -16,7 +16,7 @@ abstract class ClientLoader(
     private val dependOnClass: String,
     private val clientNames: Set<String>,
 ) :
-    EnvironmentCompleterLoader {
+    CompleterLoaderService {
 
     private val log = LoggerFactory.getLogger(ClientLoader::class.java)
 
