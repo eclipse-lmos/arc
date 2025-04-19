@@ -43,6 +43,11 @@ class InvalidSettingsException(msg: String) : ArcException(msg)
 class FunctionNotFoundException(msg: String) : ArcException(msg)
 
 /**
+ * Indicates that a model name is missing.
+ */
+class MissingModelNameException : ArcException("Model name is missing!")
+
+/**
  * Exceptions implementing this interface will not cause the Agent to fail.
  * Instead, the Agent will return the attached Conversation.
  */

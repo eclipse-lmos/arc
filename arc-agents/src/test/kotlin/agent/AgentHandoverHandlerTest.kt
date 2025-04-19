@@ -14,7 +14,6 @@ import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.ChatAgent
 import org.eclipse.lmos.arc.agents.TestBase
 import org.eclipse.lmos.arc.agents.User
-import org.eclipse.lmos.arc.agents.getAgentByName
 import org.eclipse.lmos.arc.agents.conversation.AIAgentHandover
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.toConversation

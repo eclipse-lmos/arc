@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.agents.agent
 
-
 /**
  * Represents a list of agents that should be executed one after the other
  * with the output of the previous agent being the input of the next agent.

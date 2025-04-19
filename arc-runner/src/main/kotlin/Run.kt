@@ -46,7 +46,7 @@ class RunArc : Runnable {
         }
         val client = System.getenv("ARC_CLIENT") ?: properties.getProperty("ARC_CLIENT")
         if (client == null) {
-            println("Please set ARC_CLIENT. For example: 'azure', 'openai', 'gemini' or 'ollma'...")
+            println("Please set ARC_CLIENT. For example: 'azure', 'openai', 'gemini' or 'ollama'...")
             return
         }
 

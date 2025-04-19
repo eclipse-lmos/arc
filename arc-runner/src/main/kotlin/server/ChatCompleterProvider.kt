@@ -13,7 +13,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.client.azure.AzureAIClient
 import org.eclipse.lmos.arc.client.azure.AzureClientConfig
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
-import org.eclipse.lmos.arc.client.langchain4j.LangChainConfig
 import org.eclipse.lmos.arc.client.langchain4j.builders.bedrockBuilder
 import org.eclipse.lmos.arc.client.langchain4j.builders.geminiBuilder
 import org.eclipse.lmos.arc.client.langchain4j.builders.groqBuilder

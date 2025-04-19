@@ -19,6 +19,7 @@ import com.azure.core.exception.ClientAuthenticationException
 import com.azure.core.util.BinaryData
 import kotlinx.coroutines.reactive.awaitFirst
 import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.MissingModelNameException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.MessageFormat
@@ -74,8 +75,10 @@ class AzureAIClient(
             val functionCallHandler =
                 FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer = tracer ?: DefaultAgentTracer())
             val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
+            val model =
+                config.modelName ?: settings?.deploymentNameOrModel() ?: failWith { MissingModelNameException() }
 
-            eventHandler?.publish(LLMStartedEvent(config.modelName))
+            eventHandler?.publish(LLMStartedEvent(model))
             val result = getChatCompletions(
                 openAIMessages,
                 openAIFunctions,
@@ -112,7 +115,10 @@ class AzureAIClient(
         var chatCompletionsResult: Result<ChatCompletions, ArcException>
         var duration: Duration
         val result = withLLMSpan(settings, messages, functionCallHandler) { tag ->
-            val pair = doChatCompletions(chatCompletionsOptions)
+            val pair = doChatCompletions(
+                chatCompletionsOptions,
+                deploymentOrModelName = config.modelName ?: settings?.deploymentNameOrModel()!!,
+            )
             chatCompletionsResult = pair.first
             duration = pair.second
             chatCompletionsResult.getOrNull()?.let { tag(it) }
@@ -151,7 +157,7 @@ class AzureAIClient(
         contract {
             callsInPlace(fn, EXACTLY_ONCE)
         }
-        val name = "chat ${config.modelName}"
+        val name = "chat ${config.modelName ?: settings?.deploymentNameOrModel()}"
         return (tracer ?: DefaultAgentTracer()).withSpan(name) { tags, _ ->
             fn({ completions ->
                 // TODO
@@ -172,11 +178,14 @@ class AzureAIClient(
         }
     }
 
-    private suspend fun doChatCompletions(chatCompletionsOptions: ChatCompletionsOptions): Pair<Result<ChatCompletions, ArcException>, Duration> {
+    private suspend fun doChatCompletions(
+        chatCompletionsOptions: ChatCompletionsOptions,
+        deploymentOrModelName: String,
+    ): Pair<Result<ChatCompletions, ArcException>, Duration> {
         val result: Result<ChatCompletions, ArcException>
         val duration = measureTime {
             result = result<ChatCompletions, ArcException> {
-                client.getChatCompletions(config.modelName, chatCompletionsOptions).awaitFirst()
+                client.getChatCompletions(deploymentOrModelName, chatCompletionsOptions).awaitFirst()
             }.mapFailure {
                 log.error("Calling Azure OpenAI failed!", it)
                 mapOpenAIException(it)
@@ -195,6 +204,7 @@ class AzureAIClient(
             settings?.topP?.let { topP = it }
             settings?.seed?.let { seed = it }
             settings?.n?.let { n = it }
+            settings?.model?.let { model = it }
             settings?.maxTokens?.let { maxTokens = it }
             settings?.format?.takeIf { JSON == it }?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
             if (openAIFunctions != null) tools = openAIFunctions
