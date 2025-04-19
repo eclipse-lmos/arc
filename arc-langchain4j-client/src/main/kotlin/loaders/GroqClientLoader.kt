@@ -23,15 +23,7 @@ class GroqClientLoader : ClientLoader(
     ) = buildMap {
         config.apiKey ?: error("API key is required for Groq!")
         config.endpoint ?: error("Model endpoint is required for Groq!")
-        val client = LangChainClient(
-            AIClientConfig(
-                modelName = config.modelName,
-                endpoint = config.endpoint,
-                apiKey = config.apiKey,
-            ),
-            groqBuilder(),
-            eventPublisher,
-        )
-        put(config.id ?: config.modelName ?: ANY_MODEL, client)
+        val client = LangChainClient(config, groqBuilder(), eventPublisher)
+        put(config.modelAlias ?: config.modelName ?: ANY_MODEL, client)
     }
 }

@@ -10,6 +10,19 @@ arc:
   router:
     enable: true
     model: "llama3:8b"
+  ai:
+    clients:
+      - id: GPT-4o
+        client: azure
+        url: https://openai.azure.com/
+        modelName: gpt-4o
+      - id: llama3.3
+        modelName: llama3.3
+        client: ollama
+      - id: GPT-4o-mini
+        modelName: gpt-4o-mini
+        api-key: 12345
+        client: openai
 
 logging:
   level:

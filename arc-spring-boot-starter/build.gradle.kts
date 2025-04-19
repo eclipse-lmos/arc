@@ -36,6 +36,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.4.3")
 
+    // Tests
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.3")
     testImplementation("org.springframework.boot:spring-boot-starter:3.4.3")
+    testImplementation(project(":arc-langchain4j-client"))
+    testImplementation(project(":arc-azure-client"))
+    testImplementation("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
 }

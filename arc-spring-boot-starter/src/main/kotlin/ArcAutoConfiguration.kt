@@ -19,11 +19,8 @@ import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
-import org.eclipse.lmos.arc.agents.llm.TextEmbedderProvider
 import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
-import org.eclipse.lmos.arc.agents.router.SemanticRouter
-import org.eclipse.lmos.arc.agents.router.SemanticRoutes
 import org.eclipse.lmos.arc.mcp.McpPromptRetriever
 import org.eclipse.lmos.arc.mcp.McpTools
 import org.eclipse.lmos.arc.spring.clients.ClientsConfiguration
@@ -78,18 +75,6 @@ open class ArcAutoConfiguration {
 
     @Bean
     fun loggingEventHandler() = LoggingEventHandler()
-
-    @Bean
-    @ConditionalOnProperty("arc.router.enable", havingValue = "true")
-    fun semanticRouter(
-        @Value("\${arc.router.model}") model: String,
-        textEmbedderProvider: TextEmbedderProvider,
-        agentProvider: AgentProvider,
-        initialRoutes: SemanticRoutes? = null,
-        eventPublisher: EventPublisher,
-    ): SemanticRouter {
-        return SemanticRouter(textEmbedderProvider.provideByModel(model), initialRoutes, eventPublisher)
-    }
 
     @Bean
     @ConditionalOnMissingBean(AgentProvider::class)

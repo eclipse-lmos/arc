@@ -20,7 +20,7 @@ interface CompleterLoaderService {
     fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
-        configs: List<AIClientConfig>?,
+        configs: List<AIClientConfig>,
     ): Map<String, ChatCompleter>
 }
 
@@ -28,7 +28,11 @@ interface CompleterLoaderService {
  * An implementation of [ChatCompleterProvider] that loads [ChatCompleter]s discovered using the ServiceLoader.
  *
  */
-class ServiceCompleterProvider(private val configs: List<AIClientConfig>? = null) : ChatCompleterProvider {
+class ServiceCompleterProvider(
+    private val configs: List<AIClientConfig>? = null,
+    private val tracer: AgentTracer? = null,
+    private val eventPublisher: EventPublisher? = null,
+) : ChatCompleterProvider {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -41,20 +45,23 @@ class ServiceCompleterProvider(private val configs: List<AIClientConfig>? = null
     }
 
     /**
-     * Loads all [ChatCompleter]s from the environment.
-     *
-     * @param tracer the tracer to use
-     * @param eventPublisher the event publisher to use
-     * @return a [ChatCompleterProvider] that loads [ChatCompleter]s from the environment
+     * Loads [ChatCompleter]s using the ServiceLoader.
      */
-    private fun loadCompletersProviders(
-        tracer: AgentTracer? = null,
-        eventPublisher: EventPublisher? = null,
-    ): ChatCompleterProvider {
+    private fun loadCompletersProviders(): ChatCompleterProvider {
         val loader = ServiceLoader.load(CompleterLoaderService::class.java)
+        val loadedConfigs = configs ?: loadConfigFromEnv()
         return buildMap {
             loader.forEach {
-                it.load(tracer, eventPublisher, configs).forEach { (key, completer) ->
+                it.load(tracer, eventPublisher, loadedConfigs).forEach { (key, completer) ->
+                    if (containsKey(key)) {
+                        error(
+                            "Cannot have multiple ChatCompleters for the same key $key! Found: $completer and ${
+                                get(
+                                    ANY_MODEL,
+                                )
+                            }",
+                        )
+                    }
                     put(key, completer)
                     log.info("[CLIENT] Loaded ChatCompleter $key to $completer")
                 }
@@ -69,7 +76,7 @@ class ServiceCompleterProvider(private val configs: List<AIClientConfig>? = null
 }
 
 fun getEnvironmentValue(name: String): String? {
-    return getenv(name) ?: getProperty(name) ?: loadArcProperties().getProperty(name)
+    return getProperty(name) ?: getenv(name) ?: loadArcProperties().getProperty(name)
 }
 
 private fun home(): File {
@@ -88,4 +95,48 @@ private fun loadArcProperties(): Properties {
         FileInputStream(propertiesFile).use { properties.load(it) }
     }
     return properties
+}
+
+fun loadConfigFromEnv(): List<AIClientConfig> = buildList {
+    getEnvironmentValue("ARC_CLIENT")?.let { client ->
+        val modelAlias = getEnvironmentValue("ARC_MODEL_ALIAS")
+        val modelName = getEnvironmentValue("ARC_MODEL")
+        val endpoint = getEnvironmentValue("ARC_AI_URL")
+        val apiKey = getEnvironmentValue("ARC_AI_KEY")
+        val accessKey = getEnvironmentValue("ARC_AI_ACCESS_KEY")
+        val accessSecret = getEnvironmentValue("ARC_AI_ACCESS_SECRET")
+        add(
+            AIClientConfig(
+                modelAlias = modelAlias,
+                modelName = modelName,
+                endpoint = endpoint,
+                apiKey = apiKey,
+                client = client,
+                accessKey = accessKey,
+                accessSecret = accessSecret,
+            ),
+        )
+    }
+
+    repeat(10) { i ->
+        getEnvironmentValue("ARC_CLIENT[$i]")?.let { client ->
+            val modelAlias = getEnvironmentValue("ARC_MODEL_ALIAS[$i]")
+            val modelName = getEnvironmentValue("ARC_MODEL[$i]")
+            val endpoint = getEnvironmentValue("ARC_AI_URL[$i]")
+            val apiKey = getEnvironmentValue("ARC_AI_KEY[$i]")
+            val accessKey = getEnvironmentValue("ARC_AI_ACCESS_KEY[$i]")
+            val accessSecret = getEnvironmentValue("ARC_AI_ACCESS_SECRET[$i]")
+            add(
+                AIClientConfig(
+                    modelAlias = modelAlias,
+                    modelName = modelName,
+                    endpoint = endpoint,
+                    apiKey = apiKey,
+                    client = client,
+                    accessKey = accessKey,
+                    accessSecret = accessSecret,
+                ),
+            )
+        }
+    }
 }

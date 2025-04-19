@@ -26,87 +26,46 @@ class AzureClientLoader : CompleterLoaderService {
     override fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
-        configs: List<AIClientConfig>?,
+        configs: List<AIClientConfig>,
     ): Map<String, ChatCompleter> = buildMap {
-        if (!configs.isNullOrEmpty()) {
-            configs.forEach { config ->
-                if (clientNames.contains(config.client)) {
-                    putAll(loadAzure(config.modelName, config.endpoint, config.apiKey, tracer, eventPublisher))
-                }
-            }
-            if (isNotEmpty()) return@buildMap
-        }
-
-        putAll(
-            loadAzure(
-                getEnvironmentValue("ARC_AZURE_MODEL_NAME"),
-                getEnvironmentValue("ARC_AZURE_ENDPOINT"),
-                getEnvironmentValue("ARC_AZURE_API_KEY"),
-                tracer,
-                eventPublisher,
-            ),
-        )
-
-        repeat(10) { i ->
-            getEnvironmentValue("ARC_AZURE[$i]_MODEL_NAME")?.let { modelName ->
-                val endpoint = getEnvironmentValue("ARC_AZURE[$i]_ENDPOINT")
-                val apiKey = getEnvironmentValue("ARC_AZURE[$i]_API_KEY")
-                putAll(loadAzure(modelName, endpoint, apiKey, tracer, eventPublisher))
+        configs.forEach { config ->
+            if (clientNames.contains(config.client)) {
+                putAll(loadAzure(config, tracer, eventPublisher))
             }
         }
 
-        // Handle legacy properties
-        getEnvironmentValue("ARC_CLIENT")?.takeIf { clientNames.contains(it) }?.let {
-            val modelName = getEnvironmentValue("ARC_MODEL")
-            val endpoint = getEnvironmentValue("ARC_AI_URL")
-            val apiKey = getEnvironmentValue("ARC_AI_KEY")
-            putAll(loadAzure(modelName, endpoint, apiKey, tracer, eventPublisher))
+        if (isEmpty()) {
+            getEnvironmentValue("OPENAI_API_KEY")?.let { openAIApiKey ->
+                log.info("[CLIENT] Using OPENAI_API_KEY to create Azure OpenAI client.")
+                put(
+                    ANY_MODEL,
+                    AzureAIClient(
+                        AIClientConfig(client = "openai"),
+                        openAIClient(openAIApiKey),
+                        eventPublisher,
+                        tracer,
+                    ),
+                )
+            }
         }
-
-        // Ignore the OpenAI API key if we already have an Azure Client defined that has no default model name.
-        putAll(loadOpenAI(tracer, eventPublisher, useOpenAIKey = get(ANY_MODEL) == null))
     }
 
-    private fun loadOpenAI(tracer: AgentTracer?, eventPublisher: EventPublisher?, useOpenAIKey: Boolean) =
-        buildMap<String, ChatCompleter> {
-            getEnvironmentValue("ARC_OPENAI_API_KEY")?.let { openAIApiKey ->
-                put(
-                    ANY_MODEL, AzureAIClient(AIClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
-                )
-            } ?: getEnvironmentValue("OPENAI_API_KEY")?.let { openAIApiKey ->
-                if (useOpenAIKey) {
-                    log.info("[CLIENT] Using OPENAI_API_KEY to create Azure OpenAI client.")
-                    put(
-                        ANY_MODEL,
-                        AzureAIClient(AIClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
-                    )
-                }
-            }
-        }
-
     private fun loadAzure(
-        modelName: String?,
-        endpoint: String?,
-        apiKey: String?,
+        config: AIClientConfig,
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
     ) = buildMap {
         val azureClient = when {
-            apiKey != null && endpoint == null -> openAIClient(apiKey)
-            apiKey != null && endpoint != null -> azureClientWithKey(apiKey, endpoint)
-            endpoint != null -> azureClient(endpoint)
+            config.apiKey != null && config.endpoint == null -> openAIClient(config.apiKey!!)
+            config.apiKey != null && config.endpoint != null -> azureClientWithKey(config.apiKey!!, config.endpoint!!)
+            config.endpoint != null -> azureClient(config.endpoint!!)
             else -> null
         }
 
         if (azureClient != null) {
             put(
-                modelName ?: ANY_MODEL,
-                AzureAIClient(
-                    AIClientConfig(modelName = modelName),
-                    azureClient,
-                    eventPublisher,
-                    tracer,
-                ),
+                config.modelAlias ?: config.modelName ?: ANY_MODEL,
+                AzureAIClient(config, azureClient, eventPublisher, tracer),
             )
         }
     }

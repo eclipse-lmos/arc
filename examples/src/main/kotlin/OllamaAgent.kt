@@ -17,13 +17,20 @@ fun main() = runBlocking {
     // Only the client name is required.
     System.setProperty("ARC_CLIENT", "ollama")
 
-    val agents = agents {
+    val agents = agents(
+        functions = {
+            function(name = "get_weather", description = "Returns the current weather.") {
+                "the weather is sunny!"
+            }
+        }
+    ) {
         agent {
             name = "MyAgent"
-            model { "gemma3:12b" }
+            model { "gpt-4o" }
+            tools { +"get_weather" }
             prompt {
                 """
-                You are a professional write. Help me to write a professional email.
+                You are a weather assistant. Help the user with their questions about the weather.
                 """
             }
         }

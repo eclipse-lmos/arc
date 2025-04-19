@@ -7,7 +7,6 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.CompleterLoaderService
-import org.eclipse.lmos.arc.agents.llm.getEnvironmentValue
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.slf4j.LoggerFactory
 
@@ -23,7 +22,7 @@ abstract class ClientLoader(
     override fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
-        configs: List<AIClientConfig>?,
+        configs: List<AIClientConfig>,
     ): Map<String, ChatCompleter> = buildMap {
         val classLoader = Thread.currentThread().contextClassLoader
 
@@ -34,55 +33,10 @@ abstract class ClientLoader(
             return@buildMap
         }
 
-        if (!configs.isNullOrEmpty()) {
-            configs.forEach { config ->
-                if (clientNames.contains(config.client)) {
-                    putAll(loadClient(config, tracer, eventPublisher))
-                }
+        configs.forEach { config ->
+            if (clientNames.contains(config.client)) {
+                putAll(loadClient(config, tracer, eventPublisher))
             }
-            if (isNotEmpty()) return@buildMap
-        }
-
-        getEnvironmentValue("ARC_${name}_MODEL_NAME")?.let { modelName ->
-            putAll(
-                loadClient(
-                    AIClientConfig(
-                        modelName = modelName,
-                        endpoint = getEnvironmentValue("ARC_${name}_ENDPOINT"),
-                        apiKey = getEnvironmentValue("ARC_${name}_API_KEY"),
-                    ),
-                    tracer,
-                    eventPublisher,
-                ),
-            )
-        }
-
-        repeat(10) { i ->
-            getEnvironmentValue("ARC_$name[$i]_MODEL_NAME")?.let { modelName ->
-                val endpoint = getEnvironmentValue("ARC_$name[$i]_ENDPOINT")
-                val apiKey = getEnvironmentValue("ARC_$name[$i]_API_KEY")
-                putAll(
-                    loadClient(
-                        AIClientConfig(modelName = modelName, endpoint = endpoint, apiKey = apiKey),
-                        tracer,
-                        eventPublisher,
-                    ),
-                )
-            }
-        }
-
-        // Handle legacy properties
-        getEnvironmentValue("ARC_CLIENT")?.takeIf { clientNames.contains(it) }?.let {
-            val modelName = getEnvironmentValue("ARC_MODEL")
-            val endpoint = getEnvironmentValue("ARC_AI_URL")
-            val apiKey = getEnvironmentValue("ARC_AI_KEY")
-            putAll(
-                loadClient(
-                    AIClientConfig(modelName = modelName, endpoint = endpoint, apiKey = apiKey),
-                    tracer,
-                    eventPublisher,
-                ),
-            )
         }
     }
 
