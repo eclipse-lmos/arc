@@ -140,7 +140,6 @@ fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } 
  * Convenience function to set up the Arc agent system.
  */
 fun agents(
-    functions: FunctionDefinitionContext.() -> Unit = {},
     chatCompleterProvider: ChatCompleterProvider = EnvironmentCompleterProvider(),
     functionLoaders: List<LLMFunctionLoader> = emptyList(),
     memory: Memory? = InMemoryMemory(),
@@ -148,6 +147,7 @@ fun agents(
     tracer: AgentTracer? = null,
     context: Set<Any> = emptySet(),
     handlers: List<EventHandler<out Event>> = emptyList(),
+    functions: FunctionDefinitionContext.() -> Unit = {},
     builder: AgentDefinitionContext.() -> Unit = {},
 ): DSLAgents {
     return DSLAgents.init(

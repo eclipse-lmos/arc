@@ -242,4 +242,8 @@ class AzureAIClient(
         }
         TextEmbeddings(embedding)
     }.mapFailure { ArcException("Failed to create text embeddings!", it) }
+
+    override fun toString(): String {
+        return "AzureAIClient(config=$config, client=$client)"
+    }
 }

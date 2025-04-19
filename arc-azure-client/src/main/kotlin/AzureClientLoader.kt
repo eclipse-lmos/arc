@@ -15,10 +15,14 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.llm.ANY_MODEL
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class AzureClientLoader : EnvironmentCompleterLoader {
 
-    override fun loadCompleter(
+    private val log = LoggerFactory.getLogger(AzureClientLoader::class.java.name)
+
+    override fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
         configs: List<AIClientConfig>?,
@@ -61,6 +65,7 @@ class AzureClientLoader : EnvironmentCompleterLoader {
                 )
             } ?: getEnvironmentValue("OPENAI_API_KEY")?.let { openAIApiKey ->
                 if (useOpenAIKey) {
+                    log.info("[CLIENT] Using OPENAI_API_KEY to create Azure OpenAI client.")
                     put(
                         ANY_MODEL,
                         AzureAIClient(AzureClientConfig(), openAIClient(openAIApiKey), eventPublisher, tracer),
@@ -77,7 +82,8 @@ class AzureClientLoader : EnvironmentCompleterLoader {
         eventPublisher: EventPublisher?,
     ) = buildMap {
         val azureClient = when {
-            apiKey != null -> azureClientWithKey(apiKey, endpoint)
+            apiKey != null && endpoint == null -> openAIClient(apiKey)
+            apiKey != null && endpoint != null -> azureClientWithKey(apiKey, endpoint)
             endpoint != null -> azureClient(endpoint)
             else -> null
         }
@@ -96,21 +102,22 @@ class AzureClientLoader : EnvironmentCompleterLoader {
     }
 
     private fun openAIClient(openAIApiKey: String): OpenAIAsyncClient {
+        log.info("[CLIENT] Creating Azure OpenAI client with OpenAI API key.")
         return OpenAIClientBuilder()
             .credential(KeyCredential(openAIApiKey))
             .buildAsyncClient()
     }
 
-    private fun azureClientWithKey(apiKey: String, endpoint: String?): OpenAIAsyncClient {
+    private fun azureClientWithKey(apiKey: String, endpoint: String): OpenAIAsyncClient {
+        log.info("[CLIENT] Creating Azure OpenAI client with Azure API key and endpoint $endpoint.")
         return OpenAIClientBuilder()
-            .apply {
-                if (endpoint != null) endpoint(endpoint)
-            }
+            .endpoint(endpoint)
             .credential(AzureKeyCredential(apiKey))
             .buildAsyncClient()
     }
 
     private fun azureClient(endpoint: String): OpenAIAsyncClient {
+        log.info("[CLIENT] Creating Azure OpenAI client with AzureCredentials and endpoint $endpoint.")
         return OpenAIClientBuilder()
             .credential(DefaultAzureCredentialBuilder().build())
             .endpoint(endpoint)
