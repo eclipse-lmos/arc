@@ -209,4 +209,8 @@ class LangChainClient(
             else -> error("Unsupported parameter type: $type!")
         }
     }
+
+    override fun toString(): String {
+        return "LangChainClient(config=$config)"
+    }
 }

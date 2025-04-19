@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean
 /**
  * Configuration for Langchain4j based LLM clients.
  */
-@ConditionalOnClass(dev.langchain4j.model.chat.ChatLanguageModel::class)
+@ConditionalOnClass(dev.langchain4j.model.openai.OpenAiChatModel::class)
 class GroqConfiguration {
 
     @Bean

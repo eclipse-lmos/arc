@@ -10,7 +10,6 @@ dependencies {
 
     compileOnly(project(":arc-langchain4j-client"))
     compileOnly(project(":arc-azure-client"))
-    compileOnly(project(":arc-ollama-client"))
     compileOnly(project(":arc-openai-client"))
     compileOnly(project(":arc-gen"))
 

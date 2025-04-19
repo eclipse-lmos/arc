@@ -71,7 +71,7 @@ class AzureClientLoaderTest {
         every { getEnvironmentValue("OPENAI_API_KEY") } returns null
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(1, result.size)
@@ -109,7 +109,7 @@ class AzureClientLoaderTest {
         every { getEnvironmentValue("OPENAI_API_KEY") } returns null
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(1, result.size)
@@ -145,7 +145,7 @@ class AzureClientLoaderTest {
         every { getEnvironmentValue("OPENAI_API_KEY") } returns null
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(1, result.size)
@@ -178,7 +178,7 @@ class AzureClientLoaderTest {
         every { getEnvironmentValue("OPENAI_API_KEY") } returns null
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(1, result.size)
@@ -210,7 +210,7 @@ class AzureClientLoaderTest {
         every { getEnvironmentValue("OPENAI_API_KEY") } returns "test-openai-key"
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(1, result.size)
@@ -228,7 +228,7 @@ class AzureClientLoaderTest {
         every { getEnvironmentValue(any()) } returns null
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(0, result.size)
@@ -259,7 +259,7 @@ class AzureClientLoaderTest {
         every { com.azure.identity.DefaultAzureCredentialBuilder().build() } returns mockCredential
 
         // Execute the method under test
-        val result = loader.loadCompleter(null, null)
+        val result = loader.load(null, null)
 
         // Verify the result
         assertEquals(1, result.size)

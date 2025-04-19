@@ -3,18 +3,22 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.agents.examples
 
+import kotlinx.coroutines.runBlocking
+import org.eclipse.lmos.arc.agents.agent.ask
 import org.eclipse.lmos.arc.agents.agents
+import org.eclipse.lmos.arc.agents.dsl.AllTools
+import org.eclipse.lmos.arc.agents.getChatAgent
+import org.eclipse.lmos.arc.core.getOrNull
 
-fun main() {
-    System.setProperty("OPENAI_API_KEY", "your_api_key_here")
-
-    val agents = agents({
+fun main() = runBlocking {
+    val agents = agents(functions = {
         function(name = "get_weather", description = "Get the weather") {
             """The weather is sunny. A lovely 32 degrees celsius."""
         }
     }) {
         agent {
-            name = "AzureAgent"
+            name = "MyAgent"
+            tools = AllTools
             prompt {
                 """
                 You are a professional weather service. You provide weather data to your users.
@@ -23,5 +27,6 @@ fun main() {
         }
     }
 
-    println(agents.getAgents())
+    val reply = agents.getChatAgent("MyAgent").ask("What is the weather?").getOrNull()
+    println(reply)
 }

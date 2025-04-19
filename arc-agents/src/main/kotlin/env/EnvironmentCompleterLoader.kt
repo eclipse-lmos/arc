@@ -16,7 +16,7 @@ import java.util.*
  */
 interface EnvironmentCompleterLoader {
 
-    fun loadCompleter(
+    fun load(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
         configs: List<AIClientConfig>?,
@@ -53,9 +53,9 @@ class EnvironmentCompleterProvider : ChatCompleterProvider {
         val loader = ServiceLoader.load(EnvironmentCompleterLoader::class.java)
         return buildMap {
             loader.forEach {
-                it.loadCompleter(tracer, eventPublisher, null).forEach { (modelName, completer) ->
-                    put(modelName, completer)
-                    log.info("Loaded ChatCompleter $modelName from ${completer::class.simpleName}")
+                it.load(tracer, eventPublisher, null).forEach { (key, completer) ->
+                    put(key, completer)
+                    log.info("[CLIENT] Loaded ChatCompleter $key to $completer")
                 }
             }
         }.toChatCompleterProvider()
