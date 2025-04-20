@@ -24,7 +24,7 @@ class BedrockClientLoader : ClientLoader(
         config.accessKey ?: error("AccessKey is required for bedrock!")
         config.accessSecret ?: error("AccessSecret is required for bedrock!")
         config.endpoint ?: error("Endpoint is required for bedrock!")
-        val client = LangChainClient(config, bedrockBuilder(), eventPublisher)
+        val client = LangChainClient(config, bedrockBuilder(), eventPublisher, tracer)
         put(config.modelAlias ?: config.modelName ?: ANY_MODEL, client)
     }
 }

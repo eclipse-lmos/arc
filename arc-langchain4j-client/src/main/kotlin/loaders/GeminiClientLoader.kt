@@ -22,7 +22,7 @@ class GeminiClientLoader : ClientLoader(
         eventPublisher: EventPublisher?,
     ) = buildMap {
         config.apiKey ?: error("API key is required for Gemini!")
-        val client = LangChainClient(config, ollamaBuilder(), eventPublisher)
+        val client = LangChainClient(config, ollamaBuilder(), eventPublisher, tracer)
         put(config.modelAlias ?: config.modelName ?: ANY_MODEL, client)
     }
 }

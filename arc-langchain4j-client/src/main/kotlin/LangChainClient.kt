@@ -36,6 +36,9 @@ import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.addLLMTags
+import org.eclipse.lmos.arc.agents.tracing.spanLLMCall
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
@@ -54,6 +57,7 @@ class LangChainClient(
     private val config: AIClientConfig,
     private val clientBuilder: (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel,
     private val eventHandler: EventPublisher? = null,
+    private val tracer: AgentTracer? = null,
 ) : ChatCompleter {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -65,7 +69,7 @@ class LangChainClient(
     ) = result<AssistantMessage, ArcException> {
         val langChainMessages = toLangChainMessages(messages)
         val langChainFunctions = if (functions != null) toLangChainFunctions(functions) else null
-        val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+        val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer)
         val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
         val model =
             config.modelName ?: settings?.deploymentNameOrModel() ?: failWith { MissingModelNameException() }
@@ -90,17 +94,31 @@ class LangChainClient(
 
             // Call the LLM
             val duration = measureTime {
-                result = result<AssistantMessage, Exception> {
-                    response = if (langChainFunctions?.isNotEmpty() == true) {
-                        client.generate(messages, langChainFunctions)
-                    } else {
-                        client.generate(messages)
+                tracer.spanLLMCall { tags, _ ->
+                    result = result<AssistantMessage, Exception> {
+                        response = if (langChainFunctions?.isNotEmpty() == true) {
+                            client.generate(messages, langChainFunctions)
+                        } else {
+                            client.generate(messages)
+                        }
+                        val output = AssistantMessage(
+                            response!!.content().text(),
+                            sensitive = functionCallHandler.calledSensitiveFunction(),
+                        )
+                        tags.addLLMTags(
+                            config,
+                            settings,
+                            messages.toConversationMessages(),
+                            listOf(output),
+                            functionCallHandler.functions,
+                            response!!.tokenUsage().toUsage(),
+                        )
+                        output
+                    }.mapFailure {
+                        tags.error(it)
+                        ArcException("Failed to call LLM!", it)
                     }
-                    AssistantMessage(
-                        response!!.content().text(),
-                        sensitive = functionCallHandler.calledSensitiveFunction(),
-                    )
-                }.mapFailure { ArcException("Failed to call LLM!", it) }
+                }
             }
             eventPublisher.publishEvent(result, response, duration, functionCallHandler)
 

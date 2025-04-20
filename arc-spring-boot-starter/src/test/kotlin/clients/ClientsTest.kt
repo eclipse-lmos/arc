@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.arc.spring.clients
+package org.eclipse.lmos.arc.clients
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

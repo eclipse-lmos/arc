@@ -22,7 +22,7 @@ fun main() = runBlocking {
             function(name = "get_weather", description = "Returns the current weather.") {
                 "the weather is sunny!"
             }
-        }
+        },
     ) {
         agent {
             name = "MyAgent"
