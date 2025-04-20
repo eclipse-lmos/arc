@@ -38,6 +38,7 @@ class FunctionCallHandlerTest {
         functionCallHandler = FunctionCallHandler(
             functions = listOf(testFunction, sensitiveFunction),
             eventHandler = eventPublisher,
+            tracer = null,
             functionCallLimit = 3,
         )
     }
@@ -60,6 +61,7 @@ class FunctionCallHandlerTest {
             val functionCallHandlerWithSensitiveFunction = FunctionCallHandler(
                 functions = listOf(sensitiveFunction),
                 eventHandler = eventPublisher,
+                tracer = null,
             )
 
             // Use reflection to access the private _calledFunctions field
@@ -82,6 +84,7 @@ class FunctionCallHandlerTest {
             val functionCallHandlerWithNonSensitiveFunction = FunctionCallHandler(
                 functions = listOf(testFunction),
                 eventHandler = eventPublisher,
+                tracer = null,
             )
 
             // Use reflection to access the private _calledFunctions field
@@ -105,6 +108,7 @@ class FunctionCallHandlerTest {
                 functions = listOf(testFunction),
                 eventHandler = eventPublisher,
                 functionCallLimit = 1,
+                tracer = null,
             )
 
             // Use reflection to set the functionCallCount to the limit

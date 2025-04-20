@@ -122,6 +122,7 @@ class AzureAIClient(
             )
             chatCompletionsResult = pair.first
             duration = pair.second
+            // chatCompletionsResult.onFailure { tag.error(it) } // TODO: add error tag
             chatCompletionsResult.getOrNull()?.let { tag(it) }
             chatCompletionsResult.map {
                 it.getFirstAssistantMessage(
@@ -158,8 +159,7 @@ class AzureAIClient(
         contract {
             callsInPlace(fn, EXACTLY_ONCE)
         }
-        val name = "chat ${config.modelName ?: settings?.deploymentNameOrModel()}"
-        return (tracer ?: DefaultAgentTracer()).withSpan(name) { tags, _ ->
+        return (tracer ?: DefaultAgentTracer()).withSpan("llm") { tags, _ ->
             fn({ completions ->
                 // TODO
                 val spec = System.getenv("OTEL_SPEC")

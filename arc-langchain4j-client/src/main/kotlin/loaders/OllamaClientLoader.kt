@@ -21,7 +21,7 @@ class OllamaClientLoader : ClientLoader(
         tracer: AgentTracer?,
         eventPublisher: EventPublisher?,
     ) = buildMap {
-        val client = LangChainClient(config, ollamaBuilder(), eventPublisher)
+        val client = LangChainClient(config, ollamaBuilder(), eventPublisher, tracer)
         put(config.modelAlias ?: config.modelName ?: ANY_MODEL, client)
     }
 }
