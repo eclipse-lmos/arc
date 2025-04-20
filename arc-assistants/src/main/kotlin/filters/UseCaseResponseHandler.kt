@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.assistants.support.filters
 
+import org.eclipse.lmos.arc.agents.AGENT_TAGS_LOCAL_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
@@ -14,6 +15,7 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.extensions.outputContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.setCurrentUseCases
+import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.assistants.support.events.UseCaseEvent
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseStepId
@@ -41,6 +43,10 @@ class UseCaseResponseHandler : AgentFilter {
                 log.info("All Use cases used: $usedUseCases")
                 updatedUseCases = usedUseCases + useCaseId
                 memory("usedUseCases", updatedUseCases)
+                getLocal(AGENT_TAGS_LOCAL_CONTEXT_KEY)?.takeIf { it is Tags }?.let {
+                    val tags = it as Tags
+                    usedUseCases.forEachIndexed { i, uc -> tags.tag("tag.tags.$i", uc) }
+                }
             }
 
             val loadedUseCases = getCurrentUseCases()

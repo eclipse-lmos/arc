@@ -5,8 +5,9 @@ slf4j-version = "2.0.17"
 spring-boot-version = "3.4.3"
 ktor-version = "3.1.1"
 lettuce-version = "6.3.2.RELEASE"
-jackson-version = "2.9.8"
-resilience4j-version = "2.2.0"
+jackson-version = "2.18.3"
+resilience4j-version = "2.3.0"
+logback-version = "1.5.18"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
@@ -15,6 +16,10 @@ kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-version" }
 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-version" }
+slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j-version" }
+slf4j-log4j-over-slf4j = { module = "org.slf4j:log4j-over-slf4j", version.ref = "slf4j-version" }
+slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j-version" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
 
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot-version" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot-version" }

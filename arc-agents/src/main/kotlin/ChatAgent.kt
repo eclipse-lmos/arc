@@ -5,7 +5,9 @@
 package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
+import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
+import org.eclipse.lmos.arc.agents.agent.onError
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
@@ -27,13 +29,14 @@ import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
+import org.eclipse.lmos.arc.agents.functions.NoopFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
-import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.recover
@@ -46,6 +49,8 @@ const val AGENT_LOG_CONTEXT_KEY = "agent"
 const val PHASE_LOG_CONTEXT_KEY = "phase"
 const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 const val INPUT_LOG_CONTEXT_KEY = "input"
+const val AGENT_LOCAL_CONTEXT_KEY = "agent"
+const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
@@ -80,7 +85,8 @@ class ChatAgent(
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))
-            dslContext.setLocal("agent", this)
+            dslContext.setLocal(AGENT_LOCAL_CONTEXT_KEY, this)
+            dslContext.setLocal(AGENT_TAGS_LOCAL_CONTEXT_KEY, tags)
 
             var flowBreak = false
             val usedFunctions = AtomicReference<List<LLMFunction>?>(null)
@@ -106,6 +112,7 @@ class ChatAgent(
                         }
                     }.mapFailure {
                         log.error("Agent $name failed!", it)
+                        tags.onError(it)
                         AgentFailedException("Agent $name failed!", it)
                     }
             }
@@ -121,8 +128,7 @@ class ChatAgent(
                 ),
             )
 
-            tags.tag("output.value", result.getOrNull()?.transcript?.last()?.content ?: "")
-            tags.tag("output.mime_type", "text/plain")
+            tags.addResultTags(result, flowBreak)
             result
         }
     }
@@ -173,7 +179,8 @@ class ChatAgent(
                     INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
                 ),
             ) { tags, _ ->
-                conversation + chatCompleter.complete(fullConversation, functions, settings.invoke(dslContext))
+                val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
+                conversation + chatCompleter.complete(fullConversation, functions, completionSettings)
                     .getOrThrow().also { tags.tag("response", it.content) }
             }
 
@@ -211,7 +218,7 @@ class ChatAgent(
         beanProvider: BeanProvider,
         context: DSLContext,
     ): List<LLMFunction> {
-        val functionProvider = beanProvider.provide(LLMFunctionProvider::class)
+        val functionProvider = beanProvider.provideOptional<LLMFunctionProvider>() ?: NoopFunctionProvider()
         val toolContext = context.toToolLoaderContext()
         return if (tools.contains(AllTools.symbol)) {
             functionProvider.provideAll(toolContext)

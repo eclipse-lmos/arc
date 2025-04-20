@@ -24,6 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.ParametersSchema
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ import reactor.core.publisher.Mono.just
 class AzureAIClientTest {
 
     private val testLanguageModel =
-        AzureClientConfig(url = "url", apiKey = "apiKey", modelName = "modelName")
+        AIClientConfig(client = "azure", endpoint = "url", apiKey = "apiKey", modelName = "modelName")
 
     @Test
     fun `test chatCompletions`(): Unit = runBlocking {

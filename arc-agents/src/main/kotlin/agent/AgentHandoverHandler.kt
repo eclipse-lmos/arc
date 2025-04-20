@@ -9,7 +9,9 @@ import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.conversation.AIAgentHandover
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.getAgentByName
+import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
+import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrNull
 import org.slf4j.LoggerFactory
 
@@ -29,15 +31,19 @@ suspend fun ConversationAgent.executeWithHandover(
 ): Result<Conversation, AgentFailedException> {
     val handoverLimit = context.filterIsInstance<AgentHandoverLimit>().firstOrNull() ?: AgentHandoverLimit(max = 20)
     val output = execute(input, context + handoverLimit)
-    return handleAIAgentHandover(output, context, agentProvider, handoverLimit)
+    return handleAIAgentHandover(output, input, context, agentProvider, handoverLimit)
 }
 
 private suspend fun ConversationAgent.handleAIAgentHandover(
     output: Result<Conversation, AgentFailedException>,
+    input: Conversation,
     context: Set<Any>,
     agentProvider: AgentProvider,
     agentHandoverLimit: AgentHandoverLimit,
 ): Result<Conversation, AgentFailedException> {
+    /**
+     * Handles agent to agent handover.
+     */
     if (agentHandoverLimit.current > agentHandoverLimit.max) {
         log.error("Recursion limit (${agentHandoverLimit.max}) reached for agent handover! Stopping here and returning current result.")
         return output
@@ -52,11 +58,37 @@ private suspend fun ConversationAgent.handleAIAgentHandover(
         }
         if (nextAgent != null) {
             val updatedCount = agentHandoverLimit.increment()
+            val newInput = conversation.copy(classification = null)
             val newOutput =
-                nextAgent.execute(conversation.copy(classification = null), context + updatedCount)
-            return handleAIAgentHandover(newOutput, context, agentProvider, updatedCount)
+                nextAgent.execute(newInput, context + updatedCount)
+            return nextAgent.handleAIAgentHandover(newOutput, newInput, context, agentProvider, updatedCount)
+        }
+        return output
+    }
+
+    /**
+     * Handles the agent chain.
+     */
+    context.filterIsInstance<AgentChain>().firstOrNull()?.let { chain ->
+        if (output is Failure) {
+            val nextAgentName = chain.agentOnFailure ?: return output
+            val nextAgent = agentProvider.getAgentByName(nextAgentName) as? ConversationAgent?
+            if (nextAgent != null) {
+                val newOutput = nextAgent.execute(input, context)
+                return nextAgent.handleAIAgentHandover(newOutput, input, context, agentProvider, agentHandoverLimit)
+            }
+        } else if (output is Success) {
+            val nextAgentName = chain.nextAgent(name) ?: return output
+            val nextAgent = agentProvider.getAgentByName(nextAgentName) as? ConversationAgent?
+            if (nextAgent != null) {
+                val newInput = output.value
+                val newOutput = nextAgent.execute(newInput, context)
+                return nextAgent.handleAIAgentHandover(newOutput, newInput, context, agentProvider, agentHandoverLimit)
+            }
+            return Success(output.value.copy(classification = AIAgentHandover(nextAgentName)))
         }
     }
+
     return output
 }
 

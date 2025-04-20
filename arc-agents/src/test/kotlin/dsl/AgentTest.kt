@@ -42,7 +42,7 @@ class AgentTest : TestBase() {
             description = "description"
             systemPrompt = { "systemPrompt" }
         } as ChatAgent
-        coEvery { chatCompleter.complete(any(), any()) } answers { Failure(ArcException()) }
+        coEvery { chatCompleter.complete(any(), any(), any()) } answers { Failure(ArcException()) }
 
         val result: Result<Conversation, AgentFailedException>
         testBeanProvider.setContext(contextBeans) {

@@ -7,15 +7,14 @@ dependencies {
     api(project(":arc-agents"))
     implementation(project(":arc-scripting"))
     implementation(project(":arc-mcp"))
-    implementation(project(":arc-langchain4j-client"))
 
+    compileOnly(project(":arc-langchain4j-client"))
     compileOnly(project(":arc-azure-client"))
-    compileOnly(project(":arc-ollama-client"))
-    compileOnly(project(":arc-gen"))
     compileOnly(project(":arc-openai-client"))
+    compileOnly(project(":arc-gen"))
 
     // Azure
-    compileOnly("com.azure:azure-identity:1.15.0")
+    compileOnly("com.azure:azure-identity:1.15.4")
 
     // MCP
     compileOnly("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
@@ -37,6 +36,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.4")
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.4.3")
 
+    // Tests
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.3")
     testImplementation("org.springframework.boot:spring-boot-starter:3.4.3")
+    testImplementation(project(":arc-langchain4j-client"))
+    testImplementation(project(":arc-azure-client"))
+    testImplementation("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
 }

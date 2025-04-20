@@ -84,7 +84,7 @@ class AgentSubscription(
                             MessagePublisherChannel(messageChannel),
                             ContextProvider(request),
                             outputContext,
-                        ) + extraContext,
+                        ) + extraContext + extractContext(request),
                         agentProvider,
                     )
                 }

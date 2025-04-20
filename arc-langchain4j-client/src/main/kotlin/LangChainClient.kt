@@ -23,6 +23,7 @@ import dev.langchain4j.model.chat.request.json.JsonSchemaElement
 import dev.langchain4j.model.chat.request.json.JsonStringSchema
 import dev.langchain4j.model.output.Response
 import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.MissingModelNameException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.BinaryData
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -31,30 +32,32 @@ import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.ParameterSchema
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
-import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.addLLMTags
+import org.eclipse.lmos.arc.agents.tracing.spanLLMCall
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
-import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.failWith
-import org.eclipse.lmos.arc.core.finally
 import org.eclipse.lmos.arc.core.getOrThrow
+import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.time.Duration
 import kotlin.time.measureTime
 
 /**
  * Wraps a LangChain4j ChatLanguageModel to provide a ChatCompleter interface.
  */
 class LangChainClient(
-    private val languageModel: LangChainConfig,
-    private val clientBuilder: (LangChainConfig, ChatCompletionSettings?) -> ChatLanguageModel,
+    private val config: AIClientConfig,
+    private val clientBuilder: (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel,
     private val eventHandler: EventPublisher? = null,
+    private val tracer: AgentTracer? = null,
 ) : ChatCompleter {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -66,44 +69,15 @@ class LangChainClient(
     ) = result<AssistantMessage, ArcException> {
         val langChainMessages = toLangChainMessages(messages)
         val langChainFunctions = if (functions != null) toLangChainFunctions(functions) else null
-        val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
+        val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer)
+        val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)
+        val model =
+            config.modelName ?: settings?.deploymentNameOrModel() ?: failWith { MissingModelNameException() }
 
-        eventHandler?.publish(LLMStartedEvent(languageModel.modelName))
+        eventHandler?.publish(LLMStartedEvent(model))
 
-        val result: Result<Response<AiMessage>, ArcException>
-        val duration = measureTime {
-            result = chat(langChainMessages, langChainFunctions, settings, functionCallHandler)
-        }
-
-        var response: Response<AiMessage>? = null
-        finally { publishEvent(it, messages, functions, response, duration, settings, functionCallHandler) }
-        response = result failWith { ArcException("Failed to call LLM!", it) }
-        AssistantMessage(response.content().text(), sensitive = false)
-    }
-
-    private fun publishEvent(
-        result: Result<AssistantMessage, ArcException>,
-        messages: List<ConversationMessage>,
-        functions: List<LLMFunction>?,
-        response: Response<AiMessage>?,
-        duration: Duration,
-        settings: ChatCompletionSettings?,
-        functionCallHandler: FunctionCallHandler,
-    ) {
-        eventHandler?.publish(
-            LLMFinishedEvent(
-                result,
-                messages,
-                functions,
-                languageModel.modelName,
-                totalTokens = response?.tokenUsage()?.totalTokenCount() ?: -1,
-                promptTokens = response?.tokenUsage()?.inputTokenCount() ?: -1,
-                completionTokens = response?.tokenUsage()?.outputTokenCount() ?: -1,
-                functionCallHandler.calledFunctions.size,
-                duration,
-                settings = settings,
-            ),
-        )
+        val result = chat(langChainMessages, langChainFunctions, settings, functionCallHandler, llmEventPublisher)
+        result failWith { it }
     }
 
     private suspend fun chat(
@@ -111,23 +85,58 @@ class LangChainClient(
         langChainFunctions: List<ToolSpecification>? = null,
         settings: ChatCompletionSettings?,
         functionCallHandler: FunctionCallHandler,
-    ): Result<Response<AiMessage>, ArcException> {
+        eventPublisher: LLMEventPublisher,
+    ): Result<AssistantMessage, ArcException> {
         return try {
-            val client = clientBuilder(languageModel, settings)
-            val response = if (langChainFunctions?.isNotEmpty() == true) {
-                client.generate(messages, langChainFunctions)
-            } else {
-                client.generate(messages)
+            val client = clientBuilder(config, settings)
+            val result: Result<AssistantMessage, ArcException>
+            var response: Response<AiMessage>? = null
+
+            // Call the LLM
+            val duration = measureTime {
+                tracer.spanLLMCall { tags, _ ->
+                    result = result<AssistantMessage, Exception> {
+                        response = if (langChainFunctions?.isNotEmpty() == true) {
+                            client.generate(messages, langChainFunctions)
+                        } else {
+                            client.generate(messages)
+                        }
+                        val output = AssistantMessage(
+                            response!!.content().text(),
+                            sensitive = functionCallHandler.calledSensitiveFunction(),
+                        )
+                        tags.addLLMTags(
+                            config,
+                            settings,
+                            messages.toConversationMessages(),
+                            listOf(output),
+                            functionCallHandler.functions,
+                            response!!.tokenUsage().toUsage(),
+                        )
+                        output
+                    }.mapFailure {
+                        tags.error(it)
+                        ArcException("Failed to call LLM!", it)
+                    }
+                }
             }
+            eventPublisher.publishEvent(result, response, duration, functionCallHandler)
 
-            log.debug("ChatCompletions: ${response.finishReason()} (${response.content().toolExecutionRequests()})")
+            // Return if the result is a failures
+            if (result is Failure) {
+                return result
+            }
+            log.debug("ChatCompletions: ${response?.finishReason()} (${response?.content()?.toolExecutionRequests()})")
 
-            val newMessages = functionCallHandler.handle(response.content()).getOrThrow()
+            // Check if the response contains any function calls
+            val newMessages = functionCallHandler.handle(response!!.content()).getOrThrow()
             return if (newMessages.isNotEmpty()) {
-                chat(messages + newMessages, langChainFunctions, settings, functionCallHandler)
+                chat(messages + newMessages, langChainFunctions, settings, functionCallHandler, eventPublisher)
             } else {
-                Success(response)
+                result
             }
+        } catch (e: ArcException) {
+            Failure(e)
         } catch (e: Exception) {
             Failure(ArcException("Failed to call LLM!", e))
         }
@@ -204,5 +213,9 @@ class LangChainClient(
 
             else -> error("Unsupported parameter type: $type!")
         }
+    }
+
+    override fun toString(): String {
+        return "LangChainClient(config=$config)"
     }
 }

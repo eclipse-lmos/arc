@@ -5,6 +5,11 @@
 package org.eclipse.lmos.arc.agents.llm
 
 /**
+ * Indicates that the ChatCompleter can be used for multiple models.
+ */
+const val ANY_MODEL = "*"
+
+/**
  * Provides ChatCompleter based on their model name.
  * ChatCompleterProviders must provide a default ChatCompleter if no model is explicitly defined.
  */
@@ -19,7 +24,13 @@ fun interface ChatCompleterProvider {
 class MapChatCompleterProvider(private val map: Map<String, ChatCompleter>) : ChatCompleterProvider {
 
     override fun provideByModel(model: String?): ChatCompleter {
-        return map[model] ?: map.values.first()
+        return model?.let {
+            map[model] ?: map[ANY_MODEL] ?: error("Cannot find a ChatCompleter for $model! ChatCompleters:[$map]")
+        } ?: map[ANY_MODEL] ?: map.values.first()
+    }
+
+    override fun toString(): String {
+        return "MapChatCompleterProvider(map=$map)"
     }
 }
 

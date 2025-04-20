@@ -12,8 +12,11 @@ import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
-import org.eclipse.lmos.arc.agents.functions.LLMFunctionStartedEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.addToolOutput
+import org.eclipse.lmos.arc.agents.tracing.addToolTags
+import org.eclipse.lmos.arc.agents.tracing.spanToolCall
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -27,8 +30,9 @@ import kotlin.time.measureTime
  * Finds function calls in ChatCompletions and calls the callback function if any are found.
  */
 class FunctionCallHandler(
-    private val functions: List<LLMFunction>,
+    val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
+    private val tracer: AgentTracer?,
     private val functionCallLimit: Int = 60,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -55,11 +59,16 @@ class FunctionCallHandler(
                 toolsRequests.forEach { toolCall ->
                     val functionName = toolCall.name()
                     val functionArguments = toolCall.arguments().toJson() failWith { it }
+                    val function = functions.find { it.name == functionName }
+                        ?: failWith { ArcException("Cannot find function called $functionName!") }
 
                     val functionCallResult: Result<String, ArcException>
                     val duration = measureTime {
-                        eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
-                        functionCallResult = callFunction(functionName, functionArguments)
+                        tracer.spanToolCall { tags, _ ->
+                            tags.addToolTags(function, toolCall.arguments())
+                            functionCallResult = callFunction(function, functionArguments)
+                            tags.addToolOutput(functionCallResult)
+                        }
                     }
                     eventHandler?.publish(
                         LLMFunctionCalledEvent(
@@ -81,13 +90,10 @@ class FunctionCallHandler(
         }
     }
 
-    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>) =
+    private suspend fun callFunction(function: LLMFunction, functionArguments: Map<String, Any?>) =
         result<String, ArcException> {
-            val function = functions.find { it.name == functionName }
-                ?: failWith { ArcException("Cannot find function called $functionName!") }
-
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            _calledFunctions[functionName] = function
+            _calledFunctions[function.name] = function
             function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
         }
 

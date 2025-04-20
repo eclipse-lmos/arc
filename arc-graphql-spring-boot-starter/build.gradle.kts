@@ -13,7 +13,7 @@ dependencies {
 
     // Spring
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.4.3")
 
     // Test

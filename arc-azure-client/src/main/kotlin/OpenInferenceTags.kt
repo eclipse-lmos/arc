@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.client.azure
 
 import com.azure.ai.openai.models.ChatCompletions
+import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
 import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
 import com.azure.ai.openai.models.ChatRequestSystemMessage
@@ -14,6 +15,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonString
+import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
@@ -27,25 +29,26 @@ object OpenInferenceTags {
 
     fun applyAttributes(
         tags: Tags,
-        config: AzureClientConfig,
+        config: AIClientConfig,
         settings: ChatCompletionSettings?,
         completions: ChatCompletions,
         inputMessages: List<ChatRequestMessage>,
         functionCallHandler: FunctionCallHandler,
     ) {
         tags.tag("openinference.span.kind", "LLM")
-        tags.tag("llm.model_name", config.modelName)
+        tags.tag("llm.model_name", config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown")
         tags.tag("llm.provider", "azure")
         tags.tag("llm.system", "openai")
         settings?.let {
             tags.tag(
                 "llm.invocation_parameters",
                 """
-                {"model_name": "${config.modelName}", "temperature": "${it.temperature}", "seed": "${it.seed}"}
+                {"model_name": "${config.modelName ?: settings.deploymentNameOrModel() ?: "unknown"}", "temperature": "${it.temperature}", "seed": "${it.seed}"}
                 """.trimIndent(),
             )
         }
 
+        tags.tag("input.mime_type", "text/plain")
         inputMessages.forEachIndexed { i, message ->
             val content = when (message) {
                 is ChatRequestUserMessage -> message.content
@@ -57,6 +60,9 @@ object OpenInferenceTags {
                 tags.tag("llm.input_messages.$i.message.role", message.role.toString())
                 tags.tag("llm.input_messages.$i.message.content", content.toString())
             }
+            if (i == inputMessages.size - 1) {
+                tags.tag("input.value", content.toString())
+            }
         }
         completions.choices.filter { it?.message?.content != null }.forEachIndexed { i, choice ->
             tags.tag("llm.output_messages.$i.message.role", choice.message.role.toString())
@@ -64,9 +70,13 @@ object OpenInferenceTags {
         }
         functionCallHandler.functions.forEachIndexed { i, tool ->
             tags.tag("llm.tools.$i.tool.name", tool.name)
-            tags.tag("llm.tools.$i.tool.json_schema", tool.parameters.toJsonString())
+            tags.tag(
+                "llm.tools.$i.tool.json_schema",
+                """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()}","description":"${tool.description}"}""",
+            )
         }
-        tags.tag("output.value", "assistant: ${completions.choices.first().message.content}")
+
+        tags.tag("output.value", completions.choices.firstOrNull()?.message?.content ?: "")
         tags.tag("output.mime_type", "text/plain") // TODO
         tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())
         tags.tag("llm.token_count.completion", completions.usage.completionTokens.toLong())
@@ -75,9 +85,10 @@ object OpenInferenceTags {
 
     fun applyToolAttributes(
         functionName: String,
-        functionArguments: String,
+        toolCall: ChatCompletionsFunctionToolCall,
         tags: Tags,
     ) {
+        val functionArguments = toolCall.function.arguments
         tags.tag("openinference.span.kind", "TOOL")
         tags.tag("tool_call.function.name", functionName)
         tags.tag("tool_call.function.arguments", functionArguments)
@@ -87,6 +98,7 @@ object OpenInferenceTags {
 
     fun applyToolAttributes(function: LLMFunction, tags: Tags) {
         tags.tag("tool.name", function.name)
+        tags.tag("tool.id", function.name)
         tags.tag("tool.description", function.description)
         tags.tag("tool.parameters", function.parameters.toJsonString())
     }

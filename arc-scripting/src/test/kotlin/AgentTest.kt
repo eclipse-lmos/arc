@@ -32,7 +32,7 @@ class AgentTest : TestBase() {
     @Test
     fun `test agent execution`(): Unit = runBlocking {
         val input = slot<List<ConversationMessage>>()
-        coEvery { chatCompleter.complete(capture(input)) } answers { Success(AssistantMessage("answer")) }
+        coEvery { chatCompleter.complete(capture(input), any(), any()) } answers { Success(AssistantMessage("answer")) }
 
         testBeanProvider.setContext(setOf(chatCompleterProvider)) {
             val agent = eval("weather.agent.kts") as ChatAgent

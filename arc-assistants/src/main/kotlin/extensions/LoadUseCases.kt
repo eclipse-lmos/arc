@@ -23,6 +23,7 @@ private const val LOCAL_USE_CASES = "LOCAL_USE_CASES"
  */
 suspend fun DSLContext.useCases(name: String, fallbackLimit: Int = 2, conditions: Set<String> = emptySet()): String {
     return tracer().withSpan("load $name") { tags, _ ->
+        tags.tag("openinference.span.kind", "RETRIEVER")
         val requestUseCase = system("usecase", defaultValue = "").takeIf { it.isNotEmpty() }
         val useCases =
             (requestUseCase ?: local(name))?.toUseCases() ?: kotlin.error("No use case file found with the name $name!")
@@ -34,7 +35,8 @@ suspend fun DSLContext.useCases(name: String, fallbackLimit: Int = 2, conditions
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
         setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, filteredUseCases))
-        tags.tag("compiled", filteredUseCases)
+        tags.tag("document.id", name)
+        tags.tag("document.content", filteredUseCases)
         filteredUseCases
     }
 }
