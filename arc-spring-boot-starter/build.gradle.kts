@@ -21,7 +21,7 @@ dependencies {
     compileOnly("io.modelcontextprotocol.sdk:mcp-spring-webflux:0.7.0")
 
     // Micrometer
-    compileOnly("io.micrometer:micrometer-registry-atlas:1.14.5")
+    compileOnly("io.micrometer:micrometer-registry-atlas:1.14.6")
     implementation(platform("io.micrometer:micrometer-tracing-bom:1.4.5"))
     compileOnly("io.micrometer:micrometer-tracing")
     compileOnly("io.micrometer:micrometer-registry-otlp")
