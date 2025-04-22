@@ -13,7 +13,7 @@ typealias UseCaseId = String
 private val useCaseIdRegex = "<ID:(.*)>".toRegex()
 
 fun extractUseCaseId(message: String): Pair<String, UseCaseId?> {
-    val id = useCaseIdRegex.find(message)?.groupValues?.elementAtOrNull(1)
+    val id = useCaseIdRegex.find(message)?.groupValues?.elementAtOrNull(1)?.trim()
     val cleanedMessage = message.replace(useCaseIdRegex, "").trim()
     return cleanedMessage to id
 }
