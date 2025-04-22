@@ -16,13 +16,15 @@ import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.agents.withLogContext
 import org.slf4j.MDC
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 
 @ConditionalOnClass(Tracer::class)
 class TracingConfiguration {
 
     @Bean
-    fun tracer(tracer: Tracer) = SpanTracer(tracer)
+    @ConditionalOnMissingBean
+    fun tracer(tracer: Tracer): AgentTracer = SpanTracer(tracer)
 }
 
 /**

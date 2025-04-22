@@ -22,7 +22,7 @@ dependencies {
 
     // Micrometer
     compileOnly("io.micrometer:micrometer-registry-atlas:1.14.5")
-    implementation(platform("io.micrometer:micrometer-tracing-bom:1.4.3"))
+    implementation(platform("io.micrometer:micrometer-tracing-bom:1.4.5"))
     compileOnly("io.micrometer:micrometer-tracing")
     compileOnly("io.micrometer:micrometer-registry-otlp")
 
