@@ -62,7 +62,7 @@ subprojects {
     if (project.name != "arc-gradle-plugin") {
         mavenPublishing {
             publishToMavenCentral(SonatypeHost.DEFAULT, automaticRelease = true)
-            // signAllPublications()
+            signAllPublications()
 
             pom {
                 name = "ARC"
