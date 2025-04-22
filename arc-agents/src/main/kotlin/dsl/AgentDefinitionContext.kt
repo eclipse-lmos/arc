@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.agents.dsl
 
 import org.eclipse.lmos.arc.agents.Agent
+import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 
 @DslMarker
@@ -35,6 +36,7 @@ class BasicAgentDefinitionContext(
 class AgentDefinition {
     lateinit var name: String
     var description: String = ""
+    var skills: List<Skill> = emptyList()
 
     var model: suspend DSLContext.() -> String? = { null }
     fun model(fn: suspend DSLContext.() -> String) {

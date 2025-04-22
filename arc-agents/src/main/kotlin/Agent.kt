@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.agents
 
+import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.core.Result
 
 /**
@@ -14,6 +15,8 @@ interface Agent<I, O> {
     val name: String
 
     val description: String
+
+    val skills: List<Skill>?
 
     /**
      * Executes the agent with the given input and context.
