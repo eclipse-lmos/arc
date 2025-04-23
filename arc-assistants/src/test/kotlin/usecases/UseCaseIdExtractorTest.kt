@@ -57,4 +57,13 @@ class UseCaseIdExtractorTest {
         val (_, stepId) = extractUseCaseStepId(message)
         assertThat(stepId).isNull()
     }
+
+    @Test
+    fun `test use case id extraction contains closing bracket`(): Unit = runBlocking {
+        val message = """<ID:use_case01>
+                 This is a reply from the LLM with <Dummy Data>"""
+        val (filteredMessage, useCaseId) = extractUseCaseId(message)
+        assertThat(filteredMessage).contains("This is a reply from the LLM with <Dummy Data>")
+        assertThat(useCaseId).isEqualTo("use_case01")
+    }
 }
