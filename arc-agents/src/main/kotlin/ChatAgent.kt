@@ -146,9 +146,9 @@ class ChatAgent(
         result<Conversation, Exception> {
             val chatCompleter = compositeBeanProvider.chatCompleter(model = model)
 
-            val functions = functions(dslContext, compositeBeanProvider)
-            usedFunctions.set(functions)
-
+            //
+            // Filter input
+            //
             val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
                 coroutineScope {
                     val filterContext = InputFilterContext(dslContext, conversation)
@@ -158,9 +158,11 @@ class ChatAgent(
                     }
                 }
             }
-
             if (filteredInput.isEmpty()) failWith { AgentNotExecutedException("Input has been filtered") }
 
+            //
+            // Generate system prompt
+            //
             val generatedSystemPrompt = tracer.withSpan(
                 "generate system prompt",
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
@@ -171,8 +173,16 @@ class ChatAgent(
                 }
             }
 
-            val fullConversation = listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
+            //
+            // Load functions
+            //
+            val functions = functions(dslContext, compositeBeanProvider)
+            usedFunctions.set(functions)
 
+            //
+            // Generate response
+            //
+            val fullConversation = listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
             val completedConversation = tracer.withSpan(
                 "generate response",
                 mapOf(
@@ -186,6 +196,9 @@ class ChatAgent(
                     .getOrThrow().also { tags.tag("response", it.content) }
             }
 
+            //
+            // Filter output
+            //
             tracer.withSpan("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) { _, _ ->
                 coroutineScope {
                     val filterOutputContext =
