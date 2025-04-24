@@ -144,6 +144,20 @@ class DSLScriptAgents private constructor(
 }
 
 
+/**
+ * Creates a DSLScriptAgents instance with hot reloading capabilities.
+ * 
+ * This function initializes a DSLScriptAgents instance that can automatically reload agent and function scripts
+ * when they change in the specified directory. It uses the ScriptHotReload class to watch for file changes
+ * and reload scripts accordingly.
+ *
+ * @param context A set of objects that will be available as beans in the agent system
+ * @param memory Optional memory implementation for agents to use
+ * @param tracer Optional tracer for monitoring agent execution
+ * @param hotReloadFolder The directory to watch for script changes. If null, hot reloading is disabled
+ * @param chatCompleterProvider Optional custom chat completer provider. If null, a default ServiceCompleterProvider is used
+ * @return A configured DSLScriptAgents instance with hot reloading if a folder is specified
+ */
 fun hotReloadAgents(
     context: Set<Any> = emptySet(),
     memory: Memory? = null,
