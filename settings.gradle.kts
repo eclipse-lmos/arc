@@ -6,8 +6,7 @@ rootProject.name = "arc"
 
 include("arc-scripting")
 include("arc-azure-client")
-include("arc-reader-html")
-include("arc-reader-pdf")
+include("arc-readers")
 include("arc-result")
 include("arc-agents")
 include("arc-spring-boot-starter")
