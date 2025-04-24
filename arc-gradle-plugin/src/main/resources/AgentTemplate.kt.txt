@@ -13,6 +13,9 @@ import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.*
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.OutputFormat
+import org.eclipse.lmos.arc.agents.dsl.custom.extensions.*
+import org.eclipse.lmos.arc.assistants.support.filters.*
+import kotlin.time.Duration.Companion.*
 
 class Agents {
 
