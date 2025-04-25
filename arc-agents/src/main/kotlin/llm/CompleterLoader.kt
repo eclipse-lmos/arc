@@ -73,6 +73,9 @@ class ServiceCompleterProvider(
             }
         }.toChatCompleterProvider()
     }
+
+    override fun toString() =
+        "ServiceCompleterProvider(completerProvider=$completerProvider, configs=$configs, tracer=$tracer, eventPublisher=$eventPublisher)"
 }
 
 fun getEnvironmentValue(name: String): String? {
