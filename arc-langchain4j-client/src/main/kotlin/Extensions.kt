@@ -23,8 +23,15 @@ fun List<ChatMessage>.toConversationMessages(): List<ConversationMessage> {
             is dev.langchain4j.data.message.UserMessage -> org.eclipse.lmos.arc.agents.conversation.UserMessage(
                 it.contents().joinToString(separator = "\n"),
             )
-            is dev.langchain4j.data.message.AiMessage -> org.eclipse.lmos.arc.agents.conversation.AssistantMessage(it.text())
-            is dev.langchain4j.data.message.SystemMessage -> org.eclipse.lmos.arc.agents.conversation.SystemMessage(it.text())
+
+            is dev.langchain4j.data.message.AiMessage -> org.eclipse.lmos.arc.agents.conversation.AssistantMessage(
+                it.text() ?: "",
+            )
+
+            is dev.langchain4j.data.message.SystemMessage -> org.eclipse.lmos.arc.agents.conversation.SystemMessage(
+                it.text() ?: "",
+            )
+
             else -> error("Unsupported message type: ${it::class.simpleName}")
         }
     }

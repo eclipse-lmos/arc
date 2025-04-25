@@ -102,7 +102,7 @@ class LangChainClient(
                             client.generate(messages)
                         }
                         val output = AssistantMessage(
-                            response!!.content().text(),
+                            response!!.content().text() ?: "",
                             sensitive = functionCallHandler.calledSensitiveFunction(),
                         )
                         tags.addLLMTags(

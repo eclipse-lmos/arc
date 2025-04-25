@@ -92,7 +92,7 @@ fun Tags.addLLMTags(
         tag("llm.tools.$i.tool.name", tool.name)
         tag(
             "llm.tools.$i.tool.json_schema",
-            """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()}","description":"${tool.description}"}""",
+            """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()},"description":"${tool.description}"}""",
         )
     }
 
