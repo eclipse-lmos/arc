@@ -4,16 +4,14 @@
 package org.eclipse.lmos.arc.agents.examples
 
 import kotlinx.coroutines.runBlocking
-import org.eclipse.lmos.arc.agents.agent.ask
 import org.eclipse.lmos.arc.agents.agents
-import org.eclipse.lmos.arc.agents.getChatAgent
-import org.eclipse.lmos.arc.core.getOrNull
+import org.eclipse.lmos.arc.server.ktor.*
 
 fun main() = runBlocking {
     // Only the api key is required.
     // System.setProperty("OPENAI_API_KEY", "****")
 
-    val agents = agents(
+    agents(
         functions = {
             function(
                 name = "get_weather",
@@ -32,8 +30,5 @@ fun main() = runBlocking {
                 """
             }
         }
-    }
-
-    val reply = agents.getChatAgent("MyAgent").ask("What is the weather like today?").getOrNull()
-    println(reply)
+    }.serve()
 }

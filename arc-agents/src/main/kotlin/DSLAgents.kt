@@ -29,11 +29,12 @@ import org.eclipse.lmos.arc.agents.llm.ServiceCompleterProvider
 import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import kotlin.reflect.KClass
 
 /**
  * Interface for an Arc agent system.
  */
-interface ArcAgents : AgentProvider, LLMFunctionProvider, EventListeners
+interface ArcAgents : AgentProvider, LLMFunctionProvider, EventListeners, BeanProvider
 
 /**
  * A convenience class for setting up the agent system and
@@ -136,6 +137,10 @@ class DSLAgents private constructor(
      */
     override suspend fun provide(functionName: String, context: ToolLoaderContext?) =
         functionProvider.provide(functionName, context)
+
+    override suspend fun <T : Any> provide(bean: KClass<T>): T {
+        return beanProvider.provide(bean)
+    }
 
     override suspend fun provideAll(context: ToolLoaderContext?) = functionProvider.provideAll(context)
 

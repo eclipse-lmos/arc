@@ -106,6 +106,10 @@ class InMemoryMemory : Memory {
         }
         return result as T?
     }
+
+    override fun toString(): String {
+        return "InMemoryMemory(shortTermMemory=${shortTermMemory.size}, longTermMemory=${longTermMemory.size})"
+    }
 }
 
 private data class MemoryShortTermEntry(val value: Any?, val creationDate: Instant = Instant.now())
