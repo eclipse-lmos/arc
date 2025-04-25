@@ -35,7 +35,6 @@ object ScriptConfiguration : ScriptCompilationConfiguration(
             "org.eclipse.lmos.arc.agents.dsl.extensions.*",
             "org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings",
             "org.eclipse.lmos.arc.agents.llm.OutputFormat",
-            "org.eclipse.lmos.arc.agents.dsl.custom.extensions.*",
             "org.eclipse.lmos.arc.assistants.support.filters.*",
             "kotlin.time.Duration.Companion.*",
         )
