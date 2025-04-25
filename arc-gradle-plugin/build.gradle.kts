@@ -23,9 +23,8 @@ gradlePlugin {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral(SonatypeHost.DEFAULT, automaticRelease = true)
     signAllPublications()
-    configure(GradlePlugin(JavadocJar.Dokka("dokkaHtml"), true))
 
     pom {
         name = "ARC"
