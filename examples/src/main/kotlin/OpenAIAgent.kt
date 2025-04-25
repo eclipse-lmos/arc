@@ -26,6 +26,7 @@ fun main() = runBlocking {
         agent {
             name = "MyAgent"
             model { "gpt-4o" }
+            tools { +"get_weather" }
             prompt {
                 """
                 You are a weather assistant. Help the user with their questions about the weather.

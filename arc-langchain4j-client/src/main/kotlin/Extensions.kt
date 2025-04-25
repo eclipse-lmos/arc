@@ -32,6 +32,10 @@ fun List<ChatMessage>.toConversationMessages(): List<ConversationMessage> {
                 it.text() ?: "",
             )
 
+            is dev.langchain4j.data.message.ToolExecutionResultMessage -> org.eclipse.lmos.arc.agents.conversation.AssistantMessage(
+                it.text() ?: "",
+            )
+
             else -> error("Unsupported message type: ${it::class.simpleName}")
         }
     }

@@ -14,8 +14,8 @@ import org.eclipse.lmos.arc.core.getOrNull
  *  - Start the Ollama server.
  */
 fun main() = runBlocking {
-    // Only the client name is required.
     System.setProperty("ARC_CLIENT", "ollama")
+    System.setProperty("ARC_MODEL", "llama3.2:latest") // Only needed if other client are also configured
 
     val agents = agents(
         functions = {
@@ -26,7 +26,7 @@ fun main() = runBlocking {
     ) {
         agent {
             name = "MyAgent"
-            model { "gpt-4o" }
+            model { "llama3.2:latest" }
             tools { +"get_weather" }
             prompt {
                 """
@@ -36,6 +36,6 @@ fun main() = runBlocking {
         }
     }
 
-    val reply = agents.getChatAgent("MyAgent").ask("Write me an email about bananas, please").getOrNull()
+    val reply = agents.getChatAgent("MyAgent").ask("How is the weather?").getOrNull()
     println(reply)
 }
