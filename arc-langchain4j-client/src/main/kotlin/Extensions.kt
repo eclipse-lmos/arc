@@ -6,7 +6,6 @@ package org.eclipse.lmos.arc.client.langchain4j
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.model.output.TokenUsage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
-import org.eclipse.lmos.arc.agents.tracing.Usage
 
 fun TokenUsage.toUsage(): Usage {
     return Usage(

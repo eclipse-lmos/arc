@@ -37,8 +37,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.eclipse.lmos.arc.agents.tracing.addLLMTags
-import org.eclipse.lmos.arc.agents.tracing.spanLLMCall
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
@@ -108,8 +106,8 @@ class LangChainClient(
                         tags.addLLMTags(
                             config,
                             settings,
-                            messages.toConversationMessages(),
-                            listOf(output),
+                            messages,
+                            listOf(response!!),
                             functionCallHandler.functions,
                             response!!.tokenUsage().toUsage(),
                         )
