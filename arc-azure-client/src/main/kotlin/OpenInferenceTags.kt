@@ -9,6 +9,7 @@ import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
 import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
 import com.azure.ai.openai.models.ChatRequestSystemMessage
+import com.azure.ai.openai.models.ChatRequestToolMessage
 import com.azure.ai.openai.models.ChatRequestUserMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -54,6 +55,7 @@ object OpenInferenceTags {
                 is ChatRequestUserMessage -> message.content
                 is ChatRequestAssistantMessage -> message.content
                 is ChatRequestSystemMessage -> message.content
+                is ChatRequestToolMessage -> message.content
                 else -> null
             }
             tags.tag("llm.input_messages.$i.message.role", message.role.toString())
