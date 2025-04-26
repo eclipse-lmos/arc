@@ -20,6 +20,7 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.LLMFunctionServiceLoader
 import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ServiceCompleterProvider
@@ -80,7 +81,8 @@ class DSLScriptAgents private constructor(
              * Set up the loading of agent functions from scripts.
              */
             val functionLoader = ScriptingLLMFunctionLoader(beanProvider, eventPublisher = eventPublisher)
-            val functionProvider = CompositeLLMFunctionProvider(listOf(functionLoader))
+            val discoveredLoaders = LLMFunctionServiceLoader()
+            val functionProvider = CompositeLLMFunctionProvider(listOf(functionLoader, discoveredLoaders))
 
             /**
              * Set up the loading of agents from scripts.

@@ -21,6 +21,7 @@ import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.LLMFunctionServiceLoader
 import org.eclipse.lmos.arc.agents.functions.ListFunctionsLoader
 import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
@@ -80,7 +81,8 @@ class DSLAgents private constructor(
              * Set up the loading of agent functions.
              */
             val functionLoader = ListFunctionsLoader()
-            val functionProvider = CompositeLLMFunctionProvider(functionLoaders + functionLoader)
+            val discoveredLoaders = LLMFunctionServiceLoader()
+            val functionProvider = CompositeLLMFunctionProvider(functionLoaders + functionLoader + discoveredLoaders)
 
             /**
              * Set up the loading of agents.

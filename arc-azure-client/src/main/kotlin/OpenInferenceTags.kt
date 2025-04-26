@@ -76,7 +76,7 @@ object OpenInferenceTags {
                 tags.tag("llm.output_messages.$i.message.tool_calls.$y.tool_call.function.name", toolCall.function.name)
                 tags.tag(
                     "llm.output_messages.$i.message.tool_calls.$y.tool_call.function.arguments",
-                    toolCall.function.arguments
+                    toolCall.function.arguments,
                 )
             }
         }
