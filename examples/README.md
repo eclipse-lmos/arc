@@ -27,7 +27,7 @@ This directory contains example applications demonstrating various features and 
 5. **OpenAIAgent.kt**
    - Demonstrates how to connect an Agent to the OpenAI API.
    
-6**ContextAgent.kt**
-   - emonstrates how to provide Agents with access to external beans / components.
+6. **ContextAgent.kt**
+   - Demonstrates how to provide Agents with access to external beans / components.
 
 
