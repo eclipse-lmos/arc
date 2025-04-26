@@ -2,18 +2,23 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.arc.agents.tracing
+package org.eclipse.lmos.arc.client.langchain4j
 
+import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.ChatMessage
+import dev.langchain4j.data.message.SystemMessage
+import dev.langchain4j.data.message.ToolExecutionResultMessage
+import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.output.Response
 import org.eclipse.lmos.arc.agents.ArcException
-import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
-import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
-import org.eclipse.lmos.arc.agents.conversation.DeveloperMessage
-import org.eclipse.lmos.arc.agents.conversation.SystemMessage
-import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonString
 import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
+import org.eclipse.lmos.arc.agents.tracing.Events
+import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.getOrNull
 import kotlin.contracts.ExperimentalContracts
@@ -44,8 +49,8 @@ suspend fun <T> AgentTracer?.spanLLMCall(fn: suspend (Tags, Events) -> T): T {
 fun Tags.addLLMTags(
     config: AIClientConfig,
     settings: ChatCompletionSettings?,
-    inputMessages: List<ConversationMessage>,
-    outputMessages: List<ConversationMessage>,
+    inputMessages: List<ChatMessage>,
+    outputMessages: List<Response<AiMessage>>,
     functions: List<LLMFunction>,
     usage: Usage,
 ) {
@@ -66,37 +71,40 @@ fun Tags.addLLMTags(
     inputMessages.forEachIndexed { i, message ->
         val role = when (message) {
             is UserMessage -> "user"
-            is AssistantMessage -> "assistant"
+            is AiMessage -> "assistant"
             is SystemMessage -> "system"
-            is DeveloperMessage -> "developer"
+            is ToolExecutionResultMessage -> "tool"
+            else -> "unknown"
         }
-        if (message.content.isNotEmpty()) {
-            tag("llm.input_messages.$i.message.role", role)
-            tag("llm.input_messages.$i.message.content", message.content)
+        tag("llm.input_messages.$i.message.role", role)
+        if (message.text() != null) {
+            tag("llm.input_messages.$i.message.content", message.text())
         }
         if (i == inputMessages.size - 1) {
-            tag("input.value", message.content)
+            tag("input.value", message.text() ?: "")
         }
     }
-    outputMessages.forEachIndexed { i, message ->
-        val role = when (message) {
-            is UserMessage -> "user"
-            is AssistantMessage -> "assistant"
-            is SystemMessage -> "system"
-            is DeveloperMessage -> "developer"
+    outputMessages.forEachIndexed { i, response ->
+        val message = response.content()
+        tag("llm.output_messages.$i.message.role", "assistant")
+        tag("llm.output_messages.$i.message.content", message.text() ?: "")
+        message.toolExecutionRequests()?.forEachIndexed { y, toolCall ->
+            tag("llm.output_messages.$i.message.tool_calls.$y.tool_call.function.name", toolCall.name())
+            tag(
+                "llm.output_messages.$i.message.tool_calls.$y.tool_call.function.arguments",
+                toolCall.arguments(),
+            )
         }
-        tag("llm.output_messages.$i.message.role", role)
-        tag("llm.output_messages.$i.message.content", message.content)
     }
     functions.forEachIndexed { i, tool ->
         tag("llm.tools.$i.tool.name", tool.name)
         tag(
             "llm.tools.$i.tool.json_schema",
-            """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()}","description":"${tool.description}"}""",
+            """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()},"description":"${tool.description}"}""",
         )
     }
 
-    tag("output.value", outputMessages.firstOrNull()?.content ?: "")
+    tag("output.value", outputMessages.firstOrNull()?.content()?.text() ?: "")
     tag("output.mime_type", "text/plain") // TODO
     tag("llm.token_count.prompt", usage.promptCount.toLong())
     tag("llm.token_count.completion", usage.completionCount.toLong())

@@ -14,9 +14,6 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.eclipse.lmos.arc.agents.tracing.addToolOutput
-import org.eclipse.lmos.arc.agents.tracing.addToolTags
-import org.eclipse.lmos.arc.agents.tracing.spanToolCall
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull

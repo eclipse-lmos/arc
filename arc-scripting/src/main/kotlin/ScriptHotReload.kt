@@ -46,7 +46,7 @@ class ScriptHotReload(
     }
 
     fun start(directory: File) {
-        log.debug("Starting hot-reload of agents from ${directory.absoluteFile}(${directory.listFiles()?.size})")
+        log.info("Starting hot-reload of agents from ${directory.absoluteFile}(${directory.listFiles()?.size})")
         fileWatcher.value.watch(directory) { event ->
             result<Unit, Exception> {
                 when (event) {

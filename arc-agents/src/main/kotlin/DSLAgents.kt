@@ -15,11 +15,13 @@ import org.eclipse.lmos.arc.agents.dsl.beans
 import org.eclipse.lmos.arc.agents.events.BasicEventPublisher
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
+import org.eclipse.lmos.arc.agents.events.EventListeners
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.functions.CompositeLLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.LLMFunctionServiceLoader
 import org.eclipse.lmos.arc.agents.functions.ListFunctionsLoader
 import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
@@ -28,6 +30,12 @@ import org.eclipse.lmos.arc.agents.llm.ServiceCompleterProvider
 import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import kotlin.reflect.KClass
+
+/**
+ * Interface for an Arc agent system.
+ */
+interface ArcAgents : AgentProvider, LLMFunctionProvider, EventListeners, BeanProvider
 
 /**
  * A convenience class for setting up the agent system and
@@ -40,11 +48,12 @@ class DSLAgents private constructor(
     private val agentLoader: ListAgentLoader,
     private val agentProvider: AgentProvider,
     private val functionProvider: LLMFunctionProvider,
-) : AgentProvider, LLMFunctionProvider {
+    private val eventListeners: EventListeners? = null,
+) : ArcAgents {
     companion object {
 
         fun init(
-            chatCompleterProvider: ChatCompleterProvider,
+            chatCompleterProvider: ChatCompleterProvider? = null,
             beans: Set<Any> = emptySet(),
             publisher: EventPublisher? = null,
             handlers: List<EventHandler<out Event>> = emptyList(),
@@ -58,15 +67,22 @@ class DSLAgents private constructor(
             val eventPublisher = publisher ?: BasicEventPublisher(LoggingEventHandler(), *handlers.toTypedArray())
 
             /**
+             * Set up the chat completer provider.
+             */
+            val completerProvider =
+                chatCompleterProvider ?: ServiceCompleterProvider(tracer = tracer, eventPublisher = eventPublisher)
+
+            /**
              * Set up the bean provider.
              */
-            val beanProvider = beans(*beans.toTypedArray(), chatCompleterProvider, memory, tracer, eventPublisher)
+            val beanProvider = beans(*beans.toTypedArray(), completerProvider, memory, tracer, eventPublisher)
 
             /**
              * Set up the loading of agent functions.
              */
             val functionLoader = ListFunctionsLoader()
-            val functionProvider = CompositeLLMFunctionProvider(functionLoaders + functionLoader)
+            val discoveredLoaders = LLMFunctionServiceLoader()
+            val functionProvider = CompositeLLMFunctionProvider(functionLoaders + functionLoader + discoveredLoaders)
 
             /**
              * Set up the loading of agents.
@@ -75,7 +91,15 @@ class DSLAgents private constructor(
             val agentLoader = ListAgentLoader()
             val agentProvider = CompositeAgentProvider(listOf(agentLoader), emptyList())
 
-            return DSLAgents(beanProvider, agentFactory, functionLoader, agentLoader, agentProvider, functionProvider)
+            return DSLAgents(
+                beanProvider,
+                agentFactory,
+                functionLoader,
+                agentLoader,
+                agentProvider,
+                functionProvider,
+                if (eventPublisher is EventListeners) eventPublisher else null,
+            )
         }
     }
 
@@ -116,7 +140,15 @@ class DSLAgents private constructor(
     override suspend fun provide(functionName: String, context: ToolLoaderContext?) =
         functionProvider.provide(functionName, context)
 
+    override suspend fun <T : Any> provide(bean: KClass<T>): T {
+        return beanProvider.provide(bean)
+    }
+
     override suspend fun provideAll(context: ToolLoaderContext?) = functionProvider.provideAll(context)
+
+    override fun add(handler: EventHandler<out Event>) {
+        eventListeners?.add(handler) // TODO
+    }
 }
 
 /**
@@ -152,10 +184,7 @@ fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } 
 fun agents(
     tracer: AgentTracer? = null,
     eventPublisher: EventPublisher? = null,
-    chatCompleterProvider: ChatCompleterProvider = ServiceCompleterProvider(
-        tracer = tracer,
-        eventPublisher = eventPublisher,
-    ),
+    chatCompleterProvider: ChatCompleterProvider? = null,
     functionLoaders: List<LLMFunctionLoader> = emptyList(),
     memory: Memory? = InMemoryMemory(),
     context: Set<Any> = emptySet(),

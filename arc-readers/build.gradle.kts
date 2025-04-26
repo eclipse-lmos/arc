@@ -7,8 +7,9 @@ dependencies {
     implementation(project(":arc-agents"))
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation(libs.slf4j.api)
 
-    // pdfbox
+    // jsoup
+    implementation("org.jsoup:jsoup:1.19.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.3")
 }
