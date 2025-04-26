@@ -5,10 +5,35 @@
 
 # The Arc Project
 
-The goal of the Arc project is to utilize the power of Kotlin DSL and Kotlin Scripting to define
-a language optimized for building LLM powered solutions.
+The goal of the Arc project is to utilize the power of Kotlin DSL to define
+a language optimized for building LLM powered AI Agents solutions.
 
-Please take a look at the documentation -> https://eclipse.dev/lmos/arc2
+```kotlin
+
+fun main() = runBlocking {
+    // Set OpenAI API Key as System Property or Environment Variable.
+    // System.setProperty("OPENAI_API_KEY", "****")
+
+    agents {
+        // Use the Agent DSL to define your agents.
+        agent {
+            name = "MyAgent"
+            model { "gpt-4o" }
+            prompt {
+                """
+                You are a helpful assistant. Help the user with their questions.
+                """
+            }
+        }
+        // Add more agents here
+        
+    }.serve()
+}
+```
+
+Check out the examples at https://github.com/eclipse-lmos/arc/tree/main/examples.
+
+Please also take a look at the documentation -> https://eclipse.dev/lmos/arc2
 
 Check out the [Arc Agent Demo Project](https://github.com/eclipse-lmos/arc-spring-init) for 
 an example Spring Boot project that uses the Arc Agent Framework.

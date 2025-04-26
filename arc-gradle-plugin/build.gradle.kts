@@ -1,5 +1,3 @@
-import com.vanniktech.maven.publish.GradlePlugin
-import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.SonatypeHost
 import java.lang.System.getenv
 import java.net.URI
@@ -23,9 +21,8 @@ gradlePlugin {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral(SonatypeHost.DEFAULT, automaticRelease = true)
     signAllPublications()
-    configure(GradlePlugin(JavadocJar.Dokka("dokkaHtml"), true))
 
     pom {
         name = "ARC"

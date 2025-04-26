@@ -74,6 +74,27 @@ fun String.toUseCases(): List<UseCase> {
 }
 
 /**
+ * Extracts functions from a given string.
+ * Functions are defined in the format
+ * "Call @my_function()".
+ */
+fun String.parseFunctions(): Pair<String, Set<String>> {
+    val regex = Regex("@([0-9A-Za-z_\\-]+?)\\(\\)")
+    val replacements = mutableMapOf<String, String>()
+    val functions = buildSet {
+        regex.findAll(this@parseFunctions).iterator().forEach {
+            add(it.groupValues[1])
+            replacements[it.groupValues[0]] = it.groupValues[1]
+        }
+    }
+    var cleanedText = this
+    replacements.forEach { (key, value) ->
+        cleanedText = cleanedText.replace(key, value).trim()
+    }
+    return cleanedText to functions
+}
+
+/**
  * Extracts conditions from a given string.
  * Conditions are defined in the format
  * "This is my string <Condition1, Condition2>".
@@ -86,7 +107,8 @@ fun String.parseConditions(): Pair<String, Set<String>> {
 
 fun String.asConditional(): Conditional {
     val (text, conditions) = parseConditions()
-    return Conditional(text, conditions)
+    val (finalText, functions) = text.parseFunctions()
+    return Conditional(finalText, conditions, functions)
 }
 
 /**
@@ -126,6 +148,7 @@ data class UseCase(
 data class Conditional(
     val text: String = "",
     val conditions: Set<String> = emptySet(),
+    val functions: Set<String> = emptySet(),
 ) {
     operator fun plus(other: String): Conditional {
         return copy(text = text + other)

@@ -9,6 +9,7 @@ import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
 import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
 import com.azure.ai.openai.models.ChatRequestSystemMessage
+import com.azure.ai.openai.models.ChatRequestToolMessage
 import com.azure.ai.openai.models.ChatRequestUserMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -54,25 +55,36 @@ object OpenInferenceTags {
                 is ChatRequestUserMessage -> message.content
                 is ChatRequestAssistantMessage -> message.content
                 is ChatRequestSystemMessage -> message.content
+                is ChatRequestToolMessage -> message.content
                 else -> null
             }
+            tags.tag("llm.input_messages.$i.message.role", message.role.toString())
             if (content != null) {
-                tags.tag("llm.input_messages.$i.message.role", message.role.toString())
                 tags.tag("llm.input_messages.$i.message.content", content.toString())
             }
             if (i == inputMessages.size - 1) {
                 tags.tag("input.value", content.toString())
             }
         }
-        completions.choices.filter { it?.message?.content != null }.forEachIndexed { i, choice ->
+        completions.choices.filter { it?.message != null }.forEachIndexed { i, choice ->
             tags.tag("llm.output_messages.$i.message.role", choice.message.role.toString())
-            tags.tag("llm.output_messages.$i.message.content", choice.message.content)
+            if (choice.message.content != null) {
+                tags.tag("llm.output_messages.$i.message.content", choice.message.content)
+            }
+            choice.message.toolCalls?.forEachIndexed { y, call ->
+                val toolCall = call as ChatCompletionsFunctionToolCall
+                tags.tag("llm.output_messages.$i.message.tool_calls.$y.tool_call.function.name", toolCall.function.name)
+                tags.tag(
+                    "llm.output_messages.$i.message.tool_calls.$y.tool_call.function.arguments",
+                    toolCall.function.arguments,
+                )
+            }
         }
         functionCallHandler.functions.forEachIndexed { i, tool ->
             tags.tag("llm.tools.$i.tool.name", tool.name)
             tags.tag(
                 "llm.tools.$i.tool.json_schema",
-                """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()}","description":"${tool.description}"}""",
+                """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()},"description":"${tool.description}"}""",
             )
         }
 
