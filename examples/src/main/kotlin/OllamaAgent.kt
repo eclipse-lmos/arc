@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
 //
 // SPDX-License-Identifier: Apache-2.0
-package org.eclipse.lmos.arc.agents.examples
+package org.eclipse.lmos.arc.agents.examples.ollama
 
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.arc.agents.agent.ask
@@ -10,12 +10,24 @@ import org.eclipse.lmos.arc.agents.getChatAgent
 import org.eclipse.lmos.arc.core.getOrNull
 
 /**
+ * Demonstrates how to connect your Agent to the Ollama server.
+ *
  * Setup:
  *  - Start the Ollama server.
+ *
+ * Dependencies:
+ *  implementation(project(":arc-agents"))
+ *  implementation(project(":arc-langchain4j-client"))
+ *  implementation("dev.langchain4j:langchain4j-ollama:0.36.2")
  */
-fun main() = runBlocking {
+fun main(): Unit = runBlocking {
     System.setProperty("ARC_CLIENT", "ollama")
-    System.setProperty("ARC_MODEL", "llama3.2:latest") // Only needed if other client are also configured
+
+    // Only needed if other clients are also configured.
+    // For example, if the OpenAI key is set, this may load the OpenAI client.
+    // In which case, you the framework needs to know which client to use for which model.
+    // This is not needed if you only use the Ollama client.
+    System.setProperty("ARC_MODEL", "llama3.2:latest")
 
     val agents = agents(
         functions = {

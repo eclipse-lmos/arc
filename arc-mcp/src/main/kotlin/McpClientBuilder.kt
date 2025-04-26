@@ -33,7 +33,8 @@ class McpClientBuilder(private val url: String) : Closeable {
     }
 
     private fun createClient(): McpAsyncClient {
-        return McpClient.async(HttpClientSseClientTransport(url))
+        val fixed = if (url.endsWith("/")) url.substring(0, url.length - 1) else url
+        return McpClient.async(HttpClientSseClientTransport(fixed))
             .requestTimeout(Duration.ofSeconds(10))
             .capabilities(ClientCapabilities.builder().build())
             .build()

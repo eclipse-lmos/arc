@@ -92,7 +92,7 @@ fun Tags.addLLMTags(
             tag("llm.output_messages.$i.message.tool_calls.$y.tool_call.function.name", toolCall.name())
             tag(
                 "llm.output_messages.$i.message.tool_calls.$y.tool_call.function.arguments",
-                toolCall.arguments()
+                toolCall.arguments(),
             )
         }
     }

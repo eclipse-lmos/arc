@@ -31,7 +31,9 @@ fun main() = runBlocking {
 }
 ```
 
-Please take a look at the documentation -> https://eclipse.dev/lmos/arc2
+Check out the examples at https://github.com/eclipse-lmos/arc/tree/main/examples.
+
+Please also take a look at the documentation -> https://eclipse.dev/lmos/arc2
 
 Check out the [Arc Agent Demo Project](https://github.com/eclipse-lmos/arc-spring-init) for 
 an example Spring Boot project that uses the Arc Agent Framework.
