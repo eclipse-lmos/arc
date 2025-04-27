@@ -6,12 +6,15 @@ package org.eclipse.lmos.arc.graphql
 
 import org.eclipse.lmos.arc.graphql.inbound.EventSubscription
 import org.eclipse.lmos.arc.graphql.inbound.EventSubscriptionHolder
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.ConfigurationCondition.ConfigurationPhase
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty("arc.subscriptions.events.enable", havingValue = "true")
+@Conditional(DevModeOrEnabled::class)
 open class EventsConfiguration {
 
     @Bean
@@ -19,4 +22,12 @@ open class EventsConfiguration {
 
     @Bean
     fun eventSubscription(eventSubscriptionHolder: EventSubscriptionHolder) = EventSubscription(eventSubscriptionHolder)
+}
+
+class DevModeOrEnabled : AnyNestedCondition(ConfigurationPhase.PARSE_CONFIGURATION) {
+    @ConditionalOnProperty("arc.chat.ui.enabled", havingValue = "true")
+    class UIEnabled
+
+    @ConditionalOnProperty("arc.subscriptions.events.enable", havingValue = "true")
+    class Enable
 }
