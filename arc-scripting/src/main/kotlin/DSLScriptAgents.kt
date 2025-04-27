@@ -59,7 +59,8 @@ class DSLScriptAgents private constructor(
             handlers: List<EventHandler<out Event>> = emptyList(),
             memory: Memory? = null,
             tracer: AgentTracer? = null,
-            hotReloadFolder: File? = null,
+            scriptFolder: File,
+            hotReload: Boolean = false,
         ): DSLScriptAgents {
             /**
              * Set up the event system.
@@ -89,14 +90,15 @@ class DSLScriptAgents private constructor(
              */
             val agentFactory = ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider), beanProvider))
             val agentLoader = ScriptingAgentLoader(agentFactory, eventPublisher = eventPublisher)
+            agentLoader.loadAgentsFromFolder(scriptFolder)
             val agentProvider = CompositeAgentProvider(listOf(agentLoader), emptyList())
 
             /**
              * Set up hot-reload for agents and functions.
              */
-            if (hotReloadFolder != null) {
+            if (hotReload) {
                 val scriptHotReload = ScriptHotReload(agentLoader, functionLoader, 3.seconds)
-                scriptHotReload.start(hotReloadFolder)
+                scriptHotReload.start(scriptFolder)
             }
 
             return DSLScriptAgents(
@@ -175,6 +177,24 @@ fun hotReloadAgents(
         memory = memory,
         beans = context,
         tracer = tracer,
-        hotReloadFolder = folder,
+        scriptFolder = folder,
+        hotReload = true,
+    )
+}
+
+fun loadAgentsFrom(
+    folder: File,
+    context: Set<Any> = emptySet(),
+    memory: Memory? = null,
+    tracer: AgentTracer? = null,
+    chatCompleterProvider: ChatCompleterProvider? = null,
+): DSLScriptAgents {
+    return DSLScriptAgents.init(
+        chatCompleterProvider = chatCompleterProvider,
+        memory = memory,
+        beans = context,
+        tracer = tracer,
+        scriptFolder = folder,
+        hotReload = false,
     )
 }
