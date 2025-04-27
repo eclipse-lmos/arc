@@ -40,12 +40,14 @@ import kotlin.time.Duration.Companion.seconds
  * @param wait If true, the current thread will be blocked until the server is stopped.
  *            If false, the server will start in a separate thread and the function will return immediately.
  * @param port The port on which the server will listen for incoming connections.
+ * @param extraRoots Additional routing configuration to be applied to the server.
  * @param module Additional Ktor module configuration to be applied to the server.
  */
 fun ArcAgents.serve(
     wait: Boolean = true,
     port: Int? = null,
     module: Application.() -> Unit = {},
+    extraRoots: Route.() -> Unit = {},
     devMode: Boolean? = null,
 ) {
     val eventSubscriptionHolder = EventSubscriptionHolder()
@@ -95,6 +97,8 @@ fun ArcAgents.serve(
                 val health = health()
                 call.respondText(json.encodeToString(health), Json, if (health.ok) OK else ServiceUnavailable)
             }
+
+            extraRoots()
         }
 
         module()
