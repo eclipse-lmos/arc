@@ -8,6 +8,7 @@ import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.FunctionNotFoundException
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -57,7 +58,7 @@ class FunctionCallHandler(
                     val functionName = toolCall.name()
                     val functionArguments = toolCall.arguments().toJson() failWith { it }
                     val function = functions.find { it.name == functionName }
-                        ?: failWith { ArcException("Cannot find function called $functionName!") }
+                        ?: failWith { FunctionNotFoundException(functionName) }
 
                     val functionCallResult: Result<String, ArcException>
                     val duration = measureTime {

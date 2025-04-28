@@ -11,6 +11,7 @@ import com.azure.ai.openai.models.ChatRequestMessage
 import com.azure.ai.openai.models.ChatRequestToolMessage
 import com.azure.ai.openai.models.CompletionsFinishReason
 import org.eclipse.lmos.arc.agents.ArcException
+import org.eclipse.lmos.arc.agents.FunctionNotFoundException
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -98,7 +99,7 @@ class FunctionCallHandler(
     private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>, tags: Tags) =
         result<String, ArcException> {
             val function = functions.find { it.name == functionName }
-                ?: failWith { ArcException("Cannot find function called $functionName!") }
+                ?: failWith { FunctionNotFoundException(functionName) }
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = function
