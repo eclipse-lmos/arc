@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.agents.dsl
 
 import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.agent.Skill
+import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 
 @DslMarker
@@ -94,5 +95,10 @@ class AgentDefinition {
     var init: DSLContext.() -> Unit = { }
     fun init(fn: DSLContext.() -> Unit) {
         init = fn
+    }
+
+    var onFail: suspend DSLContext.(Exception) -> AssistantMessage? = { null }
+    fun onFail(fn: suspend DSLContext.(Exception) -> AssistantMessage?) {
+        onFail = fn
     }
 }

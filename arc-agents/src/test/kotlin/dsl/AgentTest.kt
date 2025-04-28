@@ -9,6 +9,8 @@ import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.*
+import org.eclipse.lmos.arc.agents.agent.ask
+import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.toConversation
 import org.eclipse.lmos.arc.agents.events.BasicEventPublisher
@@ -39,8 +41,7 @@ class AgentTest : TestBase() {
     fun `test agent catches exception`(): Unit = runBlocking {
         val agent = agent {
             name = "name"
-            description = "description"
-            systemPrompt = { "systemPrompt" }
+            prompt { "systemPrompt" }
         } as ChatAgent
         coEvery { chatCompleter.complete(any(), any(), any()) } answers { Failure(ArcException()) }
 
@@ -50,6 +51,38 @@ class AgentTest : TestBase() {
         }
         assertThat(result is Failure).isTrue()
         assertThat((result as Failure).reason.cause).isInstanceOf(ArcException::class.java)
+    }
+
+    @Test
+    fun `test onFail catch`(): Unit = runBlocking {
+        val agent = agent {
+            name = "name"
+            onFail { AssistantMessage("Got it") }
+            prompt { error("error") }
+        } as ChatAgent
+
+        val result: Result<String, AgentFailedException>
+        testBeanProvider.setContext(contextBeans) {
+            result = agent.ask("question")
+        }
+        assertThat(result is Success).isTrue()
+        assertThat((result as Success).value).isEqualTo("Got it")
+    }
+
+    @Test
+    fun `test onFail rethrow`(): Unit = runBlocking {
+        val agent = agent {
+            name = "name"
+            onFail { null }
+            prompt { error("error") }
+        } as ChatAgent
+
+        val result: Result<String, AgentFailedException>
+        testBeanProvider.setContext(contextBeans) {
+            result = agent.ask("question")
+        }
+        assertThat(result is Failure).isTrue()
+        assertThat((result as Failure).reason.cause?.message).isEqualTo("error")
     }
 
     @Test

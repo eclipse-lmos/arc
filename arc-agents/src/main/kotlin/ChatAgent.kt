@@ -9,7 +9,9 @@ import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
 import org.eclipse.lmos.arc.agents.agent.onError
+import org.eclipse.lmos.arc.agents.agent.recoverAgentFailure
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
+import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.toLogString
@@ -36,6 +38,7 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.core.*
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -67,6 +70,7 @@ class ChatAgent(
     private val toolsProvider: suspend DSLContext.() -> Unit,
     private val filterOutput: suspend OutputFilterContext.() -> Unit,
     private val filterInput: suspend InputFilterContext.() -> Unit,
+    private val onFail: suspend DSLContext.(Exception) -> AssistantMessage? = { null },
     val init: DSLContext.() -> Unit,
 ) : ConversationAgent {
 
@@ -95,22 +99,16 @@ class ChatAgent(
             val result: Result<Conversation, AgentFailedException>
             val duration = measureTime {
                 result = doExecute(input, model, dslContext, compositeBeanProvider, usedFunctions, tracer)
-                    .recover {
-                        val cause = it.cause
-                        when {
-                            it is WithConversationResult -> {
-                                log.info("Agent $name interrupted!", it)
-                                flowBreak = true
-                                it.conversation
-                            }
-
-                            cause is WithConversationResult -> {
-                                log.info("Agent $name interrupted!", it)
-                                flowBreak = true
-                                cause.conversation
-                            }
-
-                            else -> null
+                    .recover { error ->
+                        recoverAgentFailure(
+                            error = error,
+                            dslContext = dslContext,
+                            input = input,
+                            context = context,
+                            onFail = onFail,
+                        )?.let { (conversation, fb) ->
+                            flowBreak = fb
+                            conversation
                         }
                     }.mapFailure {
                         log.error("Agent $name failed!", it)
