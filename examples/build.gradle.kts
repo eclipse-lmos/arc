@@ -15,5 +15,5 @@ dependencies {
     testImplementation("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux:3.4.3")
     testImplementation(project(":arc-graphql-spring-boot-starter"))
-    testImplementation("com.expediagroup:graphql-kotlin-spring-server:8.3.0")
+    testImplementation("com.expediagroup:graphql-kotlin-spring-server:8.6.2")
 }
