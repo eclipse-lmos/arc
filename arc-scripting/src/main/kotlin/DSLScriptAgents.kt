@@ -83,6 +83,7 @@ class DSLScriptAgents private constructor(
              * Set up the loading of agent functions from scripts.
              */
             val functionLoader = ScriptingLLMFunctionLoader(beanProvider, eventPublisher = eventPublisher)
+            if (scriptFolder != null) functionLoader.loadFunctions(scriptFolder)
             val discoveredLoaders = LLMFunctionServiceLoader()
             val functionProvider = CompositeLLMFunctionProvider(listOf(functionLoader, discoveredLoaders))
 
