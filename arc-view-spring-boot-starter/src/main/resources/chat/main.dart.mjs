@@ -661,6 +661,7 @@ class CompiledApp {
       _1914: (x0,x1) => x0.get(x1),
       _1915: f => finalizeWrapper(f, function(x0,x1,x2) { return dartInstance.exports._1915(f,arguments.length,x0,x1,x2) }),
       _1916: (x0,x1) => x0.forEach(x1),
+      _1917: x0 => x0.abort(),
       _1918: () => new AbortController(),
       _1919: x0 => x0.getReader(),
       _1920: x0 => x0.read(),

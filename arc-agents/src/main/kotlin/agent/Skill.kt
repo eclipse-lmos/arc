@@ -9,8 +9,8 @@ package org.eclipse.lmos.arc.agents.agent
 data class Skill(
     val id: String,
     val name: String,
-    val description: String,
-    val tags: List<String>,
+    val description: String? = null,
+    val tags: List<String>? = null,
     val examples: List<String>? = null,
     val inputModes: List<String>? = null,
     val outputModes: List<String>? = null,
