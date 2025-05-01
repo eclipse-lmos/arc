@@ -24,6 +24,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunctionServiceLoader
 import org.eclipse.lmos.arc.agents.functions.ToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ServiceCompleterProvider
+import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.failWith
@@ -168,7 +169,7 @@ class DSLScriptAgents private constructor(
 fun hotReloadAgents(
     folder: File,
     context: Set<Any> = emptySet(),
-    memory: Memory? = null,
+    memory: Memory? = InMemoryMemory(),
     tracer: AgentTracer? = null,
     chatCompleterProvider: ChatCompleterProvider? = null,
 ): DSLScriptAgents {
@@ -185,7 +186,7 @@ fun hotReloadAgents(
 fun loadAgentsFrom(
     folder: File,
     context: Set<Any> = emptySet(),
-    memory: Memory? = null,
+    memory: Memory? = InMemoryMemory(),
     tracer: AgentTracer? = null,
     chatCompleterProvider: ChatCompleterProvider? = null,
 ): DSLScriptAgents {
