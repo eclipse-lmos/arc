@@ -41,7 +41,8 @@ fun main(): Unit = runBlocking {
                 val eval = llm(
                     system = """
                 Evaluate the following response and return NOT_ANSWERED if the response indicates that the question was not answered.
-                """, user = message
+                """,
+                    user = message,
                 ).getOrNull()
                 if (eval?.content?.contains("NOT_ANSWERED") == true && retry == null) {
                     info("Current response: $message")
