@@ -38,7 +38,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
-import org.eclipse.lmos.arc.core.*
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -62,7 +61,7 @@ const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 class ChatAgent(
     override val name: String,
     override val description: String,
-    override val skills: List<Skill>? = null,
+    val skills: suspend () -> List<Skill>? = { null },
     private val model: suspend DSLContext.() -> String?,
     private val settings: suspend DSLContext.() -> ChatCompletionSettings?,
     private val beanProvider: BeanProvider,
@@ -79,6 +78,8 @@ class ChatAgent(
     init {
         init.invoke(BasicDSLContext(beanProvider))
     }
+
+    override suspend fun skills() = skills.invoke()
 
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =

@@ -9,18 +9,39 @@ import org.eclipse.lmos.arc.core.Result
 
 /**
  * The main Agent interface.
+ *
+ * An agent is a component that can perform specific tasks or operations.
+ * It has a name, description, and can optionally provide a list of skills it can perform.
+ *
+ * @param I The type of input the agent accepts.
+ * @param O The type of output the agent produces.
  */
 interface Agent<I, O> {
 
+    /**
+     * The unique name of the agent.
+     */
     val name: String
 
+    /**
+     * A human-readable description of what the agent does.
+     */
     val description: String
 
-    val skills: List<Skill>?
+    /**
+     * Returns a list of skills that this agent can perform.
+     *
+     * @return A list of skills or null if the agent doesn't have any skills.
+     */
+    suspend fun skills(): List<Skill>?
 
     /**
      * Executes the agent with the given input and context.
      * The objects passed as the context can be accessed within the Agents DSL using DSLContext#context.
+     *
+     * @param input The input data for the agent to process.
+     * @param context Additional contextual objects that can be used during execution.
+     * @return A Result containing either the successful output or an AgentFailedException.
      */
     suspend fun execute(input: I, context: Set<Any> = emptySet()): Result<O, AgentFailedException>
 }

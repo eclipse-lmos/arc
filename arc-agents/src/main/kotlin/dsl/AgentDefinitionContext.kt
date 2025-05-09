@@ -37,7 +37,11 @@ class BasicAgentDefinitionContext(
 class AgentDefinition {
     lateinit var name: String
     var description: String = ""
-    var skills: List<Skill> = emptyList()
+
+    var skills: suspend () -> List<Skill> = { emptyList() }
+    fun skills(fn: suspend () -> List<Skill>) {
+        skills = fn
+    }
 
     var model: suspend DSLContext.() -> String? = { null }
     fun model(fn: suspend DSLContext.() -> String) {
