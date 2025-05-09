@@ -98,6 +98,35 @@ fun ArcAgents.serve(
                 call.respondText(json.encodeToString(health), Json, if (health.ok) OK else ServiceUnavailable)
             }
 
+            get("/.well-known/agent.json") {
+                val agent = getAgents().firstOrNull { it.skills()?.isNotEmpty() == true }
+                val card = AgentCard(
+                    name = agent?.name ?: "undefined",
+                    description = agent?.description ?: "",
+                    url = "",
+                    version = agent?.version ?: "1.0.0",
+                    defaultInputModes = emptyList(),
+                    defaultOutputModes = emptyList(),
+                    capabilities = Capabilities(
+                        streaming = false,
+                        pushNotifications = false,
+                        stateTransitionHistory = false,
+                    ),
+                    skills = agent?.skills()?.map { skill ->
+                        Skill(
+                            id = skill.id,
+                            name = skill.name,
+                            description = skill.description,
+                            tags = skill.tags,
+                            examples = skill.examples,
+                            inputModes = skill.inputModes,
+                            outputModes = skill.outputModes,
+                        )
+                    } ?: emptyList(),
+                )
+                call.respondText(json.encodeToString(card), Json, OK)
+            }
+
             extraRoots()
         }
 

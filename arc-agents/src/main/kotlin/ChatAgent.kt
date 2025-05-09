@@ -61,6 +61,7 @@ const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 class ChatAgent(
     override val name: String,
     override val description: String,
+    override val version: String,
     val skills: suspend () -> List<Skill>? = { null },
     private val model: suspend DSLContext.() -> String?,
     private val settings: suspend DSLContext.() -> ChatCompletionSettings?,

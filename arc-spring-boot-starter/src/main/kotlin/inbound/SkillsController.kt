@@ -19,7 +19,7 @@ class SkillsController(private val agentProvider: AgentProvider) {
             name = agent?.name ?: "undefined",
             description = agent?.description ?: "",
             url = "",
-            version = "1.0.0",
+            version = agent?.version ?: "1.0.0",
             defaultInputModes = emptyList(),
             defaultOutputModes = emptyList(),
             capabilities = Capabilities(

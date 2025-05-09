@@ -23,6 +23,7 @@ class ChatAgentFactory(private val beanProvider: BeanProvider) : AgentFactory<Ch
         return ChatAgent(
             name = agentDefinition.name,
             description = agentDefinition.description,
+            version = agentDefinition.version,
             skills = agentDefinition.skills,
             model = agentDefinition.model,
             agentDefinition.settings,

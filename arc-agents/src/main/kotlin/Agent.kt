@@ -24,6 +24,11 @@ interface Agent<I, O> {
     val name: String
 
     /**
+     * The version of the agent.
+     */
+    val version: String
+
+    /**
      * A human-readable description of what the agent does.
      */
     val description: String
