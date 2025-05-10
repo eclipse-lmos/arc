@@ -12,6 +12,6 @@ data class Skill(
     val description: String? = null,
     val tags: List<String>? = null,
     val examples: List<String>? = null,
-    val inputModes: List<String>? = listOf("text"),
-    val outputModes: List<String>? = listOf("text"),
+    val inputModes: List<String>?,
+    val outputModes: List<String>?,
 )
