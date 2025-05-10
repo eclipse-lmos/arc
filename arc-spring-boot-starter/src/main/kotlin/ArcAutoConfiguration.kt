@@ -24,6 +24,7 @@ import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.mcp.McpPromptRetriever
 import org.eclipse.lmos.arc.mcp.McpTools
 import org.eclipse.lmos.arc.spring.clients.ClientsConfiguration
+import org.eclipse.lmos.arc.spring.inbound.AgentCardController
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -75,6 +76,9 @@ open class ArcAutoConfiguration {
 
     @Bean
     fun loggingEventHandler() = LoggingEventHandler()
+
+    @Bean
+    fun agentCardController(agentProvider: AgentProvider) = AgentCardController(agentProvider)
 
     @Bean
     @ConditionalOnMissingBean(AgentProvider::class)

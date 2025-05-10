@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class SkillsController(private val agentProvider: AgentProvider) {
+class AgentCardController(private val agentProvider: AgentProvider) {
 
     @GetMapping("/.well-known/agent.json")
     suspend fun getAgentCard(): AgentCard {
