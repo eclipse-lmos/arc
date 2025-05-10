@@ -14,30 +14,39 @@ class AgentCardController(private val agentProvider: AgentProvider) {
 
     @GetMapping("/.well-known/agent.json")
     suspend fun getAgentCard(): AgentCard {
-        val agent = agentProvider.getAgents().firstOrNull { it.skills()?.isNotEmpty() == true }
+        val agents = agentProvider.getAgents()
+        val agent = agents.firstOrNull { it.skills()?.isNotEmpty() == true }
+
         return AgentCard(
-            name = agent?.name ?: "undefined",
-            description = agent?.description ?: "",
+            name = if (agents.size > 1) "multi-agent" else agent?.name ?: "arc-agent",
+            description = if (agents.size > 1) {
+                "Multiple Agents: ${agents.joinToString { it.name }}"
+            } else {
+                agent?.description
+                    ?: "undefined"
+            },
             url = "",
-            version = agent?.version ?: "1.0.0",
-            defaultInputModes = emptyList(),
-            defaultOutputModes = emptyList(),
+            version = if (agents.size > 1) "1.0.0" else agent?.version ?: "1.0.0",
+            defaultInputModes = listOf("text"),
+            defaultOutputModes = listOf("text"),
             capabilities = Capabilities(
                 streaming = false,
                 pushNotifications = false,
                 stateTransitionHistory = false,
             ),
-            skills = agent?.skills()?.map { skill ->
-                Skill(
-                    id = skill.id,
-                    name = skill.name,
-                    description = skill.description,
-                    tags = skill.tags,
-                    examples = skill.examples,
-                    inputModes = skill.inputModes,
-                    outputModes = skill.outputModes,
-                )
-            } ?: emptyList(),
+            skills = agents.flatMap {
+                it.skills()?.map { skill ->
+                    Skill(
+                        id = skill.id,
+                        name = skill.name,
+                        description = skill.description,
+                        tags = skill.tags,
+                        examples = skill.examples,
+                        inputModes = skill.inputModes,
+                        outputModes = skill.outputModes,
+                    )
+                } ?: emptyList()
+            },
         )
     }
 }
