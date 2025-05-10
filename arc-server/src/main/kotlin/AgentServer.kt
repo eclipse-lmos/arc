@@ -23,6 +23,7 @@ import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agents.ArcAgents
 import org.eclipse.lmos.arc.agents.agent.health
+import org.eclipse.lmos.arc.graphql.InjectToolsFromRequest
 import org.eclipse.lmos.arc.graphql.inbound.AgentQuery
 import org.eclipse.lmos.arc.graphql.inbound.AgentSubscription
 import org.eclipse.lmos.arc.graphql.inbound.EventSubscription
@@ -67,7 +68,13 @@ fun ArcAgents.serve(
                     AgentQuery(this@serve),
                 )
                 subscriptions = buildList {
-                    add(AgentSubscription(this@serve))
+                    val contextHandlers =
+                        if (devMode ?: EnvConfig.isDevMode) {
+                            listOf(InjectToolsFromRequest(this@serve))
+                        } else {
+                            emptyList()
+                        }
+                    add(AgentSubscription(this@serve, contextHandlers = contextHandlers))
                     if (devMode ?: EnvConfig.isDevMode) add(EventSubscription(eventSubscriptionHolder))
                 }
             }
