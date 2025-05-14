@@ -34,9 +34,9 @@ class Functions(private val beanProvider: BeanProvider) {
         params: ParametersSchema = ParametersSchema(),
         isSensitive: Boolean = false,
         fn: suspend DSLContext.(List<Any?>) -> String,
-    ): List<LLMFunction> {
+    ): LLMFunction {
         val context = BasicFunctionDefinitionContext(beanProvider)
         context.function(name, description, group, params, isSensitive, fn)
-        return context.functions
+        return context.functions.first()
     }
 }
