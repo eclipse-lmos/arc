@@ -35,6 +35,7 @@ interface FunctionDefinitionContext {
         description: String,
         itemType: String = "string",
         required: Boolean = true,
+        enum: List<String>? = null,
     ): ParameterSchema
 
     fun types(vararg params: ParameterSchema) = ParametersSchema(
@@ -72,13 +73,14 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
     override fun number(name: String, description: String, required: Boolean) =
         ParameterSchema("number", name, description, isRequired = required)
 
-    override fun array(name: String, description: String, itemType: String, required: Boolean) =
+    override fun array(name: String, description: String, itemType: String, required: Boolean, enum: List<String>?) =
         ParameterSchema(
             "array",
             name,
             description,
             items = ParameterSchema(itemType),
             isRequired = required,
+            enum = enum,
         )
 
     override fun objectType(
