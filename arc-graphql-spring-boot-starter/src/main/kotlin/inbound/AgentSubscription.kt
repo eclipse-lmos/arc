@@ -59,14 +59,15 @@ class AgentSubscription(
             val messageChannel = Channel<AssistantMessage>()
             val outputContext = OutputContext()
 
-            log.info("Received request: ${request.systemContext}")
-
             async {
                 sendIntermediateMessage(messageChannel, start, anonymizationEntities)
             }
 
-            val result = combinedContextHandler.inject(request) { extraContext ->
-                withLogContext(agent.name, request) {
+            val result = withLogContext(agent.name, request) {
+
+                log.info("Received request: ${request.systemContext}")
+
+                combinedContextHandler.inject(request) { extraContext ->
                     agent.executeWithHandover(
                         Conversation(
                             user = request.userContext.userId?.let { User(it) },
