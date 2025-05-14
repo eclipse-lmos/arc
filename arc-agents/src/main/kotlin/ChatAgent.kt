@@ -62,7 +62,7 @@ class ChatAgent(
     override val name: String,
     override val description: String,
     override val version: String,
-    val skills: suspend () -> List<Skill>? = { null },
+    private val skills: suspend () -> List<Skill>? = { null },
     private val model: suspend DSLContext.() -> String?,
     private val settings: suspend DSLContext.() -> ChatCompletionSettings?,
     private val beanProvider: BeanProvider,
@@ -80,7 +80,7 @@ class ChatAgent(
         init.invoke(BasicDSLContext(beanProvider))
     }
 
-    override suspend fun skills() = skills.invoke()
+    override suspend fun fetchSkills() = skills.invoke()
 
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =

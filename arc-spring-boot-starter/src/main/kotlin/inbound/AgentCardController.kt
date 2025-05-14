@@ -15,7 +15,7 @@ class AgentCardController(private val agentProvider: AgentProvider) {
     @GetMapping("/.well-known/agent.json")
     suspend fun getAgentCard(): AgentCard {
         val agents = agentProvider.getAgents()
-        val agent = agents.firstOrNull { it.skills()?.isNotEmpty() == true }
+        val agent = agents.firstOrNull { it.fetchSkills()?.isNotEmpty() == true }
 
         return AgentCard(
             name = if (agents.size > 1) "multi-agent" else agent?.name ?: "arc-agent",
@@ -35,7 +35,7 @@ class AgentCardController(private val agentProvider: AgentProvider) {
                 stateTransitionHistory = false,
             ),
             skills = agents.flatMap {
-                it.skills()?.map { skill ->
+                it.fetchSkills()?.map { skill ->
                     Skill(
                         id = skill.id,
                         name = skill.name,

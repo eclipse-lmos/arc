@@ -106,7 +106,7 @@ fun ArcAgents.serve(
             }
 
             get("/.well-known/agent.json") {
-                val agent = getAgents().firstOrNull { it.skills()?.isNotEmpty() == true }
+                val agent = getAgents().firstOrNull { it.fetchSkills()?.isNotEmpty() == true }
                 val card = AgentCard(
                     name = agent?.name ?: "undefined",
                     description = agent?.description ?: "",
@@ -119,7 +119,7 @@ fun ArcAgents.serve(
                         pushNotifications = false,
                         stateTransitionHistory = false,
                     ),
-                    skills = agent?.skills()?.map { skill ->
+                    skills = agent?.fetchSkills()?.map { skill ->
                         Skill(
                             id = skill.id,
                             name = skill.name,

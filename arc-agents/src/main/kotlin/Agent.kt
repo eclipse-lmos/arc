@@ -38,7 +38,7 @@ interface Agent<I, O> {
      *
      * @return A list of skills or null if the agent doesn't have any skills.
      */
-    suspend fun skills(): List<Skill>?
+    suspend fun fetchSkills(): List<Skill>?
 
     /**
      * Executes the agent with the given input and context.
