@@ -87,9 +87,10 @@ class DSLAgents private constructor(
             /**
              * Set up the loading of agents.
              */
-            val agentFactory = ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider), beanProvider))
             val agentLoader = ListAgentLoader()
             val agentProvider = CompositeAgentProvider(listOf(agentLoader), emptyList())
+            val agentFactory =
+                ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider, agentProvider), beanProvider))
 
             return DSLAgents(
                 beanProvider,
