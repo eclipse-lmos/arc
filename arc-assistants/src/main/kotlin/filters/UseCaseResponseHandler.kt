@@ -34,6 +34,10 @@ class UseCaseResponseHandler : AgentFilter {
         val (messageWithoutStep, stepId) = extractUseCaseStepId(message.content)
         val (cleanMessage, useCaseId) = extractUseCaseId(messageWithoutStep)
 
+        // Store the current step in memory
+        setUseCaseStep(stepId)
+
+        // Store the identified use case.
         if (useCaseId != null) {
             log.info("Use case: $useCaseId used. Step: $stepId")
             var updatedUseCases: List<String>? = null
@@ -66,4 +70,12 @@ class UseCaseResponseHandler : AgentFilter {
         }
         return message.update(cleanMessage)
     }
+}
+
+/**
+ * Gets and sets the current step from the memory.
+ */
+suspend fun DSLContext.getUseCaseStep(): String? = memory<String>("current_step")
+suspend fun DSLContext.setUseCaseStep(step: String?) {
+    memory("current_step", step)
 }
