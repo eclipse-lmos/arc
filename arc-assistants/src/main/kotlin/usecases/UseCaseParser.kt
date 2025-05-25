@@ -78,11 +78,34 @@ fun String.toUseCases(): List<UseCase> {
  * Functions are defined in the format
  * "Call @my_function()".
  */
+private val functionsRegex = Regex("(?<=\\s|\$)@([0-9A-Za-z_\\-]+?)\\(\\)")
+
 fun String.parseFunctions(): Pair<String, Set<String>> {
-    val regex = Regex("@([0-9A-Za-z_\\-]+?)\\(\\)")
     val replacements = mutableMapOf<String, String>()
     val functions = buildSet {
-        regex.findAll(this@parseFunctions).iterator().forEach {
+        functionsRegex.findAll(this@parseFunctions).iterator().forEach {
+            add(it.groupValues[1])
+            replacements[it.groupValues[0]] = it.groupValues[1]
+        }
+    }
+    var cleanedText = this
+    replacements.forEach { (key, value) ->
+        cleanedText = cleanedText.replace(key, value).trim()
+    }
+    return cleanedText to functions
+}
+
+/**
+ * Extracts references to other use cases.
+ * Referenced use cases are defined in the format
+ * "Go to use case #other_usecase".
+ */
+private val useCasesRegex = Regex("(?<=\\s|\$)#([0-9A-Za-z_\\-]+)(?=\\s|$)")
+
+fun String.parseUseCaseRefs(): Pair<String, Set<String>> {
+    val replacements = mutableMapOf<String, String>()
+    val functions = buildSet {
+        useCasesRegex.findAll(this@parseUseCaseRefs).iterator().forEach {
             add(it.groupValues[1])
             replacements[it.groupValues[0]] = it.groupValues[1]
         }
@@ -107,8 +130,9 @@ fun String.parseConditions(): Pair<String, Set<String>> {
 
 fun String.asConditional(): Conditional {
     val (text, conditions) = parseConditions()
-    val (finalText, functions) = text.parseFunctions()
-    return Conditional(finalText, conditions, functions)
+    val (textAfterFunctions, functions) = text.parseFunctions()
+    val (finalText, useCaseRefs) = textAfterFunctions.parseUseCaseRefs()
+    return Conditional(finalText, conditions, functions, useCaseRefs)
 }
 
 /**
@@ -149,6 +173,7 @@ data class Conditional(
     val text: String = "",
     val conditions: Set<String> = emptySet(),
     val functions: Set<String> = emptySet(),
+    val useCaseRefs: Set<String> = emptySet(),
 ) {
     operator fun plus(other: String): Conditional {
         return copy(text = text + other)
