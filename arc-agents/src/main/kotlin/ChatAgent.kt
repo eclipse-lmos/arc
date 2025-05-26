@@ -45,6 +45,7 @@ import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.recover
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.measureTime
 
@@ -87,7 +88,7 @@ class ChatAgent(
             CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
         val tracer = compositeBeanProvider.agentTracer()
 
-        return tracer.withAgentSpan(name, input) { tags, _ ->
+        return tracer.withAgentSpan(MDC.get("agent") ?: name, input) { tags, _ ->
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
