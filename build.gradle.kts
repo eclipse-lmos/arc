@@ -96,6 +96,11 @@ subprojects {
                         name = "Jasbir Singh"
                         email = "jasbirsinghkamboj@gmail.com"
                     }
+                    developer {
+                        id = "harishsainik"
+                        name = "Harish Kumar Saini"
+                        email = "harishsaini.lajak@gmail.com"
+                    }
                 }
                 scm {
                     url = "https://github.com/eclipse-lmos/arc.git"
