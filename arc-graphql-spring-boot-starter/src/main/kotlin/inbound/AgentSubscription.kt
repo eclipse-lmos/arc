@@ -64,7 +64,6 @@ class AgentSubscription(
             }
 
             val result = withLogContext(agent.name, request) {
-
                 combinedContextHandler.inject(request) { extraContext ->
                     log.info("Received request: ${request.systemContext}")
                     agent.executeWithHandover(
