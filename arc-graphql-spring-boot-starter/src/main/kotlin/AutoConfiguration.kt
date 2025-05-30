@@ -10,6 +10,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.graphql.inbound.AccessControlHeaders
 import org.eclipse.lmos.arc.graphql.inbound.AgentQuery
 import org.eclipse.lmos.arc.graphql.inbound.AgentSubscription
+import org.eclipse.lmos.arc.graphql.inbound.ToolsQuery
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
@@ -26,6 +27,9 @@ open class AgentGraphQLAutoConfiguration {
 
     @Bean
     fun agentQuery(agentProvider: AgentProvider) = AgentQuery(agentProvider)
+
+    @Bean
+    fun toolsQuery(functionProvider: LLMFunctionProvider) = ToolsQuery(functionProvider)
 
     @Bean
     fun injectToolsFromRequest(functionProvider: LLMFunctionProvider) = InjectToolsFromRequest(functionProvider)
