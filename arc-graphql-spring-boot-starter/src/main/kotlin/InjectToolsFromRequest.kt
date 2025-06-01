@@ -96,6 +96,8 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
      * @return A list of all available LLM functions
      */
     override suspend fun provideAll(context: ToolLoaderContext?): List<LLMFunction> {
+        val requestFunctions = mutableSetOf<String>()
+
         return request.systemContext.filter { it.key.startsWith("function") }.mapNotNull {
             log.info("Loading Function from Request: ${it.key}")
             try {
@@ -107,6 +109,9 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
                         type = it.jsonObject["type"]!!.jsonPrimitive.content,
                     )
                 } ?: emptyList()
+
+                requestFunctions.add(fn["name"]!!.jsonPrimitive.content)
+
                 object : LLMFunction {
                     override val name: String = fn["name"]!!.jsonPrimitive.content
                     override val description: String = fn["description"]!!.jsonPrimitive.content
@@ -123,6 +128,6 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
                 log.error("Error parsing function: ${it.key}", e)
                 null
             }
-        } + functionProvider.provideAll(context)
+        } + functionProvider.provideAll(context).filter { !requestFunctions.contains(it.name) }
     }
 }
