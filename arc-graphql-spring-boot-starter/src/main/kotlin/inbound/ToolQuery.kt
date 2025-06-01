@@ -13,7 +13,7 @@ import org.eclipse.lmos.arc.agents.functions.toJson
 /**
  * Returns the list of available tools (functions) provided by the LLMFunctionProvider.
  */
-class ToolsQuery(private val functionProvider: LLMFunctionProvider) : Query {
+class ToolQuery(private val functionProvider: LLMFunctionProvider) : Query {
 
     @GraphQLDescription("Returns the list of available tools.")
     suspend fun tool(): Tools {
