@@ -18,5 +18,5 @@ dependencies {
 
     // Test
     testImplementation(project(":arc-spring-boot-starter"))
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.5")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
 }
