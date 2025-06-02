@@ -8,7 +8,7 @@ lettuce-version = "6.3.2.RELEASE"
 jackson-version = "2.18.3"
 resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
-graphql-kotlin-version = "8.3.0"
+graphql-kotlin-version = "8.8.0"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
@@ -42,6 +42,7 @@ ktor-server-static = { module = "io.ktor:ktor-server-status-pages", version.ref 
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor-version" }
 
 graphql-kotlin-ktor = { module = "com.expediagroup:graphql-kotlin-ktor-server", version.ref = "graphql-kotlin-version" }
+graphql-kotlin-spring = { module = "com.expediagroup:graphql-kotlin-spring-server", version.ref = "graphql-kotlin-version" }
 
 redis-lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce-version" }
 
