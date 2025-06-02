@@ -10,6 +10,7 @@ import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
 import org.eclipse.lmos.arc.agents.agent.onError
 import org.eclipse.lmos.arc.agents.agent.recoverAgentFailure
+import org.eclipse.lmos.arc.agents.agent.spanChain
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
