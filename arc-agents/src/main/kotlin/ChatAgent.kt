@@ -149,7 +149,7 @@ class ChatAgent(
             //
             // Filter input
             //
-            val filteredInput = tracer.withSpan("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
+            val filteredInput = tracer.spanChain("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
                 coroutineScope {
                     val filterContext = InputFilterContext(dslContext, conversation)
                     filterInput.invoke(filterContext).let {
@@ -163,7 +163,7 @@ class ChatAgent(
             //
             // Generate system prompt
             //
-            val generatedSystemPrompt = tracer.withSpan(
+            val generatedSystemPrompt = tracer.spanChain(
                 "generate system prompt",
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
             ) { tags, _ ->
@@ -183,7 +183,7 @@ class ChatAgent(
             // Generate response
             //
             val fullConversation = listOf(SystemMessage(generatedSystemPrompt)) + filteredInput.transcript
-            val completedConversation = tracer.withSpan(
+            val completedConversation = tracer.spanChain(
                 "generate response",
                 mapOf(
                     PHASE_LOG_CONTEXT_KEY to "Generating",
@@ -199,7 +199,7 @@ class ChatAgent(
             //
             // Filter output
             //
-            tracer.withSpan("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) { _, _ ->
+            tracer.spanChain("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) { _, _ ->
                 coroutineScope {
                     val filterOutputContext =
                         OutputFilterContext(dslContext, conversation, completedConversation, generatedSystemPrompt)

@@ -19,8 +19,8 @@ import org.eclipse.lmos.arc.core.getOrThrow
 class ToolMutation(private val functionProvider: LLMFunctionProvider) : Mutation {
 
     @GraphQLDescription("Executes a tool with the given name and parameters.")
-    suspend fun tool(name: String, parameters: String): ToolExecutionResult {
-        val params = parameters.toJsonMap()
+    suspend fun tool(name: String, parameters: String?): ToolExecutionResult {
+        val params = parameters?.takeIf { it.isNotBlank() }?.let { parameters.toJsonMap() } ?: emptyMap()
         val result = functionProvider.provide(name).getOrThrow().execute(params)
         return when (result) {
             is Success -> ToolExecutionResult(result = result.value)

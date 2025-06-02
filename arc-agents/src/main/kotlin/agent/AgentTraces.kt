@@ -51,6 +51,20 @@ suspend fun <T> AgentTracer.withAgentSpan(
 }
 
 /**
+ * Sets the tracing attributes for a "CHAIN" span.
+ */
+suspend fun <T> AgentTracer.spanChain(
+    name: String,
+    attributes: Map<String, String> = emptyMap(),
+    fn: suspend (Tags, Events) -> T,
+): T {
+    return withSpan(name, attributes) { tags, events ->
+        tags.tag("openinference.span.kind", "CHAIN")
+        fn(tags, events)
+    }
+}
+
+/**
  * Sets the tracing attributes for an exception.
  */
 fun Tags.onError(error: Throwable) {
