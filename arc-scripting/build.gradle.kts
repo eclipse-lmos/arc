@@ -12,7 +12,7 @@ dependencies {
     // Kotlin Scripting
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:2.1.20")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.1.20")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.1.20")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.1.21")
     // implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies")
     // implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven")
 }
