@@ -93,7 +93,10 @@ open class ArcAutoConfiguration {
         @Value("\${arc.mcp.tools.urls:}") urls: List<String>? = null,
         @Value("\${arc.mcp.tools.cache.duration:}") cacheDuration: Duration? = null,
     ): LLMFunctionProvider =
-        CompositeLLMFunctionProvider(loaders + (urls?.map { url -> McpTools(url, cacheDuration) } ?: emptyList()), functions)
+        CompositeLLMFunctionProvider(
+            loaders + (urls?.map { url -> McpTools(url, cacheDuration) } ?: emptyList()),
+            functions,
+        )
 
     @Bean
     fun agentLoader(agentFactory: AgentFactory<*>) = Agents(agentFactory)
