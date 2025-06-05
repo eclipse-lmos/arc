@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.openai.api.inbound
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class OpenAIRequest(
@@ -33,13 +34,21 @@ data class ChatResponse(
 @Serializable
 data class Choice(
     val index: Int,
-    val message: Message,
+    val message: OutMessage,
     val logprobs: String? = null,
     @SerialName("finish_reason") val finishReason: String,
 )
 
 @Serializable
 data class Message(
+    val role: String,
+    val content: JsonElement? = null,
+    val refusal: String? = null,
+    val annotations: List<String> = emptyList(),
+)
+
+@Serializable
+data class OutMessage(
     val role: String,
     val content: String,
     val refusal: String? = null,
