@@ -180,6 +180,15 @@ data class Conditional(
     }
 
     fun matches(allConditions: Set<String>): Boolean {
-        return conditions.isEmpty() || conditions.all { allConditions.contains(it) }
+        return conditions.isEmpty() || conditions.all { allConditions.contains(it) } || negativeConditionals().none {
+            allConditions.contains(it)
+        }
     }
+
+    /**
+     * Returns negative Conditionals, for example "!beta", without the "!" prefix, so "beta".
+     */
+    private fun negativeConditionals() = conditions
+        .filter { it.startsWith("!") }
+        .map { it.removePrefix("!") }
 }
