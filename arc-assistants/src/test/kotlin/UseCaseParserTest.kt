@@ -93,4 +93,21 @@ class UseCaseParserTest : TestBase() {
         val parsedUseCases = useCases.formatToString(conditions = setOf(""))
         assertThat(parsedUseCases.trim()).isEqualTo("""""".trim())
     }
+
+    @Test
+    fun `test negative conditional use case`(): Unit = runBlocking {
+        val useCases = """
+                ### UseCase: usecase <!myCondition>
+                #### Description
+                The description of the use case 2.
+
+                #### Solution
+                Primary Solution
+                ----
+            """.toUseCases()
+        assertThat(useCases).hasSize(1)
+        assertThat(useCases.first().id).isEqualTo("usecase")
+        val parsedUseCases = useCases.formatToString(conditions = setOf(""))
+        assertThat(parsedUseCases.trim()).isEqualTo("""""".trim())
+    }
 }
