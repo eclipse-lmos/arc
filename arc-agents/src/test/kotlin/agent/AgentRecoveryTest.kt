@@ -90,8 +90,9 @@ class AgentRecoveryTest : TestBase() {
             coEvery { agent.name } returns "TestAgent"
             val dslContext = mockk<DSLContext>()
             val input = "test input".toConversation()
-            val retrySignal = RetrySignal(mapOf("key" to "value"))
-            val resultConversation = Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("retry result")))
+            val retrySignal = RetrySignal(details = mapOf("key" to "value"))
+            val resultConversation =
+                Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("retry result")))
 
             coEvery {
                 agent.execute(any(), any())
@@ -125,9 +126,10 @@ class AgentRecoveryTest : TestBase() {
             coEvery { agent.name } returns "TestAgent"
             val dslContext = mockk<DSLContext>()
             val input = "test input".toConversation()
-            val retrySignal = RetrySignal(mapOf("key" to "value"))
+            val retrySignal = RetrySignal(details = mapOf("key" to "value"))
             val error = Exception("Wrapper exception", retrySignal)
-            val resultConversation = Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("retry result")))
+            val resultConversation =
+                Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("retry result")))
 
             coEvery {
                 agent.execute(any(), any())
@@ -192,7 +194,8 @@ class AgentRecoveryTest : TestBase() {
             val dslContext = mockk<DSLContext>()
             val input = "test input".toConversation()
             val error = Exception("Test error")
-            val conversation = Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("recovery response")))
+            val conversation =
+                Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("recovery response")))
             val onFailError = object : Exception(), WithConversationResult {
                 override val conversation = conversation
             }
@@ -222,8 +225,9 @@ class AgentRecoveryTest : TestBase() {
             val dslContext = mockk<DSLContext>()
             val input = "test input".toConversation()
             val error = Exception("Test error")
-            val retrySignal = RetrySignal(mapOf("key" to "value"))
-            val resultConversation = Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("retry result")))
+            val retrySignal = RetrySignal(details = mapOf("key" to "value"))
+            val resultConversation =
+                Conversation(transcript = listOf(UserMessage("test"), AssistantMessage("retry result")))
 
             coEvery {
                 agent.execute(any(), any())
