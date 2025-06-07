@@ -164,9 +164,7 @@ data class UseCase(
     val examples: String = "",
     val conditions: Set<String> = emptySet(),
 ) {
-    fun matches(allConditions: Set<String>): Boolean {
-        return conditions.isEmpty() || conditions.all { allConditions.contains(it) }
-    }
+    fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
 }
 
 data class Conditional(
@@ -179,7 +177,26 @@ data class Conditional(
         return copy(text = text + other)
     }
 
-    fun matches(allConditions: Set<String>): Boolean {
-        return conditions.isEmpty() || conditions.all { allConditions.contains(it) }
-    }
+    fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
 }
+
+/**
+ * Matches conditionals.
+ */
+fun Set<String>.matches(allConditions: Set<String>): Boolean {
+    return isEmpty() || (
+        positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
+            allConditions.contains(
+                it,
+            )
+        }
+        )
+}
+
+/**
+ * Returns negative Conditionals, for example "!beta", without the "!" prefix, so "beta".
+ */
+private fun Set<String>.negativeConditionals() = filter { it.startsWith("!") }
+    .map { it.removePrefix("!") }
+
+private fun Set<String>.positiveConditionals() = filter { !it.startsWith("!") }
