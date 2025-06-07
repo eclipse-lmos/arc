@@ -37,23 +37,22 @@ fun main(): Unit = runBlocking {
             name = "MyAgent"
             model { "gpt-4o" }
             filterOutput {
-                val retry = getOptional<RetrySignal>()
                 val eval = llm(
                     system = """
                 Evaluate the following response and return NOT_ANSWERED if the response indicates that the question was not answered.
                 """,
                     user = message,
                 ).getOrNull()
-                if (eval?.content?.contains("NOT_ANSWERED") == true && retry == null) {
+                if (eval?.content?.contains("NOT_ANSWERED") == true) {
                     info("Current response: $message")
-                    retry(mapOf("feedback" to "Please say that the weather is sunny today."))
+                    retry("Please say that the weather is sunny today.", max = 1)
                 }
             }
             prompt {
                 val retry = getOptional<RetrySignal>()
                 """
                 You are a helpful assistant. Help the user with their questions.
-                Follow the following instructions: ${retry?.details?.get("feedback")}
+                Follow the following instructions: ${retry?.reason}
                 """
             }
         }
