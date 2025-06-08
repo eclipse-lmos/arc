@@ -59,10 +59,10 @@ class ParseUseCaseRefsTest {
 
     @Test
     fun `test parsing string with use case references containing hyphens and numbers`() {
-        val input = "Go to #use-case-1 and #use-case-2 for examples"
+        val input = "Go to #use-case-1 and #use-case-2."
         val (result, useCaseRefs) = input.parseUseCaseRefs()
 
-        assertThat(result).isEqualTo("Go to use-case-1 and use-case-2 for examples")
+        assertThat(result).isEqualTo("Go to use-case-1 and use-case-2.")
         assertThat(useCaseRefs).containsExactlyInAnyOrder("use-case-1", "use-case-2")
     }
 }

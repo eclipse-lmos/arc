@@ -24,12 +24,21 @@ private const val LOCAL_USE_CASES = "LOCAL_USE_CASES"
  * Loads the use case file with the given name.
  * This will report the loaded use cases to the tracer and store them in the local context.
  */
-suspend fun DSLContext.useCases(name: String, fallbackLimit: Int = 2, conditions: Set<String> = emptySet()): String {
+suspend fun DSLContext.useCases(
+    name: String,
+    fallbackLimit: Int = 2,
+    conditions: Set<String> = emptySet(),
+    useCaseFolder: File? = null,
+): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
         val requestUseCase = system("usecase", defaultValue = "").takeIf { it.isNotEmpty() }
-        val useCases =
+        var useCases =
             (requestUseCase ?: local(name))?.toUseCases() ?: kotlin.error("No use case file found with the name $name!")
+
+        if (useCaseFolder != null) {
+            useCases = useCases.resolveReferences(useCaseFolder)
+        }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
         val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { it.value >= fallbackLimit }.keys
@@ -129,4 +138,33 @@ fun loadBaseUseCasesFromFiles(folderOrFile: File): Map<String, UseCase> {
         ?.filter { it.name.startsWith("base_") && it.name.endsWith(".md") }
         ?.flatMap { file -> file.readText().toUseCases() }
         ?.associateBy { it.id } ?: emptyMap()
+}
+
+/**
+ * Resolves all use case references using the provided folder.
+ */
+fun List<UseCase>.resolveReferences(folderOrFile: File): List<UseCase> = buildList {
+    val currentUseCases = this@resolveReferences
+    addAll(currentUseCases)
+
+    var references =
+        currentUseCases.flatMap { it.extractReferences() }.filter { ref -> currentUseCases.firstOrNull { it.id == ref } == null }
+            .toSet()
+    if (references.isEmpty()) return@buildList
+
+    val useCaseFiles = if (folderOrFile.isFile) arrayOf(folderOrFile) else folderOrFile.listFiles()
+    useCaseFiles
+        ?.filter { !it.name.startsWith("base_") && it.name.endsWith(".md") }
+        ?.forEach { file ->
+            val useCases = file.readText().toUseCases().filter {
+                if (references.contains(it.id)) {
+                    references = references - it.id
+                    true
+                } else {
+                    false
+                }
+            }
+            addAll(useCases)
+            if (references.isEmpty()) return@buildList
+        }
 }

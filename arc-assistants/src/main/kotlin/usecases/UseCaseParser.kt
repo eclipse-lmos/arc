@@ -100,7 +100,7 @@ fun String.parseFunctions(): Pair<String, Set<String>> {
  * Referenced use cases are defined in the format
  * "Go to use case #other_usecase".
  */
-private val useCasesRegex = Regex("(?<=\\s|\$)#([0-9A-Za-z_\\-]+)(?=\\s|$)")
+private val useCasesRegex = Regex("(?<=\\W|$)#([0-9A-Za-z_\\-]+)(?=\\W|$)")
 
 fun String.parseUseCaseRefs(): Pair<String, Set<String>> {
     val replacements = mutableMapOf<String, String>()
@@ -165,6 +165,13 @@ data class UseCase(
     val conditions: Set<String> = emptySet(),
 ) {
     fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
+
+    fun extractReferences(): Set<String> = buildSet {
+        steps.forEach { addAll(it.useCaseRefs) }
+        solution.forEach { addAll(it.useCaseRefs) }
+        alternativeSolution.forEach { addAll(it.useCaseRefs) }
+        fallbackSolution.forEach { addAll(it.useCaseRefs) }
+    }
 }
 
 data class Conditional(
