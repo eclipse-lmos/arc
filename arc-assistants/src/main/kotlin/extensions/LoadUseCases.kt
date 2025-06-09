@@ -147,24 +147,15 @@ fun List<UseCase>.resolveReferences(folderOrFile: File): List<UseCase> = buildLi
     val currentUseCases = this@resolveReferences
     addAll(currentUseCases)
 
-    var references =
-        currentUseCases.flatMap { it.extractReferences() }.filter { ref -> currentUseCases.firstOrNull { it.id == ref } == null }
-            .toSet()
-    if (references.isEmpty()) return@buildList
-
-    val useCaseFiles = if (folderOrFile.isFile) arrayOf(folderOrFile) else folderOrFile.listFiles()
-    useCaseFiles
-        ?.filter { !it.name.startsWith("base_") && it.name.endsWith(".md") }
-        ?.forEach { file ->
-            val useCases = file.readText().toUseCases().filter {
-                if (references.contains(it.id)) {
-                    references = references - it.id
-                    true
-                } else {
-                    false
-                }
+    val references = currentUseCases.flatMap { it.extractReferences() }.toSet()
+    references.forEach { ref ->
+        val fileName = ref.substringBefore("/", missingDelimiterValue = "").takeIf { it.isNotBlank() }?.let { "$it.md" }
+        if (fileName != null) {
+            val useCaseId = ref.substringAfterLast("/")
+            val file = if (folderOrFile.isFile) folderOrFile else File(folderOrFile, fileName)
+            file.readText().toUseCases().firstOrNull { useCaseId == it.id }?.let { resolvedUseCase ->
+                add(resolvedUseCase)
             }
-            addAll(useCases)
-            if (references.isEmpty()) return@buildList
         }
+    }
 }

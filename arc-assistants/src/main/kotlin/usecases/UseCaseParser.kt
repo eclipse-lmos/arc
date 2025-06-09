@@ -100,21 +100,21 @@ fun String.parseFunctions(): Pair<String, Set<String>> {
  * Referenced use cases are defined in the format
  * "Go to use case #other_usecase".
  */
-private val useCasesRegex = Regex("(?<=\\W|$)#([0-9A-Za-z_\\-]+)(?=\\W|$)")
+private val useCasesRegex = Regex("(?<=\\W|$)#([0-9A-Za-z_/\\-]+)(?=\\W|$)")
 
 fun String.parseUseCaseRefs(): Pair<String, Set<String>> {
     val replacements = mutableMapOf<String, String>()
-    val functions = buildSet {
+    val references = buildSet {
         useCasesRegex.findAll(this@parseUseCaseRefs).iterator().forEach {
             add(it.groupValues[1])
-            replacements[it.groupValues[0]] = it.groupValues[1]
+            replacements[it.groupValues[0]] = it.groupValues[1].substringAfterLast("/")
         }
     }
     var cleanedText = this
     replacements.forEach { (key, value) ->
         cleanedText = cleanedText.replace(key, value).trim()
     }
-    return cleanedText to functions
+    return cleanedText to references
 }
 
 /**

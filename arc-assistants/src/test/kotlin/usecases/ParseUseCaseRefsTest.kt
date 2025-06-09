@@ -65,4 +65,13 @@ class ParseUseCaseRefsTest {
         assertThat(result).isEqualTo("Go to use-case-1 and use-case-2.")
         assertThat(useCaseRefs).containsExactlyInAnyOrder("use-case-1", "use-case-2")
     }
+
+    @Test
+    fun `test parsing string with use case references containing path`() {
+        val input = "Go to #file/use-case-1 and #file/file/use-case-2."
+        val (result, useCaseRefs) = input.parseUseCaseRefs()
+
+        assertThat(result).isEqualTo("Go to use-case-1 and use-case-2.")
+        assertThat(useCaseRefs).containsExactlyInAnyOrder("file/use-case-1", "file/file/use-case-2")
+    }
 }

@@ -19,7 +19,7 @@ class ResolveUseCasesTest {
             #### Description
             The description.
             #### Solution
-            Primary Solution is #usecase1.
+            Primary Solution is #use_cases/usecase1.
             ----
         """.toUseCases().resolveReferences(File("src/test/resources/"))
 
@@ -35,9 +35,9 @@ class ResolveUseCasesTest {
             #### Description
             The description.
             #### Steps
-            - check out #usecase2
+            - check out #use_cases/usecase2
             #### Solution
-            Primary Solution is #usecase1.
+            Primary Solution is #use_cases/usecase1.
             ----
         """.toUseCases().resolveReferences(File("src/test/resources/"))
 
