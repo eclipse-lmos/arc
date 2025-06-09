@@ -14,7 +14,7 @@ dependencies {
     implementation(libs.graphql.kotlin.ktor)
 
     // OpenTelemetry dependencies
-    implementation(platform("io.opentelemetry:opentelemetry-bom:1.50.0"))
+    implementation(platform("io.opentelemetry:opentelemetry-bom:1.51.0"))
     implementation("io.opentelemetry:opentelemetry-extension-kotlin")
     implementation("io.opentelemetry:opentelemetry-context")
     implementation("io.opentelemetry:opentelemetry-api")
