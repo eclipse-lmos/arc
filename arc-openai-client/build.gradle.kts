@@ -8,7 +8,7 @@ dependencies {
 
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.17")
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // OpenAISDK
