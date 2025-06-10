@@ -32,4 +32,11 @@ class ConditionsParserTest : TestBase() {
         assertThat(text2).isEqualTo("This is a test")
         assertThat(conditions2).containsOnly("mobile", "web")
     }
+
+    @Test
+    fun `test negative conditions are parsed`(): Unit = runBlocking {
+        val (text, conditions) = "This is a test <mobile, !web>".parseConditions()
+        assertThat(text).isEqualTo("This is a test")
+        assertThat(conditions).containsOnly("mobile", "!web")
+    }
 }

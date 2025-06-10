@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.scripting
 
 import org.eclipse.lmos.arc.agents.Agent
+import org.eclipse.lmos.arc.agents.AgentLoader
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.ArcAgents
 import org.eclipse.lmos.arc.agents.CompositeAgentProvider
@@ -83,17 +84,20 @@ class DSLScriptAgents private constructor(
              * Set up the loading of agent functions from scripts.
              */
             val functionLoader = ScriptingLLMFunctionLoader(beanProvider, eventPublisher = eventPublisher)
-            if (scriptFolder != null) functionLoader.loadFunctions(scriptFolder)
+            if (scriptFolder != null) functionLoader.loadFunctionsFromFolder(scriptFolder)
             val discoveredLoaders = LLMFunctionServiceLoader()
             val functionProvider = CompositeLLMFunctionProvider(listOf(functionLoader, discoveredLoaders))
 
             /**
              * Set up the loading of agents from scripts.
              */
-            val agentFactory = ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider), beanProvider))
+            val agentLoaders = mutableListOf<AgentLoader>()
+            val agentProvider = CompositeAgentProvider(agentLoaders, emptyList())
+            val agentFactory =
+                ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider, agentProvider), beanProvider))
             val agentLoader = ScriptingAgentLoader(agentFactory, eventPublisher = eventPublisher)
             if (scriptFolder != null) agentLoader.loadAgentsFromFolder(scriptFolder)
-            val agentProvider = CompositeAgentProvider(listOf(agentLoader), emptyList())
+            agentLoaders.add(agentLoader)
 
             /**
              * Set up hot-reload for agents and functions.

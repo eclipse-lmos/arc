@@ -13,10 +13,10 @@ group = "org.eclipse.lmos"
 version = project.findProperty("version") as String
 
 plugins {
-    kotlin("jvm") version "2.1.10" apply false
-    kotlin("plugin.serialization") version "2.1.10" apply false
+    kotlin("jvm") version "2.1.21" apply false
+    kotlin("plugin.serialization") version "2.1.21" apply false
     id("org.jetbrains.dokka") version "2.0.0"
-    id("org.cyclonedx.bom") version "2.0.0"
+    id("org.cyclonedx.bom") version "2.3.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     id("net.researchgate.release") version "3.1.0"
@@ -96,6 +96,11 @@ subprojects {
                         name = "Jasbir Singh"
                         email = "jasbirsinghkamboj@gmail.com"
                     }
+                    developer {
+                        id = "harishsainik"
+                        name = "Harish Kumar Saini"
+                        email = "harishsaini.lajak@gmail.com"
+                    }
                 }
                 scm {
                     url = "https://github.com/eclipse-lmos/arc.git"
@@ -123,9 +128,10 @@ subprojects {
             "implementation"(rootProject.libs.kotlinx.serialization.json)
 
             // Testing
-            "testImplementation"("org.junit.jupiter:junit-jupiter:5.11.3")
-            "testImplementation"("org.assertj:assertj-core:3.26.3")
-            "testImplementation"("io.mockk:mockk:1.13.16")
+            "testImplementation"("org.junit.jupiter:junit-jupiter:5.13.0")
+            "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+            "testImplementation"("org.assertj:assertj-core:3.27.3")
+            "testImplementation"("io.mockk:mockk:1.14.2")
         }
     }
 
@@ -150,6 +156,7 @@ dependencies {
     kover(project("arc-memory-mongo-spring-boot-starter"))
     kover(project("arc-api"))
     kover(project("arc-graphql-spring-boot-starter"))
+    kover(project(("arc-openai-api-spring-boot-starter")))
     kover(project("arc-agent-client"))
     kover(project("arc-assistants"))
     kover(project("arc-langchain4j-client"))

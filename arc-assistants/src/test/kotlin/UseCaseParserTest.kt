@@ -91,6 +91,41 @@ class UseCaseParserTest : TestBase() {
         assertThat(useCases).hasSize(1)
         assertThat(useCases.first().id).isEqualTo("usecase")
         val parsedUseCases = useCases.formatToString(conditions = setOf(""))
-        assertThat(parsedUseCases.trim()).isEqualTo("""""".trim())
+        assertThat(parsedUseCases.trim()).isEqualTo("""""")
+    }
+
+    @Test
+    fun `test negative conditional use case`(): Unit = runBlocking {
+        val useCases = """
+                ### UseCase: usecase <!myCondition>
+                #### Description
+                The description of the use case 2.
+
+                #### Solution
+                Primary Solution
+                ----
+            """.toUseCases()
+        assertThat(useCases).hasSize(1)
+        assertThat(useCases.first().id).isEqualTo("usecase")
+        val parsedUseCases = useCases.formatToString()
+        assertThat(parsedUseCases).contains("### UseCase: usecase")
+    }
+
+    @Test
+    fun `test conditional and negative conditional use case`(): Unit = runBlocking {
+        val useCases = """
+                ### UseCase: usecase <!myCondition, 2Condition>
+                #### Description
+                The description of the use case 2.
+
+                #### Solution
+                Primary Solution
+                ----
+            """.toUseCases()
+
+        assertThat(useCases.formatToString().trim()).isEqualTo("""""")
+        assertThat(useCases.formatToString(conditions = setOf("myCondition")).trim()).isEqualTo("""""")
+        assertThat(useCases.formatToString(conditions = setOf("2Condition"))).contains("### UseCase: usecase")
+        assertThat(useCases.formatToString(conditions = setOf("2Condition", "!myCondition"))).contains("### UseCase:")
     }
 }

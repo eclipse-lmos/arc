@@ -63,13 +63,19 @@ interface WithConversationResult {
  * The details field can be used to pass information to the new run of the agent and can be accessed by the
  * get<RetrySignal>() function.
  */
-class RetrySignal(val details: Map<String, String>, val count: Int = 0) : ArcException("Retry") {
-    override fun toString(): String = "Retry($details)"
+class RetrySignal(val reason: String? = null, val details: Map<String, String> = emptyMap(), val count: Int = 1) :
+    ArcException("Retry") {
+    override fun toString(): String = "Retry(reason=$reason, details=$details)"
 }
 
-suspend fun DSLContext.retry(details: Map<String, String> = emptyMap()): Nothing {
+suspend fun DSLContext.retry(reason: String? = null, details: Map<String, String> = emptyMap(), max: Int = 100) {
     getOptional<RetrySignal>()?.let { signal ->
-        throw RetrySignal(details + signal.details, signal.count + 1)
-    }
-    throw RetrySignal(details)
+        if (signal.count < max) {
+            throw RetrySignal(
+                reason = reason,
+                details = signal.details + details,
+                count = signal.count + 1,
+            )
+        }
+    } ?: throw RetrySignal(reason, details)
 }

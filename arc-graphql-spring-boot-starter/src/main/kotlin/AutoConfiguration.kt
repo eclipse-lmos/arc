@@ -6,10 +6,13 @@ package org.eclipse.lmos.arc.graphql
 
 import com.expediagroup.graphql.server.spring.GraphQLAutoConfiguration
 import org.eclipse.lmos.arc.agents.AgentProvider
+import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.graphql.inbound.AccessControlHeaders
 import org.eclipse.lmos.arc.graphql.inbound.AgentQuery
 import org.eclipse.lmos.arc.graphql.inbound.AgentSubscription
+import org.eclipse.lmos.arc.graphql.inbound.ToolMutation
+import org.eclipse.lmos.arc.graphql.inbound.ToolQuery
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
@@ -26,6 +29,14 @@ open class AgentGraphQLAutoConfiguration {
 
     @Bean
     fun agentQuery(agentProvider: AgentProvider) = AgentQuery(agentProvider)
+
+    @Bean
+    @ConditionalOnProperty("arc.tools.query.enabled", havingValue = "true")
+    fun toolQuery(functionProvider: LLMFunctionProvider) = ToolQuery(functionProvider)
+
+    @Bean
+    @ConditionalOnProperty("arc.tools.mutation.enabled", havingValue = "true")
+    fun toolMutation(functionProvider: LLMFunctionProvider, beans: BeanProvider) = ToolMutation(functionProvider, beans)
 
     @Bean
     fun injectToolsFromRequest(functionProvider: LLMFunctionProvider) = InjectToolsFromRequest(functionProvider)

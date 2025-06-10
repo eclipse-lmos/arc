@@ -32,13 +32,13 @@ dependencies {
     compileOnly("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-open-ai:$langchain4jVersion")
 
-    implementation("org.springframework.boot:spring-boot-autoconfigure:3.4.2")
-    implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.4")
-    implementation("org.springframework.boot:spring-boot-starter-webflux:3.4.5")
+    implementation(libs.spring.boot.autoconfigure)
+    implementation(libs.spring.boot.configuration.processor)
+    implementation(libs.spring.boot.starter.webflux)
 
     // Tests
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.5")
-    testImplementation("org.springframework.boot:spring-boot-starter:3.4.5")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
+    testImplementation("org.springframework.boot:spring-boot-starter:3.5.0")
     testImplementation(project(":arc-langchain4j-client"))
     testImplementation(project(":arc-azure-client"))
     testImplementation("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")

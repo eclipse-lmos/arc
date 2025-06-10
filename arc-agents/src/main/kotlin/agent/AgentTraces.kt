@@ -39,13 +39,27 @@ suspend fun <T> AgentTracer.withAgentSpan(
     input: Conversation,
     fn: suspend (Tags, Events) -> T,
 ): T {
-    return withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to name)) { tags, events ->
+    return withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to (MDC.get("agent") ?: name))) { tags, events ->
         tags.tag("input.value", input.transcript.lastOrNull()?.content ?: "")
         tags.tag("input.mime_type", "text/plain")
         tags.tag("openinference.span.kind", "AGENT")
         tags.tag("conversation", input.conversationId)
         tags.tag("session.id", input.conversationId)
         input.user?.id?.let { tags.tag("user.id", it) }
+        fn(tags, events)
+    }
+}
+
+/**
+ * Sets the tracing attributes for a "CHAIN" span.
+ */
+suspend fun <T> AgentTracer.spanChain(
+    name: String,
+    attributes: Map<String, String> = emptyMap(),
+    fn: suspend (Tags, Events) -> T,
+): T {
+    return withSpan(name, attributes) { tags, events ->
+        tags.tag("openinference.span.kind", "CHAIN")
         fn(tags, events)
     }
 }
