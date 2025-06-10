@@ -102,6 +102,7 @@ object OpenInferenceTags {
     ) {
         val functionArguments = toolCall.function.arguments
         tags.tag("openinference.span.kind", "TOOL")
+        tags.tag("tool_call.id", toolCall.id)
         tags.tag("tool_call.function.name", functionName)
         tags.tag("tool_call.function.arguments", functionArguments)
         tags.tag("input.value", functionArguments)
