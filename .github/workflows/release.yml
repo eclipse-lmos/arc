@@ -21,8 +21,8 @@ jobs:
       contents: write
       packages: write
     secrets:
-      oss-username: ${{ secrets.OSSRH_USERNAME }}
-      oss-password: ${{ secrets.OSSRH_PASSWORD }}
+      oss-username: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
+      oss-password: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
       bot-token: ${{ secrets.LMOS_BOT_TOKEN }}
       signing-key-id: ${{ secrets.GPG_SUBKEY_ID }}
       signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
