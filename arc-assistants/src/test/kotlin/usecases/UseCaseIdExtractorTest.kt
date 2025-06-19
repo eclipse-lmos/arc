@@ -20,6 +20,15 @@ class UseCaseIdExtractorTest {
     }
 
     @Test
+    fun `test case-insensitive use case id extraction`(): Unit = runBlocking {
+        val message = """<id:use_case01>
+                 This is a reply from the LLM."""
+        val (filteredMessage, useCaseId) = extractUseCaseId(message)
+        assertThat(filteredMessage).contains("This is a reply from the LLM.")
+        assertThat(useCaseId).isEqualTo("use_case01")
+    }
+
+    @Test
     fun `test use case null extraction`(): Unit = runBlocking {
         val message = """This is a reply from the LLM."""
         val (filteredMessage, useCaseId) = extractUseCaseId(message)
