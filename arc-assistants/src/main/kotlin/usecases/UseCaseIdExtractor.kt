@@ -4,18 +4,17 @@
 
 package org.eclipse.lmos.arc.assistants.support.usecases
 
-import org.eclipse.lmos.arc.assistants.support.common.UseCaseConstants.USE_CASE_ID_REGEX
-
 typealias UseCaseId = String
 
 /**
  * Extract the use case id from the assistant message.
  * For example, "<ID:useCaseId>"
  */
+private val useCaseIdRegex = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE)
 
 fun extractUseCaseId(message: String): Pair<String, UseCaseId?> {
-    val id = USE_CASE_ID_REGEX.find(message)?.groupValues?.elementAtOrNull(1)?.trim()
-    val cleanedMessage = message.replace(USE_CASE_ID_REGEX, "").trim()
+    val id = useCaseIdRegex.find(message)?.groupValues?.elementAtOrNull(1)?.trim()
+    val cleanedMessage = message.replace(useCaseIdRegex, "").trim()
     return cleanedMessage to id
 }
 
