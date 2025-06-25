@@ -62,6 +62,7 @@ fun ArcAgents.serve(
 
     embeddedServer(CIO, port = port ?: EnvConfig.serverPort) {
         install(GraphQL) {
+            Routing
             schema {
                 packages = listOf("org.eclipse.lmos.arc.api", "org.eclipse.lmos.arc.graphql.inbound")
                 queries = listOf(
