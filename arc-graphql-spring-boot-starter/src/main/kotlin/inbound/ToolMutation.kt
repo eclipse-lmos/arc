@@ -9,6 +9,7 @@ import com.expediagroup.graphql.server.operations.Mutation
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toJsonMap
@@ -25,7 +26,7 @@ class ToolMutation(private val functionProvider: LLMFunctionProvider, private va
     @GraphQLDescription("Executes a tool with the given name and parameters.")
     suspend fun tool(name: String, parameters: String?): ToolExecutionResult {
         val params = parameters?.takeIf { it.isNotBlank() }?.let { parameters.toJsonMap() } ?: emptyMap()
-        val context = BasicDSLContext(beans)
+        val context = BasicDSLContext(CompositeBeanProvider(setOf(ToolMutationCall()), beans))
         val tool = functionProvider.provide(name, context.toToolLoaderContext()).getOrThrow()
 
         val result = if (tool is FunctionWithContext) {
@@ -44,3 +45,8 @@ class ToolMutation(private val functionProvider: LLMFunctionProvider, private va
 
 @Serializable
 data class ToolExecutionResult(val result: String? = null, val error: String? = null)
+
+/**
+ * Injected into the ToolLoaderContext to communicate that the tool is being called from a mutation.
+ */
+class ToolMutationCall

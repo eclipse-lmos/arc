@@ -10,7 +10,7 @@ typealias UseCaseId = String
  * Extract the use case id from the assistant message.
  * For example, "<ID:useCaseId>"
  */
-private val useCaseIdRegex = "<ID:(.*?)>".toRegex()
+private val useCaseIdRegex = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE)
 
 fun extractUseCaseId(message: String): Pair<String, UseCaseId?> {
     val id = useCaseIdRegex.find(message)?.groupValues?.elementAtOrNull(1)?.trim()

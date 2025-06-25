@@ -104,7 +104,10 @@ class FunctionCallHandler(
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = function
             OpenInferenceTags.applyToolAttributes(function, tags)
-            function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
+            function.execute(functionArguments) failWith {
+                tags.error(it)
+                ArcException(cause = it.cause)
+            }
         }
 
     private fun String.toJson() = result<Map<String, Any?>, HallucinationDetectedException> {

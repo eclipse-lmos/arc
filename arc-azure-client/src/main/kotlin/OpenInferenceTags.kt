@@ -114,6 +114,10 @@ object OpenInferenceTags {
         tags.tag("tool.id", function.name)
         tags.tag("tool.description", function.description)
         tags.tag("tool.parameters", function.parameters.toJsonString())
+        tags.tag(
+            "tool.json_schema",
+            """{"type":"function","function":{"name":"${function.name}","parameters":${function.parameters.toJsonString()},"description":"${function.description}"}""",
+        )
     }
 
     fun applyToolAttributes(result: Result<String, ArcException>, tags: Tags) {
