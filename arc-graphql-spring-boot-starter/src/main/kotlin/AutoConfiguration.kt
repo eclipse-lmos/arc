@@ -7,6 +7,7 @@ package org.eclipse.lmos.arc.graphql
 import com.expediagroup.graphql.server.spring.GraphQLAutoConfiguration
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.features.FeatureFlags
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.graphql.inbound.AccessControlHeaders
 import org.eclipse.lmos.arc.graphql.inbound.AgentQuery
@@ -16,6 +17,8 @@ import org.eclipse.lmos.arc.graphql.inbound.ToolQuery
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
@@ -33,6 +36,14 @@ open class AgentGraphQLAutoConfiguration {
     @Bean
     @ConditionalOnProperty("arc.tools.query.enabled", havingValue = "true")
     fun toolQuery(functionProvider: LLMFunctionProvider) = ToolQuery(functionProvider)
+
+    @Bean
+    @ConditionalOnBean(FeatureFlags::class)
+    @ConditionalOnMissingBean(AgentResolver::class)
+    fun featureAgentResolver(
+        features: FeatureFlags,
+        agentProvider: AgentProvider,
+    ) = FeatureAgentResolver(features, agentProvider)
 
     @Bean
     @ConditionalOnProperty("arc.tools.mutation.enabled", havingValue = "true")
