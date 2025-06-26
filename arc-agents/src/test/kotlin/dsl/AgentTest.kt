@@ -113,10 +113,12 @@ class AgentTest : TestBase() {
         coEvery { functionProvider.provide(capture(functionGroup), any()) } answers {
             Success(object : LLMFunction {
                 override val name = "MyFunction"
+                override val version = "1.0"
                 override val parameters = ParametersSchema()
                 override val description = "This is a sample function"
                 override val group = "SampleGroup"
                 override val isSensitive = false
+                override val outputDescription = "This is the output description"
 
                 override suspend fun execute(input: Map<String, Any?>) = Success("execution result")
             })
@@ -139,10 +141,12 @@ class AgentTest : TestBase() {
         coEvery { functionProvider.provide(capture(functionGroup), any()) } answers {
             Success(object : LLMFunction {
                 override val name = "MyFunction"
+                override val version = "1.0"
                 override val parameters = ParametersSchema()
                 override val description = "This is a sample function"
                 override val group = "SampleGroup"
                 override val isSensitive = false
+                override val outputDescription = "This is the output description"
 
                 override suspend fun execute(input: Map<String, Any?>) = Success("execution result")
             })

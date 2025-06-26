@@ -11,6 +11,7 @@ SPDX-PackageDownloadLocation = "https://github.com/eclipse-lmos/arc"
 [[annotations]]
 path = ["**/fonts/**",
     "**/assets/**",
+    "**/flags.flagd.json",
     "**/org.eclipse.lmos.arc.agents.llm.CompleterLoaderService",
     "**/org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader",
     "**/chat/flutter*.js",

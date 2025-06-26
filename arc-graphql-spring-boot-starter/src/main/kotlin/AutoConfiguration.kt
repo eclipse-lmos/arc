@@ -5,8 +5,10 @@
 package org.eclipse.lmos.arc.graphql
 
 import com.expediagroup.graphql.server.spring.GraphQLAutoConfiguration
+import features.FeatureAgentResolver
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.dsl.extensions.SystemContext
 import org.eclipse.lmos.arc.agents.features.FeatureFlags
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.graphql.inbound.AccessControlHeaders
@@ -38,7 +40,6 @@ open class AgentGraphQLAutoConfiguration {
     fun toolQuery(functionProvider: LLMFunctionProvider) = ToolQuery(functionProvider)
 
     @Bean
-    @ConditionalOnBean(FeatureFlags::class)
     @ConditionalOnMissingBean(AgentResolver::class)
     fun featureAgentResolver(
         features: FeatureFlags,
