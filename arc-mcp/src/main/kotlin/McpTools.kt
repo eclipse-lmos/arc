@@ -45,6 +45,8 @@ class McpTools(private val url: String, private val cacheDuration: Duration?) :
                 log.debug("Loaded tool: ${tool.name} from $url")
                 object : LLMFunction {
                     override val name: String = tool.name
+                    override val version: String? = null
+                    override val outputDescription: String? = null
                     override val parameters = parameters(tool)
                     override val description: String = tool.description
                     override val group: String = "MCP"
