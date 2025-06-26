@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory
  */
 data class LambdaLLMFunction(
     override val name: String,
+    override val version: String?,
     override val description: String,
+    override val outputDescription: String?,
     override val group: String?,
     override val isSensitive: Boolean,
     override val parameters: ParametersSchema,
@@ -41,6 +43,6 @@ data class LambdaLLMFunction(
     }
 
     override fun withContext(context: DSLContext): LLMFunction {
-        return LambdaLLMFunction(name, description, group, isSensitive, parameters, context, function)
+        return copy(context = context)
     }
 }

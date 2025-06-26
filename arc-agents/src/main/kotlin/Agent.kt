@@ -26,7 +26,7 @@ interface Agent<I, O> {
     /**
      * The set of flags that must be enabled for the agent to execute.
      */
-    val onFlags: Set<String>
+    val onFeatures: Set<String>
 
     /**
      * The version of the agent.

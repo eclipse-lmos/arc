@@ -8,5 +8,13 @@ package org.eclipse.lmos.arc.agents.features
  */
 interface FeatureFlags {
 
+    /**
+     * Returns true if a feature is set to a value other than false.
+     */
     fun isFeatureEnabled(feature: String): Boolean
+
+    /**
+     * Returns the value of a feature as a String.
+     */
+    fun getFeature(feature: String): String
 }

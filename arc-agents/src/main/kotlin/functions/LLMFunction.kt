@@ -13,10 +13,13 @@ import org.eclipse.lmos.arc.core.Result
  */
 interface LLMFunction {
     val name: String
+
+    val version: String?
     val parameters: ParametersSchema
     val description: String
     val group: String?
     val isSensitive: Boolean
+    val outputDescription: String?
 
     suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException>
 }
