@@ -9,6 +9,7 @@ jackson-version = "2.18.3"
 resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
 graphql-kotlin-version = "8.8.0"
+openfeature-version = "1.15.1"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
@@ -23,6 +24,8 @@ slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j-version" 
 
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback-version" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
+
+openfeature-sdk = { module = "dev.openfeature:sdk", version.ref = "openfeature-version" }
 
 #
 # Spring Boot dependencies

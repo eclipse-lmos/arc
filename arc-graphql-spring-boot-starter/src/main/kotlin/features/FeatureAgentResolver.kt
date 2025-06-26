@@ -19,12 +19,22 @@ class FeatureAgentResolver(
     private val agentProvider: AgentProvider,
 ) : AgentResolver {
 
+    /**
+     * Resolves an agent based on the provided agent name and request.
+     * It checks the features of each agent and returns the first one that matches the enabled features.
+     *
+     * @param agentName The name of the agent to resolve (not used in this implementation).
+     * @param request The agent request containing context information.
+     * @return The resolved agent or null if no suitable agent is found.
+     */
     override fun resolveAgent(
         agentName: String?,
         request: AgentRequest,
     ): Agent<*, *>? {
         return agentProvider.getAgents().firstOrNull { agent ->
-            agent.onFeatures.isNotEmpty() && agent.onFeatures.all { features.isFeatureEnabled(it) }
+            agent.onFeatures.isNotEmpty() && agent.onFeatures.all { features.getFeatureBoolean(it) }
+        } ?: agentProvider.getAgents().firstOrNull { agent ->
+            agent.onFeatures.isEmpty()
         }
     }
 }

@@ -43,8 +43,8 @@ class ResolveUseCasesTest {
 
         assertThat(useCases).hasSize(3)
         assertThat(useCases[0].id).isEqualTo("usecase")
-        assertThat(useCases[1].id).isEqualTo("usecase1")
-        assertThat(useCases[2].id).isEqualTo("usecase2")
+        assertThat(useCases[1].id).isEqualTo("usecase2")
+        assertThat(useCases[2].id).isEqualTo("usecase1")
     }
 
     @Test
