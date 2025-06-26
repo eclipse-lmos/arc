@@ -48,6 +48,8 @@ interface FunctionDefinitionContext {
         name: String,
         description: String,
         group: String? = null,
+        version: String? = null,
+        outputDescription: String? = null,
         params: ParametersSchema = ParametersSchema(),
         isSensitive: Boolean = false,
         fn: suspend DSLContext.(List<Any?>) -> String,
@@ -103,6 +105,8 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
         name: String,
         description: String,
         group: String?,
+        version: String?,
+        outputDescription: String?,
         params: ParametersSchema,
         isSensitive: Boolean,
         fn: suspend DSLContext.(List<Any?>) -> String,
@@ -110,12 +114,14 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
         functions.add(
             LambdaLLMFunction(
                 name,
-                description,
-                group,
-                isSensitive,
-                params,
-                BasicDSLContext(beanProvider),
-                wrapOutput(fn),
+                description = description,
+                group = group,
+                version = version,
+                outputDescription = outputDescription,
+                isSensitive = isSensitive,
+                parameters = params,
+                context = BasicDSLContext(beanProvider),
+                function = wrapOutput(fn),
             ),
         )
     }
