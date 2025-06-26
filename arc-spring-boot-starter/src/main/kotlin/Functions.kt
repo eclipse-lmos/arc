@@ -33,10 +33,21 @@ class Functions(private val beanProvider: BeanProvider) {
         group: String? = null,
         params: ParametersSchema = ParametersSchema(),
         isSensitive: Boolean = false,
+        version: String? = null,
+        outputDescription: String? = null,
         fn: suspend DSLContext.(List<Any?>) -> String,
     ): LLMFunction {
         val context = BasicFunctionDefinitionContext(beanProvider)
-        context.function(name, description, group, params, isSensitive, fn)
+        context.function(
+            name = name,
+            description = description,
+            group = group,
+            version = version,
+            outputDescription = outputDescription,
+            params = params,
+            isSensitive = isSensitive,
+            fn = fn,
+        )
         return context.functions.first()
     }
 }

@@ -10,6 +10,7 @@ dependencies {
 
     // Graphql
     implementation(libs.graphql.kotlin.spring)
+    implementation(libs.openfeature.sdk)
 
     // Spring
     implementation(libs.spring.boot.starter.webflux)

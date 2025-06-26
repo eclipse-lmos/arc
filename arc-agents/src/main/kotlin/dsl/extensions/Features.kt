@@ -13,16 +13,16 @@ import org.eclipse.lmos.arc.agents.features.FeatureFlags
  */
 
 /**
- * Returns true if a feature is set to a value other than false.
+ * Returns the value of a feature as a String.
  */
-suspend fun DSLContext.isFeature(name: String, default: Boolean = false): Boolean {
+suspend fun DSLContext.getFeature(name: String, default: String): String {
     getOptional<FeatureFlags>()?.let {
-        return it.isFeatureEnabled(name)
+        return it.getFeature(name, default)
     }
     getOptional<SystemContextProvider>()?.let {
         it.provideSystem().values.forEach { (k, v) ->
             if (k == "feature_$name") {
-                return v != "false"
+                return v
             }
         }
     }
@@ -32,14 +32,14 @@ suspend fun DSLContext.isFeature(name: String, default: Boolean = false): Boolea
 /**
  * Returns the value of a feature as a String.
  */
-suspend fun DSLContext.getFeature(name: String, default: String): String {
+suspend fun DSLContext.getFeatureBoolean(name: String, default: Boolean = false): Boolean {
     getOptional<FeatureFlags>()?.let {
-        return it.getFeature(name)
+        return it.getFeatureBoolean(name, default)
     }
     getOptional<SystemContextProvider>()?.let {
         it.provideSystem().values.forEach { (k, v) ->
             if (k == "feature_$name") {
-                return v
+                return v.toBoolean()
             }
         }
     }

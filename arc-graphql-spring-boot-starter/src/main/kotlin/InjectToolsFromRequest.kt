@@ -114,9 +114,11 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
 
                 object : LLMFunction {
                     override val name: String = fn["name"]!!.jsonPrimitive.content
+                    override val version: String? = null
                     override val description: String = fn["description"]!!.jsonPrimitive.content
                     override val group: String? = null
                     override val isSensitive: Boolean = false
+                    override val outputDescription: String? = null
                     override val parameters: ParametersSchema =
                         ParametersSchema(properties = parameters.associateBy { it.name!! })
 
