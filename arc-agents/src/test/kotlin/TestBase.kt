@@ -52,7 +52,13 @@ open class TestBase {
         val input = slot<List<ConversationMessage>>()
         coEvery { chatCompleter.complete(capture(input)) } answers { Success(AssistantMessage(llmResponse)) }
         coEvery { chatCompleter.complete(capture(input), any()) } answers { Success(AssistantMessage(llmResponse)) }
-        coEvery { chatCompleter.complete(capture(input), any(), any()) } answers { Success(AssistantMessage(llmResponse)) }
+        coEvery {
+            chatCompleter.complete(
+                capture(input),
+                any(),
+                any(),
+            )
+        } answers { Success(AssistantMessage(llmResponse)) }
 
         var result: Conversation
         testBeanProvider.setContext(context ?: contextBeans) {
@@ -68,10 +74,13 @@ open class TestBase {
 }
 
 class TestFunction(override val name: String = "test") : LLMFunction {
+    override val version: String? = null
     override val parameters = ParametersSchema()
     override val description: String = "test"
     override val group: String? = null
     override val isSensitive: Boolean = false
+    override val outputDescription: String? = null
+
     override suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException> {
         return Success("test")
     }
