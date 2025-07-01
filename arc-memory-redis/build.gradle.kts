@@ -12,5 +12,5 @@ dependencies {
     implementation(libs.jackson.databind)
 
     testImplementation("com.redis:testcontainers-redis:2.2.4")
-    testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.3")
 }
