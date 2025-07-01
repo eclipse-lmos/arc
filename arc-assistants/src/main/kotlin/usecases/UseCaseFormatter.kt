@@ -16,6 +16,7 @@ fun List<UseCase>.formatToString(
     useAlternatives: Set<String> = emptySet(),
     useFallbacks: Set<String> = emptySet(),
     conditions: Set<String> = emptySet(),
+    exampleLimit: Int = 10_000,
 ) =
     buildString {
         this@formatToString.filter { it.matches(conditions) }.forEach { useCase ->
@@ -55,7 +56,9 @@ fun List<UseCase>.formatToString(
             }
             if (useCase.examples.isNotEmpty()) {
                 append("#### Examples\n")
-                append("${useCase.examples}\n")
+                useCase.examples.split("\n").take(exampleLimit).forEach { example ->
+                    appendLine(example)
+                }
             }
             append("\n----\n\n")
         }

@@ -90,7 +90,8 @@ class FunctionCallHandlerTest {
             // Use reflection to access the private _calledFunctions field
             val field = FunctionCallHandler::class.java.getDeclaredField("_calledFunctions")
             field.isAccessible = true
-            val calledFunctions = field.get(functionCallHandlerWithNonSensitiveFunction) as MutableMap<String, LLMFunction>
+            val calledFunctions =
+                field.get(functionCallHandlerWithNonSensitiveFunction) as MutableMap<String, LLMFunction>
 
             // Add the non-sensitive function to the called functions map
             calledFunctions["testFunction"] = testFunction
@@ -153,9 +154,11 @@ class FunctionCallHandlerTest {
         override val name: String,
         override val isSensitive: Boolean,
     ) : LLMFunction {
+        override val version: String? = null
         override val parameters = ParametersSchema()
         override val description: String = "Test function for unit tests"
         override val group: String? = null
+        override val outputDescription: String? = null
 
         override suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException> {
             return Success("Function executed successfully with input: $input")
