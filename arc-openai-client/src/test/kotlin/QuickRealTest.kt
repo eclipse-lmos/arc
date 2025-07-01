@@ -24,6 +24,8 @@ fun main() {
         object : LLMFunction {
             override val name: String
                 get() = "get_current_weather"
+            override val version: String? = null
+            override val outputDescription: String? = null
             override val parameters: ParametersSchema
                 get() = ParametersSchema(
                     properties = mapOf(
@@ -54,6 +56,8 @@ fun main() {
         object : LLMFunction {
             override val name: String
                 get() = "dummy"
+            override val version: String? = null
+            override val outputDescription: String? = null
             override val parameters: ParametersSchema
                 get() = ParametersSchema(
                     properties = mapOf(

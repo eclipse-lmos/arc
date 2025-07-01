@@ -19,6 +19,7 @@ class FunctionToSchemaTest {
 
     private val testFunction = object : LLMFunction {
         override val name: String = "test-name"
+        override val version: String? = null
         override val parameters = ParametersSchema(
             properties = mapOf(
                 "country" to ParameterSchema(
@@ -33,6 +34,7 @@ class FunctionToSchemaTest {
         override val description: String = "test-description"
         override val group: String? = null
         override val isSensitive: Boolean = false
+        override val outputDescription: String? = null
 
         override suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException> {
             error("not implemented")

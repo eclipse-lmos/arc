@@ -29,6 +29,7 @@ suspend fun DSLContext.useCases(
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
     useCaseFolder: File? = null,
+    exampleLimit: Int = 10_000,
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
@@ -43,7 +44,7 @@ suspend fun DSLContext.useCases(
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
         val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { it.value >= fallbackLimit }.keys
         val filteredUseCases =
-            useCases.formatToString(usedUseCases.toSet(), fallbackCases, loadConditions() + conditions)
+            useCases.formatToString(usedUseCases.toSet(), fallbackCases, loadConditions() + conditions, exampleLimit)
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
         setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, filteredUseCases))
@@ -80,6 +81,7 @@ suspend fun DSLContext.processUseCases(
     useCases: List<UseCase>,
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
+    exampleLimit: Int = 10_000,
 ): String {
     val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
     val fallbackCases =
@@ -89,7 +91,7 @@ suspend fun DSLContext.processUseCases(
             .filter { it.value >= fallbackLimit }
             .keys
     val filteredUseCases =
-        useCases.formatToString(usedUseCases.toSet(), fallbackCases, conditions)
+        useCases.formatToString(usedUseCases.toSet(), fallbackCases, conditions, exampleLimit)
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
     setLocal(LOCAL_USE_CASES, LoadedUseCases(name = "all", useCases, usedUseCases, filteredUseCases))
