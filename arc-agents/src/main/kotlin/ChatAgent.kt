@@ -86,7 +86,7 @@ class ChatAgent(
 
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =
-            CompositeBeanProvider(context + setOf(input, input.user).filterNotNull(), beanProvider)
+            CompositeBeanProvider(context + setOf(input, input.user, this).filterNotNull(), beanProvider)
         val tracer = compositeBeanProvider.agentTracer()
 
         return tracer.withAgentSpan(name, input) { tags, _ ->
@@ -151,15 +151,16 @@ class ChatAgent(
             //
             // Filter input
             //
-            val filteredInput = tracer.spanChain("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
-                coroutineScope {
-                    val filterContext = InputFilterContext(dslContext, conversation)
-                    filterInput.invoke(filterContext).let {
-                        filterContext.finish()
-                        filterContext.input
+            val filteredInput =
+                tracer.spanChain("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
+                    coroutineScope {
+                        val filterContext = InputFilterContext(dslContext, conversation)
+                        filterInput.invoke(filterContext).let {
+                            filterContext.finish()
+                            filterContext.input
+                        }
                     }
                 }
-            }
             if (filteredInput.isEmpty()) failWith { AgentNotExecutedException("Input has been filtered") }
 
             //

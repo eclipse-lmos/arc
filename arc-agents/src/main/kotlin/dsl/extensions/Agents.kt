@@ -17,6 +17,7 @@ import org.eclipse.lmos.arc.agents.dsl.AgentDefinition
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.get
+import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.events.BaseEvent
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.getAgentByName
@@ -85,3 +86,10 @@ suspend fun DSLContext.breakToAgent(name: String, conversation: Conversation? = 
  * Events
  */
 class AgentHandOverTriggered(val fromAgent: String, val toAgent: String) : Event by BaseEvent()
+
+/**
+ * Returns the current agent.
+ */
+suspend fun DSLContext.currentAgent(): Agent<*, *>? {
+    return getOptional<Agent<*, *>>()
+}

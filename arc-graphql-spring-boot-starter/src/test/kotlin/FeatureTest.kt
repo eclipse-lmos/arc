@@ -64,14 +64,14 @@ open class FeatureTestConfig {
     @Bean
     open fun betaAgent(agent: Agents) = agent {
         name = "beta-agent"
-        onFeatures = setOf("beta")
+        activateOnFeatures = setOf("beta")
         filterInput { breakWith(getFeature("beta", "")) }
     }
 
     @Bean
     open fun betaAgent2(agent: Agents) = agent {
         name = "beta-agent"
-        onFeatures = setOf("beta2")
+        activateOnFeatures = setOf("beta2")
     }
 
     @Bean
