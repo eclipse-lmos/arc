@@ -15,9 +15,9 @@ import org.eclipse.lmos.arc.agents.features.FeatureFlags
 /**
  * Returns the value of a feature as a String.
  */
-suspend fun DSLContext.getFeature(name: String, default: String): String {
+suspend fun DSLContext.getFeature(name: String, default: String, param: Map<String, String> = emptyMap()): String {
     getOptional<FeatureFlags>()?.let {
-        return it.getFeature(name, default, param = getFeatureContext())
+        return it.getFeature(name, default, param = getFeatureContext() + param)
     }
     getOptional<SystemContextProvider>()?.let {
         it.provideSystem().values.forEach { (k, v) ->
@@ -32,9 +32,13 @@ suspend fun DSLContext.getFeature(name: String, default: String): String {
 /**
  * Returns the value of a feature as a String.
  */
-suspend fun DSLContext.getFeatureBoolean(name: String, default: Boolean = false): Boolean {
+suspend fun DSLContext.getFeatureBoolean(
+    name: String,
+    default: Boolean = false,
+    param: Map<String, String> = emptyMap(),
+): Boolean {
     getOptional<FeatureFlags>()?.let {
-        return it.getFeatureBoolean(name, default, param = getFeatureContext())
+        return it.getFeatureBoolean(name, default, param = getFeatureContext() + param)
     }
     getOptional<SystemContextProvider>()?.let {
         it.provideSystem().values.forEach { (k, v) ->
@@ -48,12 +52,23 @@ suspend fun DSLContext.getFeatureBoolean(name: String, default: Boolean = false)
 
 /**
  * Creates a context map for feature flags, combining system context and user profile.
+ * Warning: Fields containing "key" or "secret" are filtered out to avoid exposing sensitive information.
  */
 private suspend fun DSLContext.getFeatureContext() = buildMap {
-    getOptional<SystemContextProvider>()?.provideSystem()?.values?.forEach {
+    currentAgent()?.let { agent ->
+        put("agent_name", agent.name)
+        put("agent_version", agent.version)
+    }
+    getOptional<SystemContextProvider>()?.provideSystem()?.values?.filter {
+        !it.key.contains("key") && !it.key.contains("secret")
+    }?.forEach {
         put("system_${it.key}", it.value)
     }
-    getOptional<UserProfileProvider>()?.provideProfile()?.values?.forEach {
+    getOptional<UserProfileProvider>()?.provideProfile()?.values?.filter {
+        !it.key.contains("key") && !it.key.contains("secret")
+    }?.forEach {
         put("user_${it.key}", it.value)
     }
+}.also {
+    debug("Features context created: $it")
 }

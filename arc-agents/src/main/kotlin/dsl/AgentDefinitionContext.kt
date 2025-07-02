@@ -38,7 +38,7 @@ class AgentDefinition {
     lateinit var name: String
     var description: String = ""
     var version: String = "1.0.0"
-    var onFeatures: Set<String> = emptySet()
+    var activateOnFeatures: Set<String> = emptySet()
 
     var skills: suspend () -> List<Skill> = { emptyList() }
     fun skills(fn: suspend () -> List<Skill>) {
