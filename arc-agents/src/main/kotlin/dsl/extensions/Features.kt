@@ -4,6 +4,8 @@
 
 package org.eclipse.lmos.arc.agents.dsl.extensions
 
+import org.eclipse.lmos.arc.agents.User
+import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.features.FeatureFlags
@@ -58,6 +60,12 @@ private suspend fun DSLContext.getFeatureContext() = buildMap {
     currentAgent()?.let { agent ->
         put("agent_name", agent.name)
         put("agent_version", agent.version)
+    }
+    getOptional<Conversation>()?.let {
+        put("session_id", it.conversationId)
+    }
+    getOptional<User>()?.let {
+        put("user", it.id)
     }
     getOptional<SystemContextProvider>()?.provideSystem()?.values?.filter {
         !it.key.contains("key") && !it.key.contains("secret")
