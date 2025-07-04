@@ -32,9 +32,13 @@ class FeatureAgentResolver(
         request: AgentRequest,
     ): Agent<*, *>? {
         return agentProvider.getAgents().firstOrNull { agent ->
-            agent.onFeatures.isNotEmpty() && agent.onFeatures.all { features.getFeatureBoolean(it) }
+            agent.activateOnFeatures?.isNotEmpty() == true && agent.activateOnFeatures?.all {
+                features.getFeatureBoolean(
+                    it,
+                )
+            } == true
         } ?: agentProvider.getAgents().firstOrNull { agent ->
-            agent.onFeatures.isEmpty()
+            agent.activateOnFeatures == null || agent.activateOnFeatures?.isEmpty() == true
         }
     }
 }

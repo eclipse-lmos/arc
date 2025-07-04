@@ -63,7 +63,7 @@ class ChatAgent(
     override val name: String,
     override val description: String,
     override val version: String,
-    override val onFeatures: Set<String>,
+    override val activateOnFeatures: Set<String>?,
     private val skills: suspend () -> List<Skill>? = { null },
     private val model: suspend DSLContext.() -> String?,
     private val settings: suspend DSLContext.() -> ChatCompletionSettings?,
