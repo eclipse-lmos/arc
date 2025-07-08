@@ -29,7 +29,7 @@ suspend fun DSLContext.useCases(
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
     useCaseFolder: File? = null,
-    exampleLimit: Int = 10_000,
+    exampleLimit: Int = 4,
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
