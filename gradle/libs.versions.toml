@@ -8,7 +8,7 @@ lettuce-version = "6.7.1.RELEASE"
 jackson-version = "2.18.3"
 resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
-graphql-kotlin-version = "8.8.0"
+graphql-kotlin-version = "8.8.1"
 openfeature-version = "1.15.1"
 
 [libraries]
