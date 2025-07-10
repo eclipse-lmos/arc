@@ -8,13 +8,18 @@ import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
+import org.eclipse.lmos.arc.agents.agent.input
 import org.eclipse.lmos.arc.agents.agent.onError
+import org.eclipse.lmos.arc.agents.agent.output
+import org.eclipse.lmos.arc.agents.agent.promptVersion
 import org.eclipse.lmos.arc.agents.agent.recoverAgentFailure
 import org.eclipse.lmos.arc.agents.agent.spanChain
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
+import org.eclipse.lmos.arc.agents.conversation.UserMessage
+import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.conversation.toLogString
 import org.eclipse.lmos.arc.agents.dsl.AllTools
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
@@ -89,7 +94,7 @@ class ChatAgent(
             CompositeBeanProvider(context + setOf(input, input.user, this).filterNotNull(), beanProvider)
         val tracer = compositeBeanProvider.agentTracer()
 
-        return tracer.withAgentSpan(name, input) { tags, _ ->
+        return tracer.withAgentSpan(this, input) { tags, _ ->
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
             val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
@@ -152,13 +157,16 @@ class ChatAgent(
             // Filter input
             //
             val filteredInput =
-                tracer.spanChain("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { _, _ ->
+                tracer.spanChain("filter input", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterInput")) { tags, _ ->
+                    tags.input(conversation.latest<UserMessage>()?.content ?: "")
                     coroutineScope {
                         val filterContext = InputFilterContext(dslContext, conversation)
                         filterInput.invoke(filterContext).let {
                             filterContext.finish()
                             filterContext.input
                         }
+                    }.also {
+                        tags.output(it.latest<UserMessage>()?.content ?: "")
                     }
                 }
             if (filteredInput.isEmpty()) failWith { AgentNotExecutedException("Input has been filtered") }
@@ -170,9 +178,10 @@ class ChatAgent(
                 "generate system prompt",
                 mapOf(PHASE_LOG_CONTEXT_KEY to "generatePrompt"),
             ) { tags, _ ->
+                tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 systemPrompt.invoke(dslContext).also {
+                    tags.output(it)
                     dslContext.setSystemPrompt(it)
-                    tags.tag("prompt", it)
                 }
             }
 
@@ -194,15 +203,17 @@ class ChatAgent(
                     INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
                 ),
             ) { tags, _ ->
+                tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
                 conversation + chatCompleter.complete(fullConversation, functions, completionSettings)
-                    .getOrThrow().also { tags.tag("response", it.content) }
+                    .getOrThrow().also { tags.output(it.content) }
             }
 
             //
             // Filter output
             //
-            tracer.spanChain("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) { _, _ ->
+            tracer.spanChain("filter output", mapOf(PHASE_LOG_CONTEXT_KEY to "FilterOutput")) { tags, _ ->
+                tags.input(completedConversation.latest<AssistantMessage>()?.content ?: "")
                 coroutineScope {
                     val filterOutputContext =
                         OutputFilterContext(dslContext, conversation, completedConversation, generatedSystemPrompt)
@@ -210,6 +221,8 @@ class ChatAgent(
                         filterOutputContext.finish()
                         filterOutputContext.output
                     }
+                }.also {
+                    tags.output(it.latest<AssistantMessage>()?.content ?: "")
                 }
             }
         }
