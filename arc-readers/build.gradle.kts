@@ -10,6 +10,6 @@ dependencies {
     implementation(libs.slf4j.api)
 
     // jsoup
-    implementation("org.jsoup:jsoup:1.19.1")
+    implementation("org.jsoup:jsoup:1.21.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.3")
 }
