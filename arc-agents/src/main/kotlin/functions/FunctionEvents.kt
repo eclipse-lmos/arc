@@ -27,4 +27,7 @@ data class LLMFunctionCalledEvent(
     val result: Result<String, ArcException>,
     val duration: Duration,
     override val timestamp: Instant = Instant.now(),
+    val version: String? = null,
+    val description: String? = null,
+    val outputDescription: String? = null,
 ) : Event by BaseEvent()

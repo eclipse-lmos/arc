@@ -27,6 +27,7 @@ import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.measureTime
 
 /**
@@ -69,11 +70,12 @@ class FunctionCallHandler(
                     val functionArguments = toolCall.function.arguments.toJson() failWith { it }
 
                     val functionCallResult: Result<String, ArcException>
+                    val functionHolder = AtomicReference<LLMFunction?>()
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
                         functionCallResult = tracer.withSpan("tool") { tags, _ ->
                             OpenInferenceTags.applyToolAttributes(functionName, toolCall, tags)
-                            callFunction(functionName, functionArguments, tags).also {
+                            callFunction(functionName, functionArguments, tags, functionHolder).also {
                                 OpenInferenceTags.applyToolAttributes(it, tags)
                             }
                         }
@@ -84,6 +86,9 @@ class FunctionCallHandler(
                             functionArguments,
                             functionCallResult,
                             duration = duration,
+                            version = functionHolder.get()?.version,
+                            description = functionHolder.get()?.description,
+                            outputDescription = functionHolder.get()?.outputDescription,
                         ),
                     )
 
@@ -96,10 +101,18 @@ class FunctionCallHandler(
         }
     }
 
-    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>, tags: Tags) =
+    private suspend fun callFunction(
+        functionName: String,
+        functionArguments: Map<String, Any?>,
+        tags: Tags,
+        functionHolder: AtomicReference<LLMFunction?>,
+    ) =
         result<String, ArcException> {
-            val function = functions.find { it.name == functionName }
-                ?: failWith { FunctionNotFoundException(functionName) }
+            val function = functions.find { it.name == functionName } ?: failWith {
+                tags.error(FunctionNotFoundException(functionName))
+                FunctionNotFoundException(functionName)
+            }
+            functionHolder.set(function) // TODO this is not nice
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = function
