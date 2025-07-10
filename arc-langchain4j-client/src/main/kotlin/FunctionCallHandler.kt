@@ -74,6 +74,9 @@ class FunctionCallHandler(
                             functionArguments,
                             functionCallResult,
                             duration = duration,
+                            version = function.version,
+                            description = function.description,
+                            outputDescription = function.outputDescription,
                         ),
                     )
 
