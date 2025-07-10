@@ -11,7 +11,6 @@ import org.eclipse.lmos.arc.agents.agent.agentTracer
 import org.eclipse.lmos.arc.agents.agent.input
 import org.eclipse.lmos.arc.agents.agent.onError
 import org.eclipse.lmos.arc.agents.agent.output
-import org.eclipse.lmos.arc.agents.agent.promptVersion
 import org.eclipse.lmos.arc.agents.agent.recoverAgentFailure
 import org.eclipse.lmos.arc.agents.agent.spanChain
 import org.eclipse.lmos.arc.agents.agent.withAgentSpan
