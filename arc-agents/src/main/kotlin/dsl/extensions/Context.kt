@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Provides access to the system context.
  */
 suspend fun DSLContext.system(key: String, defaultValue: String? = null): String {
-    return get<SystemContextProvider>().provideSystem().values[key]
+    return getOptional<SystemContextProvider>()?.provideSystem()?.values[key]
         ?: defaultValue
         ?: kotlin.error("System context key not found: $key!")
 }

@@ -75,7 +75,7 @@ suspend inline fun <reified T : Any> DSLContext.getOptional() =
 /**
  * Used to run functions in a DSL context with a set of beans.
  */
-fun withDSLContext(beans: Set<Any> = emptySet(), block: DSLContext.() -> Unit) {
+suspend fun withDSLContext(beans: Set<Any> = emptySet(), block: suspend DSLContext.() -> Unit) {
     BasicDSLContext(SetBeanProvider(beans)).block()
 }
 

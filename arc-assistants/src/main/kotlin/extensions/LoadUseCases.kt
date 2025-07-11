@@ -30,6 +30,7 @@ suspend fun DSLContext.useCases(
     conditions: Set<String> = emptySet(),
     useCaseFolder: File? = null,
     exampleLimit: Int = 4,
+    filter: (UseCase) -> Boolean = { true },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
@@ -43,13 +44,19 @@ suspend fun DSLContext.useCases(
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
         val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { it.value >= fallbackLimit }.keys
-        val filteredUseCases =
-            useCases.formatToString(usedUseCases.toSet(), fallbackCases, loadConditions() + conditions, exampleLimit)
+        val filteredUseCases = useCases.filter(filter)
+        val formattedUseCases =
+            filteredUseCases.formatToString(
+                usedUseCases.toSet(),
+                fallbackCases,
+                loadConditions() + conditions,
+                exampleLimit,
+            )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
-        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, filteredUseCases))
+        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases))
         tags.tag("retrieval.documents.0.document.id", name)
-        tags.tag("retrieval.documents.0.document.content", filteredUseCases)
+        tags.tag("retrieval.documents.0.document.content", formattedUseCases)
         tags.tag("retrieval.documents.0.document.score", "1.0")
         tags.tag(
             "retrieval.documents.0.document.meta",
@@ -62,7 +69,7 @@ suspend fun DSLContext.useCases(
                 """,
         )
 
-        filteredUseCases
+        formattedUseCases
     }
 }
 
@@ -151,7 +158,8 @@ fun List<UseCase>.resolveReferences(folderOrFile: File): List<UseCase> = buildLi
 
     val references = currentUseCases.flatMap { it.extractReferences() }.toSet()
     references.forEach { ref ->
-        val fileName = ref.substringBeforeLast("/", missingDelimiterValue = "").takeIf { it.isNotBlank() }?.let { "$it.md" }
+        val fileName =
+            ref.substringBeforeLast("/", missingDelimiterValue = "").takeIf { it.isNotBlank() }?.let { "$it.md" }
         if (fileName != null) {
             val useCaseId = ref.substringAfterLast("/")
             val file = if (folderOrFile.isFile) folderOrFile else File(folderOrFile, fileName)
