@@ -38,7 +38,7 @@ suspend fun ConversationAgent.recoverAgentFailure(
     context: Set<Any>,
     onFail: suspend DSLContext.(Exception) -> AssistantMessage?,
 ): Pair<Conversation, Boolean>? {
-    log.info("Agent $name interrupted!", error)
+    log.info("Agent $name interrupted by ${error.cause?.message ?: error.message}.")
 
     val cause = error.cause
     return when {
