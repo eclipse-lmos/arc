@@ -11,6 +11,7 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.useCases
 import org.eclipse.lmos.arc.agents.dsl.withDSLContext
 import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.assistants.support.TestBase
+import org.eclipse.lmos.arc.assistants.support.usecases.OutputOptions
 import org.junit.jupiter.api.Test
 
 class LoadUseCasesTest : TestBase() {
@@ -61,6 +62,38 @@ class LoadUseCasesTest : TestBase() {
         withDSLContext(setOf(Conversation(), InMemoryMemory())) {
             val result = useCases("use_cases.md") { useCase -> useCase.id != "usecase2" }
             assertThat(result).doesNotContain("usecase2")
+        }
+    }
+
+    @Test
+    fun `test use case output options`(): Unit = runBlocking {
+        withDSLContext(setOf(Conversation(), InMemoryMemory())) {
+            val result = useCases("use_cases.md", outputOptions = OutputOptions(outputSolution = false))
+            assertThat(result.trim()).isEqualTo(
+                """
+                ### UseCase: usecase1
+                #### Description
+                The description of the use case 1.
+
+              
+                ----
+
+                ### UseCase: usecase2
+                #### Description
+                The description of the use case 2.
+
+              
+                ----
+
+                ### UseCase: usecase3
+                #### Description
+                The description of the use case 3.
+
+
+                ----
+                 
+                """.trimIndent().trim(),
+            )
         }
     }
 }

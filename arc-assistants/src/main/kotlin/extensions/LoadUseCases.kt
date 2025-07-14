@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.agents.dsl.extensions
 
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.assistants.support.extensions.LoadedUseCases
+import org.eclipse.lmos.arc.assistants.support.usecases.OutputOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
@@ -30,6 +31,7 @@ suspend fun DSLContext.useCases(
     conditions: Set<String> = emptySet(),
     useCaseFolder: File? = null,
     exampleLimit: Int = 4,
+    outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
@@ -50,7 +52,8 @@ suspend fun DSLContext.useCases(
                 usedUseCases.toSet(),
                 fallbackCases,
                 loadConditions() + conditions,
-                exampleLimit,
+                exampleLimit = exampleLimit,
+                outputOptions = outputOptions,
             )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 

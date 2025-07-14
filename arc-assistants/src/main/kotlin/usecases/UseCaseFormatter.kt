@@ -17,6 +17,7 @@ fun List<UseCase>.formatToString(
     useFallbacks: Set<String> = emptySet(),
     conditions: Set<String> = emptySet(),
     exampleLimit: Int = 10_000,
+    outputOptions: OutputOptions = OutputOptions(),
 ) =
     buildString {
         this@formatToString.filter { it.matches(conditions) }.forEach { useCase ->
@@ -30,31 +31,31 @@ fun List<UseCase>.formatToString(
             |
                 """.trimMargin(),
             )
-            if (useCase.steps.isNotEmpty()) {
+            if (useCase.steps.isNotEmpty() && outputOptions.outputSolution != false) {
                 append("#### Steps\n")
                 useCase.steps.forEach {
                     if (it.matches(conditions)) append("${it.text}\n")
                 }
             }
-            if (!useAlternative && !useFallback) {
+            if (!useAlternative && !useFallback && outputOptions.outputSolution != false) {
                 append("#### Solution\n")
                 useCase.solution.forEach {
                     if (it.matches(conditions)) append("${it.text}\n")
                 }
             }
-            if (useAlternative && !useFallback) {
+            if (useAlternative && !useFallback && outputOptions.outputSolution != false) {
                 append("#### Solution\n")
                 useCase.alternativeSolution.forEach {
                     if (it.matches(conditions)) append("${it.text}\n")
                 }
             }
-            if (useFallback) {
+            if (useFallback && outputOptions.outputSolution != false) {
                 append("#### Solution\n")
                 useCase.fallbackSolution.forEach {
                     if (it.matches(conditions)) append("${it.text}\n")
                 }
             }
-            if (useCase.examples.isNotEmpty()) {
+            if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
                 append("#### Examples\n")
                 useCase.examples.split("\n").take(exampleLimit).forEach { example ->
                     appendLine(example)
@@ -63,3 +64,14 @@ fun List<UseCase>.formatToString(
             append("\n----\n\n")
         }
     }.replace("\n\n\n", "\n\n")
+
+/**
+ * Options for outputting use case results.
+ *
+ * @property outputSolution Whether to output the solution of the use case.
+ * @property outputExamples Whether to output examples related to the use case.
+ */
+data class OutputOptions(
+    val outputSolution: Boolean? = null,
+    val outputExamples: Boolean? = null,
+)
