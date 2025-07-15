@@ -42,8 +42,8 @@ suspend fun <T> AgentTracer.withAgentSpan(
 ): T {
     val name = agent.name
     return withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to (MDC.get("agent") ?: name))) { tags, events ->
-        tags.tag("version", agent.version)
-        tags.tag("description", agent.description)
+        tags.tag("agent.version", agent.version)
+        tags.tag("agent.description", agent.description)
         tags.tag("input.value", input.transcript.lastOrNull()?.content ?: "")
         tags.tag("input.mime_type", "text/plain")
         tags.tag("openinference.span.kind", "AGENT")
