@@ -27,6 +27,7 @@ import java.time.Duration
  */
 class RedisMemory(
     private val shortTermTTL: Duration,
+    private val longTermTTL: Duration = Duration.ofDays(180),
     private val redisClient: AbstractRedisClient,
 ) : Memory {
     private val log = getLogger(RedisMemory::class.java)
@@ -45,7 +46,7 @@ class RedisMemory(
         if (value != null) {
             log.debug("Storing $key for $owner in LONG_TERM memory.")
             val valueJson = json.writeValueAsString(MemoryEntry(value))
-            val setArgs = SetArgs().ex(shortTermTTL.toSeconds())
+            val setArgs = SetArgs().ex(longTermTTL.toSeconds())
             commands.set(compositeKey, valueJson, setArgs).awaitSingle().also {
                 if (it != "OK") {
                     throw MemoryException("Failed to store $key for $owner in LONG_TERM memory.")
