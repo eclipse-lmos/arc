@@ -91,7 +91,7 @@ private suspend fun ConversationAgent.retry(
     context: Set<Any>,
 ): Pair<Conversation, Boolean>? {
     log.info("Retrying Agent $name with $retrySignal...")
-    val cleanContext = context.filter { it is RetrySignal }.toSet()
+    val cleanContext = context.filter { it !is RetrySignal }.toSet()
     return execute(input, cleanContext + retrySignal).onFailure {
         log.warn("Agent retry failed! Returning original exception!", it)
     }.getOrNull()?.let { it to true }
