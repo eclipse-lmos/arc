@@ -84,7 +84,7 @@ object OpenInferenceTags {
             tags.tag("llm.tools.$i.tool.name", tool.name)
             tags.tag(
                 "llm.tools.$i.tool.json_schema",
-                """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()},"description":"${tool.description}"}""",
+                """{"type":"function","function":{"name":"${tool.name}","parameters":${tool.parameters.toJsonString()},"description":"${tool.description}"}}""",
             )
         }
 
@@ -116,7 +116,7 @@ object OpenInferenceTags {
         tags.tag("tool.parameters", function.parameters.toJsonString())
         tags.tag(
             "tool.json_schema",
-            """{"type":"function","function":{"name":"${function.name}","parameters":${function.parameters.toJsonString()},"description":"${function.description}"}""",
+            """{"type":"function","function":{"name":"${function.name}","parameters":${function.parameters.toJsonString()},"description":"${function.description}"}}""",
         )
     }
 
