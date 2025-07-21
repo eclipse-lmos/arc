@@ -22,7 +22,7 @@ fun extractUseCaseId(message: String): Pair<String, UseCaseId?> {
  * Extract the use case step id from the assistant message.
  * For example, "<Step 1>"
  */
-private val useCaseStepIdRegex = "<Step (\\w*?)>".toRegex()
+private val useCaseStepIdRegex = "<Step (\\w*)>".toRegex()
 
 fun extractUseCaseStepId(message: String): Pair<String, UseCaseId?> {
     val id = useCaseStepIdRegex.find(message)?.groupValues?.elementAtOrNull(1)
