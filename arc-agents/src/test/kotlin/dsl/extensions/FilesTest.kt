@@ -9,6 +9,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.TestBase
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
 import org.junit.jupiter.api.Test
+import java.io.File
+import kotlin.time.Duration.Companion.minutes
 
 class FilesTest : TestBase() {
 
@@ -23,6 +25,22 @@ class FilesTest : TestBase() {
     fun `test return null when file missing`(): Unit = runBlocking {
         val context = BasicDSLContext(testBeanProvider)
         val result = context.local("test_t.txt")
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `test cache`(): Unit = runBlocking {
+        val context = BasicDSLContext(testBeanProvider)
+        val temp = File("test-cache.txt").also { it.writeText("ARC is very fun!") }
+
+        var result = context.local(temp.name)
+        temp.delete()
+        assertThat(result).contains("ARC is very fun!")
+
+        result = context.local(temp.name)
+        assertThat(result).contains("ARC is very fun!")
+
+        result = context.local(temp.name, 0.minutes)
         assertThat(result).isNull()
     }
 }
