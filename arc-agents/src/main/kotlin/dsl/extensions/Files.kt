@@ -4,6 +4,10 @@
 
 package org.eclipse.lmos.arc.agents.dsl.extensions
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import java.io.File
 import java.time.LocalDateTime
@@ -22,17 +26,37 @@ import kotlin.time.toJavaDuration
  * If the resource is on the classpath, it will be loaded otherwise it will try to load it from the local filesystem.
  */
 fun DSLContext.local(resource: String, cacheTime: Duration = 30.minutes): String? {
-    if (localCache[resource]?.timestamp?.plus(cacheTime.toJavaDuration())?.isBefore(now()) == true) {
+    if (localCache[resource]?.timestamp?.isBefore(now()) == true) {
         localCache.remove(resource)
     }
     return localCache.computeIfAbsent(resource) {
-        val value = Thread.currentThread().contextClassLoader.getResourceAsStream(resource)?.use { stream ->
-            stream.bufferedReader().readText()
-        } ?: File(resource).takeIf { it.exists() }?.readText()
-        CacheEntry(value)
+        val value = localResource(resource) ?: localFile(resource)
+        CacheEntry(value, timestamp = now().plus(cacheTime.toJavaDuration()))
     }.value
 }
 
-private val localCache = ConcurrentHashMap<String, CacheEntry>()
+fun localResource(resource: String): String? {
+    return Thread.currentThread().contextClassLoader.getResourceAsStream(resource)?.use { stream ->
+        stream.bufferedReader().readText()
+    }
+}
+
+fun localFile(resource: String): String? {
+    val file = File(resource).takeIf { it.exists() }
+    return file?.readText()
+}
+
+/**
+ * Cache for local resources.
+ */
+private val scope = CoroutineScope(Dispatchers.IO, SupervisorJob())
+private val localCache = ConcurrentHashMap<String, CacheEntry>().also {
+    scope.launch {
+        while (true) {
+            it.entries.removeIf { entry -> entry.value.timestamp.isBefore(now()) }
+            delay(1.minutes)
+        }
+    }
+}
 
 data class CacheEntry(val value: String?, val timestamp: LocalDateTime = now())
