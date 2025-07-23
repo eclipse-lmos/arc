@@ -7,6 +7,7 @@ package org.eclipse.lmos.arc.agents.dsl.extensions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import java.io.File
@@ -49,7 +50,7 @@ fun localFile(resource: String): String? {
 /**
  * Cache for local resources.
  */
-private val scope = CoroutineScope(Dispatchers.IO, SupervisorJob())
+private val scope = CoroutineScope(SupervisorJob())
 private val localCache = ConcurrentHashMap<String, CacheEntry>().also {
     scope.launch {
         while (true) {
