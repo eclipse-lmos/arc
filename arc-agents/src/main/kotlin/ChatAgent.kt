@@ -202,6 +202,7 @@ class ChatAgent(
                     INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
                 ),
             ) { tags, _ ->
+                tags.tag("system_prompt", generatedSystemPrompt)
                 tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
                 conversation + chatCompleter.complete(fullConversation, functions, completionSettings)
