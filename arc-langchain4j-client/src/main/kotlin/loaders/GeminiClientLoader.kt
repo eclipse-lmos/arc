@@ -8,7 +8,7 @@ import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ANY_MODEL
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.client.langchain4j.LangChainClient
-import org.eclipse.lmos.arc.client.langchain4j.builders.ollamaBuilder
+import org.eclipse.lmos.arc.client.langchain4j.builders.geminiBuilder
 
 class GeminiClientLoader : ClientLoader(
     name = "GEMINI",
@@ -22,7 +22,7 @@ class GeminiClientLoader : ClientLoader(
         eventPublisher: EventPublisher?,
     ) = buildMap {
         config.apiKey ?: error("API key is required for Gemini!")
-        val client = LangChainClient(config, ollamaBuilder(), eventPublisher, tracer)
+        val client = LangChainClient(config, geminiBuilder(), eventPublisher, tracer)
         put(config.modelAlias ?: config.modelName ?: ANY_MODEL, client)
     }
 }
