@@ -28,6 +28,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.BinaryData
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
+import org.eclipse.lmos.arc.agents.conversation.ToolCall
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -102,6 +103,7 @@ class LangChainClient(
                         val output = AssistantMessage(
                             response!!.content().text() ?: "",
                             sensitive = functionCallHandler.calledSensitiveFunction(),
+                            toolCalls = functionCallHandler.calledFunctions.map { ToolCall(it.key) },
                         )
                         tags.addLLMTags(
                             config,
