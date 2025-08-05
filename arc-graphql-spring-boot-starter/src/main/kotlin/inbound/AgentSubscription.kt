@@ -25,6 +25,7 @@ import org.eclipse.lmos.arc.agents.getAgentByName
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
 import org.eclipse.lmos.arc.api.ContextEntry
+import org.eclipse.lmos.arc.api.ToolCall
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -91,15 +92,19 @@ class AgentSubscription(
 
             val responseTime = Duration.ofNanos(System.nanoTime() - start).toMillis() / 1000.0
             when (result) {
-                is Success -> send(
-                    AgentResult(
-                        status = result.value.classification.toString(),
-                        responseTime = responseTime,
-                        messages = listOf(result.value.latest<AssistantMessage>().toMessage()),
-                        anonymizationEntities = anonymizationEntities.entities.convertAPIEntities(),
-                        context = outputContext.map().map { (key, value) -> ContextEntry(key, value) },
-                    ),
-                )
+                is Success -> {
+                    val outputMessage = result.value.latest<AssistantMessage>()
+                    send(
+                        AgentResult(
+                            status = result.value.classification.toString(),
+                            responseTime = responseTime,
+                            messages = listOf(outputMessage.toMessage()),
+                            anonymizationEntities = anonymizationEntities.entities.convertAPIEntities(),
+                            context = outputContext.map().map { (key, value) -> ContextEntry(key, value) },
+                            toolCalls = outputMessage?.toolCalls?.map { ToolCall(it.name) },
+                        ),
+                    )
+                }
 
                 is Failure -> {
                     val handledResult = (errorHandler?.handleError(result.reason) ?: result).getOrThrow()

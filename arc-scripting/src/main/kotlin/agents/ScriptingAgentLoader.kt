@@ -44,7 +44,6 @@ class ScriptingAgentLoader(
         val result = agentScriptEngine.eval(agentScript, context)
         if (result is Success && context.agents.isNotEmpty()) {
             log.info("Discovered the following agents (scripting): ${context.agents.joinToString { it.name }}")
-            agents.clear()
             agents.putAll(context.agents.associateBy { it.name })
         }
         return result
@@ -55,7 +54,6 @@ class ScriptingAgentLoader(
         compiledAgentScript.load(context)
         if (context.agents.isNotEmpty()) {
             log.info("Discovered the following agents (scripting): ${context.agents.joinToString { it.name }}")
-            agents.clear()
             agents.putAll(context.agents.associateBy { it.name })
         }
     }
