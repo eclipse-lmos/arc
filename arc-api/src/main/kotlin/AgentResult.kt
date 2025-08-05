@@ -16,7 +16,14 @@ data class AgentResult(
     val messages: List<Message>,
     val anonymizationEntities: List<AnonymizationEntity>? = null,
     val context: List<ContextEntry>? = null,
+    val toolCalls: List<ToolCall>? = null,
 )
+
+/**
+ * Represents a tool call made by the LLM Model.
+ */
+@Serializable
+data class ToolCall(val name: String)
 
 /**
  * Context contain entries that were added during the processing of the request.
