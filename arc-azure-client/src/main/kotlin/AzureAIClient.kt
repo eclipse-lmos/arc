@@ -24,6 +24,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.MessageFormat
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
+import org.eclipse.lmos.arc.agents.conversation.ToolCall
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -93,6 +94,7 @@ class AzureAIClient(
     private fun ChatCompletions.getFirstAssistantMessage(
         sensitive: Boolean = false,
         settings: ChatCompletionSettings?,
+        toolCalls: Map<String, LLMFunction>,
     ) = choices.first().message.content.let {
         AssistantMessage(
             it ?: "",
@@ -101,6 +103,7 @@ class AzureAIClient(
                 JSON -> MessageFormat.JSON
                 else -> MessageFormat.TEXT
             },
+            toolCalls = toolCalls.map { ToolCall(it.key) },
         )
     }
 
@@ -128,6 +131,7 @@ class AzureAIClient(
                 it.getFirstAssistantMessage(
                     sensitive = functionCallHandler.calledSensitiveFunction(),
                     settings = settings,
+                    toolCalls = functionCallHandler.calledFunctions,
                 )
             }
         }
