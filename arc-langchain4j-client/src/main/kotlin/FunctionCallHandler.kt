@@ -14,13 +14,15 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.llm.LLMToolCall
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Vector
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.measureTime
 
@@ -36,10 +38,10 @@ class FunctionCallHandler(
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
 
-    private val _calledFunctions = ConcurrentHashMap<String, LLMFunction>()
-    val calledFunctions get(): Map<String, LLMFunction> = _calledFunctions
+    private val _calledFunctions = Vector<LLMToolCall>()
+    val calledFunctions get(): List<LLMToolCall> = _calledFunctions
 
-    fun calledSensitiveFunction() = _calledFunctions.any { it.value.isSensitive }
+    fun calledSensitiveFunction() = _calledFunctions.any { it.tool.isSensitive }
 
     suspend fun handle(assistantMessage: AiMessage) = result<List<ChatMessage>, ArcException> {
         if (functionCallCount.incrementAndGet() > functionCallLimit) {
@@ -68,6 +70,14 @@ class FunctionCallHandler(
                             tags.addToolOutput(functionCallResult)
                         }
                     }
+                    _calledFunctions.add(
+                        LLMToolCall(
+                            tool = function,
+                            arguments = functionArguments,
+                            argumentsJson = toolCall.arguments(),
+                            failed = if (functionCallResult is Failure) functionCallResult.reason else null,
+                        ),
+                    )
                     eventHandler?.publish(
                         LLMFunctionCalledEvent(
                             functionName,
@@ -94,7 +104,6 @@ class FunctionCallHandler(
     private suspend fun callFunction(function: LLMFunction, functionArguments: Map<String, Any?>) =
         result<String, ArcException> {
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            _calledFunctions[function.name] = function
             function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
         }
 

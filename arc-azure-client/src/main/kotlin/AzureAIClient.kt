@@ -24,8 +24,8 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.MessageFormat
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
-import org.eclipse.lmos.arc.agents.conversation.ToolCall
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
+import org.eclipse.lmos.arc.agents.conversation.toToolCall
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonMap
@@ -33,6 +33,7 @@ import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
+import org.eclipse.lmos.arc.agents.llm.LLMToolCall
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.agents.llm.TextEmbedder
 import org.eclipse.lmos.arc.agents.llm.TextEmbedding
@@ -94,7 +95,7 @@ class AzureAIClient(
     private fun ChatCompletions.getFirstAssistantMessage(
         sensitive: Boolean = false,
         settings: ChatCompletionSettings?,
-        toolCalls: Map<String, LLMFunction>,
+        toolCalls: List<LLMToolCall>,
     ) = choices.first().message.content.let {
         AssistantMessage(
             it ?: "",
@@ -103,7 +104,7 @@ class AzureAIClient(
                 JSON -> MessageFormat.JSON
                 else -> MessageFormat.TEXT
             },
-            toolCalls = toolCalls.map { ToolCall(it.key) },
+            toolCalls = toolCalls.map { it.toToolCall() },
         )
     }
 

@@ -110,9 +110,12 @@ data class AssistantMessage(
 
 /**
  * Represents a tool call made by the LLM Model.
+ * @param name The name of the tool called.
+ * @param arguments The arguments passed to the tool in JSON format.
+ * @param failed If the tool call failed, this contains the error message.
  */
 @Serializable
-data class ToolCall(val name: String)
+data class ToolCall(val name: String, val arguments: String, val failed: String? = null)
 
 /**
  * A message sent by the Developer.
