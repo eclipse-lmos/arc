@@ -16,6 +16,7 @@ import org.eclipse.lmos.arc.agents.functions.toJsonMap
 import org.eclipse.lmos.arc.agents.functions.toJsonString
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.model.ToolContext
 import org.springframework.ai.tool.ToolCallback
 import org.springframework.ai.tool.ToolCallbackProvider
 import org.springframework.ai.tool.definition.ToolDefinition
@@ -62,6 +63,10 @@ class McpConfiguration {
 
         private val scope = CoroutineScope(SupervisorJob())
         private val log = LoggerFactory.getLogger(javaClass)
+
+        override fun call(toolInput: String, toolContext: ToolContext?): String {
+            return call(toolInput)
+        }
 
         override fun call(toolInput: String): String {
             log.warn("Calling MCP function: $toolInput")
