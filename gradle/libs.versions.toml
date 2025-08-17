@@ -11,6 +11,8 @@ resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
 graphql-kotlin-version = "8.8.1"
 openfeature-version = "1.15.1"
+spring-ai-mcp-version = "1.0.1"
+mcp-version = "0.10.0"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
@@ -38,6 +40,13 @@ spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "spring-boot-version" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot-version" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot-version" }
+
+#
+# MCP
+#
+spring-ai-starter-mcp-server-webflux = { module = "org.springframework.ai:spring-ai-starter-mcp-server-webflux", version.ref = "spring-ai-mcp-version" }
+mcp-spring-webflux = { module = "io.modelcontextprotocol.sdk:mcp-spring-webflux", version.ref = "mcp-version" }
+mcp-sdk = { module = "io.modelcontextprotocol.sdk:mcp", version.ref = "mcp-version" }
 
 #
 # Ktor dependencies
