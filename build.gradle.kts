@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.System.getenv
@@ -13,8 +14,8 @@ group = "org.eclipse.lmos"
 version = project.findProperty("version") as String
 
 plugins {
-    kotlin("jvm") version "2.1.21" apply false
-    kotlin("plugin.serialization") version "2.1.21" apply false
+    kotlin("jvm") version "2.2.10" apply false
+    kotlin("plugin.serialization") version "2.2.10" apply false
     id("org.jetbrains.dokka") version "2.0.0"
     id("org.cyclonedx.bom") version "2.3.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
@@ -41,11 +42,10 @@ subprojects {
         debug.set(true)
     }
 
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs += "-Xjsr305=strict"
-            freeCompilerArgs += "-Xcontext-receivers"
-            jvmTarget = "21"
+    tasks.named<KotlinJvmCompile>("compileKotlin") {
+        compilerOptions {
+            freeCompilerArgs.addAll(listOf("-Xcontext-parameters", "-Xjsr305=strict"))
+            jvmTarget = JvmTarget.fromTarget("21")
         }
     }
 

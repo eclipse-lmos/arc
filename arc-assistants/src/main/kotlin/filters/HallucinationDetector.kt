@@ -6,13 +6,11 @@ package org.eclipse.lmos.arc.assistants.support.filters
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentFilter
-import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.agents.dsl.getData
 import org.eclipse.lmos.arc.assistants.support.HallucinationDetected
 import org.slf4j.LoggerFactory
 
-context(OutputFilterContext)
 class HallucinationDetector(private val returnValue: String? = null) : AgentFilter {
     private val log = LoggerFactory.getLogger(javaClass)
     private val urlPattern: Regex = Regex("https?://[\\w-]+(\\.[\\w-]+)+(/[^\\s\\[\\]{}().\"]*(?<!\"))?")

@@ -9,8 +9,7 @@ import org.eclipse.lmos.arc.agents.dsl.AgentDefinitionContext
 
 class Agents {
 
-    context(AgentDefinitionContext)
-    fun build() {
+    fun build(context: AgentDefinitionContext) {
 
     }
 }

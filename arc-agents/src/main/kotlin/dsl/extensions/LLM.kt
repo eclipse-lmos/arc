@@ -11,6 +11,7 @@ import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.FilterContext
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
@@ -41,7 +42,6 @@ suspend fun DSLContext.llm(
 /**
  * Transforms the input or output message using an LLM prompt.
  */
-context(DSLContext)
 class ApplyLLM(
     private val system: String,
     private val model: String? = null,
@@ -51,8 +51,8 @@ class ApplyLLM(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun filter(message: ConversationMessage): ConversationMessage? {
-        when (val result = llm(system = system, user = message.content, model = model, settings = settings)) {
+    override suspend fun filter(message: ConversationMessage, context: FilterContext): ConversationMessage? {
+        when (val result = context.llm(system = system, user = message.content, model = model, settings = settings)) {
             is Success -> {
                 val assistantMessage = result.getOrNull() ?: return null
                 return message.update(assistantMessage.content)

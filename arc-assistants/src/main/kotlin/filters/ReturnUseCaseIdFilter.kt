@@ -4,8 +4,6 @@
 package org.eclipse.lmos.arc.assistants.support.filters
 
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
-import org.eclipse.lmos.arc.agents.dsl.AgentFilter
-import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.system
 import org.slf4j.LoggerFactory
@@ -14,8 +12,7 @@ import org.slf4j.LoggerFactory
  * Returns the use case id if the system property "returnUseCaseId" is set to true.
  * This will only work for Agents that use the useCase function.
  */
-context(OutputFilterContext)
-class ReturnUseCaseIdFilter : AgentFilter {
+class ReturnUseCaseIdFilter : OutputAgentFilter {
     private val log = LoggerFactory.getLogger(javaClass)
 
     override suspend fun filter(message: ConversationMessage): ConversationMessage {
