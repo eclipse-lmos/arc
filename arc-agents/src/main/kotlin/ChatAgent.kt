@@ -58,6 +58,7 @@ const val PHASE_LOG_CONTEXT_KEY = "phase"
 const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 const val INPUT_LOG_CONTEXT_KEY = "input"
 const val AGENT_LOCAL_CONTEXT_KEY = "agent"
+const val TOOLS_LOCAL_CONTEXT_KEY = "__tools__"
 const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
 /**
@@ -189,6 +190,7 @@ class ChatAgent(
             //
             val functions = functions(dslContext, compositeBeanProvider)
             usedFunctions.set(functions)
+            functions?.let { dslContext.setLocal(TOOLS_LOCAL_CONTEXT_KEY, it) }
 
             //
             // Generate response

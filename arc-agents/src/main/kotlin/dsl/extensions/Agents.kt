@@ -4,10 +4,12 @@
 
 package org.eclipse.lmos.arc.agents.dsl.extensions
 
+import org.eclipse.lmos.arc.agents.AGENT_LOCAL_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.ConversationAgent
+import org.eclipse.lmos.arc.agents.TOOLS_LOCAL_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.conversation.AIAgentHandover
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
@@ -20,6 +22,7 @@ import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.events.BaseEvent
 import org.eclipse.lmos.arc.agents.events.Event
+import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.getAgentByName
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
@@ -61,7 +64,14 @@ suspend fun DSLContext.callAgent(
  * Returns the current agent if available.
  */
 fun DSLContext.getCurrentAgent(): Agent<*, *>? {
-    return getLocal("agent") as? Agent<*, *>?
+    return getLocal(AGENT_LOCAL_CONTEXT_KEY) as? Agent<*, *>?
+}
+
+/**
+ * Returns the current tools available to the agent.
+ */
+val DSLContext.tools get(): List<LLMFunction>? {
+    return getLocal(TOOLS_LOCAL_CONTEXT_KEY) as? List<LLMFunction>?
 }
 
 /**
