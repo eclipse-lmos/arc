@@ -59,6 +59,7 @@ const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 const val INPUT_LOG_CONTEXT_KEY = "input"
 const val AGENT_LOCAL_CONTEXT_KEY = "agent"
 const val TOOLS_LOCAL_CONTEXT_KEY = "__tools__"
+const val TOOL_CALLS_LOCAL_CONTEXT_KEY = "__tool_calls__"
 const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
 /**
@@ -206,8 +207,10 @@ class ChatAgent(
             ) { tags, _ ->
                 tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
-                conversation + chatCompleter.complete(fullConversation, functions, completionSettings)
+                val outputMessage = chatCompleter.complete(fullConversation, functions, completionSettings)
                     .getOrThrow().also { tags.output(it.content) }
+                outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
+                conversation + outputMessage
             }
 
             //
