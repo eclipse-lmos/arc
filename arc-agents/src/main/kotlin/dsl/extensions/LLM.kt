@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.get
+import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Failure
@@ -28,6 +29,7 @@ suspend fun DSLContext.llm(
     system: String? = null,
     model: String? = null,
     settings: ChatCompletionSettings? = null,
+    functions: List<LLMFunction>? = null,
 ) = result<AssistantMessage, ArcException> {
     val chatCompleterProvider = get<ChatCompleterProvider>()
     val chatCompleter = chatCompleterProvider.provideByModel(model = model)
@@ -35,7 +37,7 @@ suspend fun DSLContext.llm(
         if (system != null) add(SystemMessage(system))
         if (user != null) add(UserMessage(user))
     }
-    return chatCompleter.complete(messages, null, settings = settings)
+    return chatCompleter.complete(messages, functions, settings = settings)
 }
 
 /**
