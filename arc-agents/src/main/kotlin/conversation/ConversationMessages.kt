@@ -103,6 +103,7 @@ data class AssistantMessage(
     override val format: MessageFormat = MessageFormat.TEXT,
     val toolCalls: List<ToolCall>? = null,
     val userTranscript: String? = null,
+    val last: Boolean = true,
 ) : ConversationMessage() {
     override fun applyTurn(turnId: String): AssistantMessage = copy(turnId = turnId)
     override fun update(content: String): AssistantMessage = copy(content = content)
