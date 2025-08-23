@@ -18,14 +18,16 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionStartedEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.llm.LLMToolCall
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.Tags
+import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Vector
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.measureTime
@@ -42,10 +44,10 @@ class FunctionCallHandler(
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
 
-    private val _calledFunctions = ConcurrentHashMap<String, LLMFunction>()
-    val calledFunctions get(): Map<String, LLMFunction> = _calledFunctions
+    private val _calledFunctions = Vector<LLMToolCall>()
+    val calledFunctions get(): List<LLMToolCall> = _calledFunctions
 
-    fun calledSensitiveFunction() = _calledFunctions.any { it.value.isSensitive }
+    fun calledSensitiveFunction() = _calledFunctions.any { it.tool.isSensitive }
 
     suspend fun handle(chatCompletions: ChatCompletions) = result<List<ChatRequestMessage>, ArcException> {
         val choice = chatCompletions.choices[0]
@@ -75,10 +77,20 @@ class FunctionCallHandler(
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
                         functionCallResult = tracer.withSpan("tool") { tags, _ ->
                             OpenInferenceTags.applyToolAttributes(functionName, toolCall, tags)
-                            callFunction(functionName, functionArguments, tags, functionHolder).also {
-                                OpenInferenceTags.applyToolAttributes(it, tags)
+                            callFunction(functionName, functionArguments, tags, functionHolder).also { result ->
+                                OpenInferenceTags.applyToolAttributes(result, tags)
                             }
                         }
+                    }
+                    functionHolder.get()?.let { fn ->
+                        _calledFunctions.add(
+                            LLMToolCall(
+                                tool = fn,
+                                arguments = functionArguments,
+                                argumentsJson = toolCall.function.arguments,
+                                failed = if (functionCallResult is Failure) functionCallResult.reason else null,
+                            ),
+                        )
                     }
                     eventHandler?.publish(
                         LLMFunctionCalledEvent(
@@ -115,7 +127,6 @@ class FunctionCallHandler(
             functionHolder.set(function) // TODO this is not nice
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            _calledFunctions[functionName] = function
             OpenInferenceTags.applyToolAttributes(function, tags)
             function.execute(functionArguments) failWith {
                 tags.error(it)
