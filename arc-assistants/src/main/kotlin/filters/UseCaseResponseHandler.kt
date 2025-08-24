@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory
  * An output filter that handles responses from the LLM that contain a use case id.
  * For example, "<ID:useCaseId>"
  */
-context(DSLContext)
 class UseCaseResponseHandler : AgentFilter {
 
     private val log = LoggerFactory.getLogger(this.javaClass)

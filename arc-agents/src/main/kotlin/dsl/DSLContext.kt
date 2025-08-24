@@ -70,7 +70,7 @@ class BasicDSLContext(private val beanProvider: BeanProvider) : DSLContext {
  * Returns the requested bean or null if it is not available.
  */
 suspend inline fun <reified T : Any> DSLContext.getOptional() =
-    result<T, MissingBeanException> { context(T::class) }.getOrNull()
+    result<T, MissingBeanException> { this@getOptional.context(T::class) }.getOrNull()
 
 /**
  * Used to run functions in a DSL context with a set of beans.

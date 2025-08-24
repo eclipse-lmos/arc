@@ -17,9 +17,10 @@ import org.eclipse.lmos.arc.assistants.support.filters.*
 
 class Agents {
 
-    context(AgentDefinitionContext)
-    fun build() {
-    //@@CODE@@
+    fun build(context: AgentDefinitionContext) {
+      with(context) {
+        //@@CODE@@
+      }
     }
 
     //@@OUTER_CODE@@
