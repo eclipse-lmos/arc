@@ -193,7 +193,9 @@ sealed class FilterEvent : Event by BaseEvent()
 data class FilterExecutedEvent(
     val name: String,
     val duration: Duration,
+    val input: String? = null,
     val output: String? = null,
+    val triggered: Boolean = true,
 ) : FilterEvent()
 
 /**
@@ -214,6 +216,14 @@ private suspend fun <T> DSLContext.trace(name: String, input: ConversationMessag
             tags.tag("output.mime_type", "text/plain")
         }
     }
-    emit(FilterExecutedEvent(name, duration, output = output))
+    emit(
+        FilterExecutedEvent(
+            name,
+            duration,
+            input = input.content,
+            output = output,
+            triggered = input.content != output,
+        ),
+    )
     return result!!
 }
