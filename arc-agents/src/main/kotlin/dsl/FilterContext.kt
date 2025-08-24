@@ -4,10 +4,10 @@
 
 package org.eclipse.lmos.arc.agents.dsl
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
@@ -22,7 +22,6 @@ import kotlin.time.measureTime
 /**
  * Context for filtering messages before being processed by an Agent.
  */
-context(CoroutineScope)
 class InputFilterContext(
     scriptingContext: DSLContext,
     @Volatile var input: Conversation,
@@ -55,18 +54,23 @@ class InputFilterContext(
     /**
      * Runs a block of code asynchronously.
      */
-    fun runAsync(fn: suspend InputFilterContext.() -> Unit) {
+    suspend fun runAsync(fn: suspend InputFilterContext.() -> Unit) = coroutineScope {
         val job = async {
             fn()
         }
         jobs.updateAndGet { it + job }
+    }
+
+    suspend operator fun AgentInputFilter.unaryPlus() {
+        this@InputFilterContext.mapLatest { msg ->
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg, this@InputFilterContext) }
+        }
     }
 }
 
 /**
  * Context for filtering messages after being processed by an Agent.
  */
-context(CoroutineScope)
 class OutputFilterContext(
     scriptingContext: DSLContext,
     val input: Conversation,
@@ -100,15 +104,20 @@ class OutputFilterContext(
     /**
      * Runs a block of code asynchronously.
      */
-    fun runAsync(fn: suspend OutputFilterContext.() -> Unit) {
+    suspend fun runAsync(fn: suspend OutputFilterContext.() -> Unit) = coroutineScope {
         val job = async {
             fn()
         }
         jobs.updateAndGet { it + job }
     }
+
+    suspend operator fun AgentOutputFilter.unaryPlus() {
+        this@OutputFilterContext.mapLatest { msg ->
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg, this@OutputFilterContext) }
+        }
+    }
 }
 
-context(CoroutineScope)
 abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scriptingContext {
 
     protected val jobs = AtomicReference<List<Deferred<Unit>>>(emptyList())
@@ -183,6 +192,30 @@ fun interface AgentFilter {
      * If the fun returns null, the message will be removed from the conversation transcript.
      */
     suspend fun filter(message: ConversationMessage): ConversationMessage?
+}
+
+/**
+ * Filters are used to modify or remove messages from the conversation transcript.
+ */
+fun interface AgentInputFilter {
+
+    /**
+     * Filters or transform Conversation Messages.
+     * If the fun returns null, the message will be removed from the conversation transcript.
+     */
+    suspend fun filter(message: ConversationMessage, context: InputFilterContext): ConversationMessage?
+}
+
+/**
+ * Filters are used to modify or remove messages from the conversation transcript.
+ */
+fun interface AgentOutputFilter {
+
+    /**
+     * Filters or transform Conversation Messages.
+     * If the fun returns null, the message will be removed from the conversation transcript.
+     */
+    suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage?
 }
 
 /**
