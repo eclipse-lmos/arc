@@ -124,8 +124,12 @@ fun String.parseUseCaseRefs(): Pair<String, Set<String>> {
  */
 fun String.parseConditions(): Pair<String, Set<String>> {
     val regex = Regex("<(.*?)>")
-    val conditions = regex.find(this)?.groupValues?.get(1)
-    return replace(regex, "").trim() to (conditions?.split(",")?.map { it.trim() }?.toSet() ?: emptySet())
+    val conditions = buildSet {
+        regex.findAll(this@parseConditions).map { it.groupValues[1] }.flatMap { condition ->
+            condition.split(",").map { it.trim() }.toSet()
+        }.toSet().let { addAll(it) }
+    }
+    return replace(regex, "").trim() to conditions
 }
 
 fun String.asConditional(): Conditional {
