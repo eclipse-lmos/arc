@@ -4,10 +4,10 @@
 
 package org.eclipse.lmos.arc.agents.dsl
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
@@ -54,7 +54,7 @@ class InputFilterContext(
     /**
      * Runs a block of code asynchronously.
      */
-    suspend fun runAsync(fn: suspend InputFilterContext.() -> Unit) = coroutineScope {
+    suspend fun CoroutineScope.runAsync(fn: suspend InputFilterContext.() -> Unit) {
         val job = async {
             fn()
         }
@@ -104,7 +104,7 @@ class OutputFilterContext(
     /**
      * Runs a block of code asynchronously.
      */
-    suspend fun runAsync(fn: suspend OutputFilterContext.() -> Unit) = coroutineScope {
+    suspend fun CoroutineScope.runAsync(fn: suspend OutputFilterContext.() -> Unit) {
         val job = async {
             fn()
         }

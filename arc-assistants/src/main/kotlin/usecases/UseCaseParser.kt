@@ -136,7 +136,9 @@ fun String.asConditional(): Conditional {
     val (text, conditions) = parseConditions()
     val (textAfterFunctions, functions) = text.parseFunctions()
     val (finalText, useCaseRefs) = textAfterFunctions.parseUseCaseRefs()
-    return Conditional(finalText, conditions, functions, useCaseRefs)
+    val endConditional = conditions.contains("/")
+    val finalConditions = conditions.filter { it != "/" }.toSet()
+    return Conditional(finalText, finalConditions, functions, useCaseRefs, endConditional)
 }
 
 /**
@@ -183,6 +185,7 @@ data class Conditional(
     val conditions: Set<String> = emptySet(),
     val functions: Set<String> = emptySet(),
     val useCaseRefs: Set<String> = emptySet(),
+    val endConditional: Boolean = false,
 ) {
     operator fun plus(other: String): Conditional {
         return copy(text = text + other)

@@ -18,11 +18,14 @@ fun List<UseCase>.formatToString(
     conditions: Set<String> = emptySet(),
     exampleLimit: Int = 10_000,
     outputOptions: OutputOptions = OutputOptions(),
+    usedUseCases: List<String> = emptyList(),
 ) =
     buildString {
         this@formatToString.filter { it.matches(conditions) }.forEach { useCase ->
             val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
             val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
+            val allConditions = conditions + "step_${usedUseCases.count { useCase.id == it } + 1}"
+
             append(
                 """
             |### UseCase: ${useCase.id}
@@ -33,27 +36,19 @@ fun List<UseCase>.formatToString(
             )
             if (useCase.steps.isNotEmpty() && outputOptions.outputSolution != false) {
                 append("#### Steps\n")
-                useCase.steps.forEach {
-                    if (it.matches(conditions)) append("${it.text}\n")
-                }
+                useCase.steps.output(allConditions, this)
             }
             if (!useAlternative && !useFallback && outputOptions.outputSolution != false) {
                 append("#### Solution\n")
-                useCase.solution.forEach {
-                    if (it.matches(conditions)) append("${it.text}\n")
-                }
+                useCase.solution.output(allConditions, this)
             }
             if (useAlternative && !useFallback && outputOptions.outputSolution != false) {
                 append("#### Solution\n")
-                useCase.alternativeSolution.forEach {
-                    if (it.matches(conditions)) append("${it.text}\n")
-                }
+                useCase.alternativeSolution.output(allConditions, this)
             }
             if (useFallback && outputOptions.outputSolution != false) {
                 append("#### Solution\n")
-                useCase.fallbackSolution.forEach {
-                    if (it.matches(conditions)) append("${it.text}\n")
-                }
+                useCase.fallbackSolution.output(allConditions, this)
             }
             if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
                 append("#### Examples\n")
@@ -64,6 +59,40 @@ fun List<UseCase>.formatToString(
             append("\n----\n\n")
         }
     }.replace("\n\n\n", "\n\n")
+
+/**
+ * Outputs the conditionals to the given StringBuilder based on the provided conditions.
+ *
+ * This function processes a list of conditionals and appends the relevant text to the output
+ * StringBuilder if the conditions match. It handles grouping of conditionals and ensures that
+ * only the appropriate text is included based on the current set of conditions.
+ *
+ * @receiver List of Conditional objects to be processed.
+ * @param conditions Set of conditions to match against.
+ * @param output StringBuilder to which the matched text will be appended.
+ */
+fun List<Conditional>.output(conditions: Set<String>, output: StringBuilder) {
+    var currentConditionals = emptySet<String>()
+    var temp = StringBuilder()
+    forEach {
+        if (it.conditions.isEmpty() && it.endConditional) {
+            if (currentConditionals.matches(conditions)) {
+                output.append(temp.toString())
+                if (it.text.isNotBlank()) output.append("${it.text}\n")
+            }
+            temp = StringBuilder()
+            currentConditionals = emptySet()
+        } else {
+            if (it.conditions.isNotEmpty()) {
+                currentConditionals = it.conditions
+                output.append(temp.toString())
+                temp = StringBuilder()
+            }
+            if (it.matches(conditions)) temp.append("${it.text}\n")
+        }
+    }
+    output.append(temp.toString())
+}
 
 /**
  * Options for outputting use case results.
