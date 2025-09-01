@@ -54,6 +54,7 @@ suspend fun DSLContext.useCases(
                 loadConditions() + conditions,
                 exampleLimit = exampleLimit,
                 outputOptions = outputOptions,
+                usedUseCases = usedUseCases,
             )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
@@ -101,7 +102,13 @@ suspend fun DSLContext.processUseCases(
             .filter { it.value >= fallbackLimit }
             .keys
     val filteredUseCases =
-        useCases.formatToString(usedUseCases.toSet(), fallbackCases, conditions, exampleLimit)
+        useCases.formatToString(
+            usedUseCases.toSet(),
+            fallbackCases,
+            conditions,
+            exampleLimit,
+            usedUseCases = usedUseCases,
+        )
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
     setLocal(LOCAL_USE_CASES, LoadedUseCases(name = "all", useCases, usedUseCases, filteredUseCases))
