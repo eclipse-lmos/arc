@@ -36,7 +36,7 @@ import kotlin.time.measureTime
 class FunctionCallHandler(
     val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
-    private val functionCallLimit: Int = 60,
+    private val functionCallLimit: Int = 30,
     private val tracer: AgentTracer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
