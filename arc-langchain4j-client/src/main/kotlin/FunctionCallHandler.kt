@@ -36,10 +36,10 @@ class FunctionCallHandler(
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
 
-    private val _calledFunctions = ConcurrentHashMap<String, LLMFunction>()
-    val calledFunctions get(): Map<String, LLMFunction> = _calledFunctions
+    private val _calledFunctions = ConcurrentHashMap<String, ToolCall>()
+    val calledFunctions get(): Map<String, ToolCall> = _calledFunctions
 
-    fun calledSensitiveFunction() = _calledFunctions.any { it.value.isSensitive }
+    fun calledSensitiveFunction() = _calledFunctions.any { it.value.function.isSensitive }
 
     suspend fun handle(assistantMessage: AiMessage) = result<List<ChatMessage>, ArcException> {
         if (functionCallCount.incrementAndGet() > functionCallLimit) {
@@ -65,6 +65,7 @@ class FunctionCallHandler(
                         tracer.spanToolCall { tags, _ ->
                             tags.addToolTags(function, toolCall.arguments())
                             functionCallResult = callFunction(function, functionArguments)
+                            _calledFunctions[function.name] = ToolCall(function.name, function, functionArguments)
                             tags.addToolOutput(functionCallResult)
                         }
                     }
@@ -94,7 +95,6 @@ class FunctionCallHandler(
     private suspend fun callFunction(function: LLMFunction, functionArguments: Map<String, Any?>) =
         result<String, ArcException> {
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            _calledFunctions[function.name] = function
             function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
         }
 
@@ -104,3 +104,5 @@ class FunctionCallHandler(
         }
     }
 }
+
+data class ToolCall(val name: String, val function: LLMFunction, val arguments: String)
