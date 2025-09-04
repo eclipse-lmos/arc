@@ -101,7 +101,7 @@ class AgentSubscription(
                             messages = listOf(outputMessage.toMessage()),
                             anonymizationEntities = anonymizationEntities.entities.convertAPIEntities(),
                             context = outputContext.map().map { (key, value) -> ContextEntry(key, value) },
-                            toolCalls = outputMessage?.toolCalls?.map { ToolCall(it.name, it.parameters) },
+                            toolCalls = outputMessage?.toolCalls?.map { ToolCall(it.name, it.arguments) },
                         ),
                     )
                 }

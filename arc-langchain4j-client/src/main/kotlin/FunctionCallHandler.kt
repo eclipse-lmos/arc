@@ -65,7 +65,7 @@ class FunctionCallHandler(
                         tracer.spanToolCall { tags, _ ->
                             tags.addToolTags(function, toolCall.arguments())
                             functionCallResult = callFunction(function, functionArguments)
-                            _calledFunctions[function.name] = ToolCall(function.name, function, functionArguments)
+                            _calledFunctions[function.name] = ToolCall(function.name, function, toolCall.arguments())
                             tags.addToolOutput(functionCallResult)
                         }
                     }
