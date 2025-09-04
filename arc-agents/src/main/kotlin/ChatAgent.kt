@@ -30,6 +30,7 @@ import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.addData
+import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
 import org.eclipse.lmos.arc.agents.dsl.setSystemPrompt
 import org.eclipse.lmos.arc.agents.events.EventPublisher
@@ -43,6 +44,7 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.GenerateResponseTagger
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -210,6 +212,7 @@ class ChatAgent(
                 val outputMessage = chatCompleter.complete(fullConversation, functions, completionSettings)
                     .getOrThrow().also { tags.output(it.content) }
                 outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
+                dslContext.getOptional<GenerateResponseTagger>()?.tag(tags, outputMessage, dslContext)
                 conversation + outputMessage
             }
 

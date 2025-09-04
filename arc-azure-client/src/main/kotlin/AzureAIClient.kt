@@ -94,7 +94,7 @@ class AzureAIClient(
     private fun ChatCompletions.getFirstAssistantMessage(
         sensitive: Boolean = false,
         settings: ChatCompletionSettings?,
-        toolCalls: Map<String, LLMFunction>,
+        toolCalls: Map<String, org.eclipse.lmos.arc.client.azure.ToolCall>,
     ) = choices.first().message.content.let {
         AssistantMessage(
             it ?: "",
@@ -103,7 +103,7 @@ class AzureAIClient(
                 JSON -> MessageFormat.JSON
                 else -> MessageFormat.TEXT
             },
-            toolCalls = toolCalls.map { ToolCall(it.key) },
+            toolCalls = toolCalls.map { ToolCall(it.value.name, it.value.arguments) },
         )
     }
 

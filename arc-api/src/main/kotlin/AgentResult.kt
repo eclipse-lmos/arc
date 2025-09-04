@@ -23,7 +23,7 @@ data class AgentResult(
  * Represents a tool call made by the LLM Model.
  */
 @Serializable
-data class ToolCall(val name: String)
+data class ToolCall(val name: String, val parameters: String)
 
 /**
  * Context contain entries that were added during the processing of the request.
