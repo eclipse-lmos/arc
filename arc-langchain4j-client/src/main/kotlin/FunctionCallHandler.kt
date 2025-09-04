@@ -31,7 +31,7 @@ class FunctionCallHandler(
     val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
     private val tracer: AgentTracer?,
-    private val functionCallLimit: Int = 60,
+    private val functionCallLimit: Int = 30,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
