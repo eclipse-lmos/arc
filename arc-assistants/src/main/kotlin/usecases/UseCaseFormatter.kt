@@ -19,46 +19,48 @@ fun List<UseCase>.formatToString(
     exampleLimit: Int = 10_000,
     outputOptions: OutputOptions = OutputOptions(),
     usedUseCases: List<String> = emptyList(),
-) =
-    buildString {
-        this@formatToString.filter { it.matches(conditions) }.forEach { useCase ->
-            val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
-            val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
-            val allConditions = conditions + "step_${usedUseCases.count { useCase.id == it } + 1}"
+    formatter: (String, UseCase, List<String>) -> String = { s, _, _ -> s },
+): String = buildString {
+    this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
+        val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
+        val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
+        val allConditions = conditions + "step_${usedUseCases.count { useCase.id == it } + 1}"
+        val temp = StringBuilder()
 
-            append(
-                """
+        temp.append(
+            """
             |### UseCase: ${useCase.id}
             |#### Description
             |${useCase.description}
             |
-                """.trimMargin(),
-            )
-            if (useCase.steps.isNotEmpty() && outputOptions.outputSolution != false) {
-                append("#### Steps\n")
-                useCase.steps.output(allConditions, this)
-            }
-            if (!useAlternative && !useFallback && outputOptions.outputSolution != false) {
-                append("#### Solution\n")
-                useCase.solution.output(allConditions, this)
-            }
-            if (useAlternative && !useFallback && outputOptions.outputSolution != false) {
-                append("#### Solution\n")
-                useCase.alternativeSolution.output(allConditions, this)
-            }
-            if (useFallback && outputOptions.outputSolution != false) {
-                append("#### Solution\n")
-                useCase.fallbackSolution.output(allConditions, this)
-            }
-            if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
-                append("#### Examples\n")
-                useCase.examples.split("\n").take(exampleLimit).forEach { example ->
-                    appendLine(example)
-                }
-            }
-            append("\n----\n\n")
+            """.trimMargin(),
+        )
+        if (useCase.steps.isNotEmpty() && outputOptions.outputSolution != false) {
+            temp.append("#### Steps\n")
+            useCase.steps.output(allConditions, temp)
         }
-    }.replace("\n\n\n", "\n\n")
+        if (!useAlternative && !useFallback && outputOptions.outputSolution != false) {
+            temp.append("#### Solution\n")
+            useCase.solution.output(allConditions, temp)
+        }
+        if (useAlternative && !useFallback && outputOptions.outputSolution != false) {
+            temp.append("#### Solution\n")
+            useCase.alternativeSolution.output(allConditions, temp)
+        }
+        if (useFallback && outputOptions.outputSolution != false) {
+            temp.append("#### Solution\n")
+            useCase.fallbackSolution.output(allConditions, temp)
+        }
+        if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
+            temp.append("#### Examples\n")
+            useCase.examples.split("\n").take(exampleLimit).forEach { example ->
+                temp.appendLine(example)
+            }
+        }
+        temp.append("\n----\n\n")
+        append(formatter(temp.toString(), useCase, usedUseCases))
+    }
+}.replace("\n\n\n", "\n\n")
 
 /**
  * Outputs the conditionals to the given StringBuilder based on the provided conditions.

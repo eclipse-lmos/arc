@@ -11,6 +11,7 @@ import org.eclipse.lmos.arc.assistants.support.usecases.Section.FALLBACK_SOLUTIO
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.NONE
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.SOLUTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.STEPS
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.SUB_START
 
 /**
  * Parses the given string into a list of use cases.
@@ -23,15 +24,16 @@ fun String.toUseCases(): List<UseCase> {
 
     forEachLine { line ->
         if (line.trimStart().startsWith("#")) {
-            if (line.contains("# UseCase")) {
+            if (line.contains("# UseCase") || line.contains("# Case")) {
                 currentUseCase?.let { useCases.add(it) }
                 val (lineWithoutConditions, conditions) = line.parseConditions()
                 currentUseCase = UseCase(
                     id = lineWithoutConditions.substringAfter(":").trim(),
                     version = version,
                     conditions = conditions,
+                    subUseCase = line.contains("# Case"),
                 )
-                currentSection = NONE
+                currentSection = if (currentUseCase?.subUseCase == true) SUB_START else NONE
             } else {
                 currentSection = when {
                     line.contains("# Description") -> DESCRIPTION
@@ -65,6 +67,16 @@ fun String.toUseCases(): List<UseCase> {
             ALTERNATIVE_SOLUTION -> currentUseCase?.copy(
                 alternativeSolution = (currentUseCase?.alternativeSolution ?: emptyList()) + line.asConditional(),
             )
+
+            SUB_START -> {
+                if (!line.contains("# Case")) {
+                    currentUseCase?.copy(
+                        solution = (currentUseCase?.solution ?: emptyList()) + line.asConditional(),
+                    )
+                } else {
+                    currentUseCase
+                }
+            }
 
             NONE -> currentUseCase
         }
@@ -151,6 +163,7 @@ private inline fun String.forEachLine(crossinline fn: (String) -> Unit) {
 
 enum class Section {
     NONE,
+    SUB_START,
     DESCRIPTION,
     SOLUTION,
     ALTERNATIVE_SOLUTION,
@@ -169,6 +182,7 @@ data class UseCase(
     val fallbackSolution: List<Conditional> = emptyList(),
     val examples: String = "",
     val conditions: Set<String> = emptySet(),
+    val subUseCase: Boolean = false,
 ) {
     fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
 
