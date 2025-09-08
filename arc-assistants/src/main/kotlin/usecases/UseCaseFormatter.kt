@@ -21,7 +21,7 @@ suspend fun List<UseCase>.formatToString(
     usedUseCases: List<String> = emptyList(),
     formatter: suspend (String, UseCase, List<String>) -> String = { s, _, _ -> s },
 ): String = buildString {
-    this@outputToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
+    this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
         val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
         val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
         val allConditions = conditions + "step_${usedUseCases.count { useCase.id == it } + 1}"
