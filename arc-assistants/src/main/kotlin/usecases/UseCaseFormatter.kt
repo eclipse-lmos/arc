@@ -19,7 +19,8 @@ suspend fun List<UseCase>.formatToString(
     exampleLimit: Int = 10_000,
     outputOptions: OutputOptions = OutputOptions(),
     usedUseCases: List<String> = emptyList(),
-    formatter: suspend (String, UseCase, List<String>) -> String = { s, _, _ -> s },
+    allUseCases: List<UseCase>? = null,
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _ -> s },
 ): String = buildString {
     this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
         val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
@@ -58,7 +59,7 @@ suspend fun List<UseCase>.formatToString(
             }
         }
         temp.append("\n----\n\n")
-        append(formatter(temp.toString(), useCase, usedUseCases))
+        append(formatter(temp.toString(), useCase, allUseCases, usedUseCases))
     }
 }.replace("\n\n\n", "\n\n")
 

@@ -33,7 +33,7 @@ suspend fun DSLContext.useCases(
     exampleLimit: Int = 4,
     outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
-    formatter: suspend (String, UseCase, List<String>) -> String = { s, _, _ -> s },
+    formatter: suspend (String, UseCase, List<UseCase>, List<String>) -> String = { s, _, _ -> s },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
@@ -56,6 +56,7 @@ suspend fun DSLContext.useCases(
                 exampleLimit = exampleLimit,
                 outputOptions = outputOptions,
                 usedUseCases = usedUseCases,
+                allUseCases = useCases,
                 formatter = formatter,
             )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
@@ -95,6 +96,7 @@ suspend fun DSLContext.processUseCases(
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
     exampleLimit: Int = 10_000,
+    formatter: suspend (String, UseCase, List<UseCase>, List<String>) -> String = { s, _, _ -> s },
 ): String {
     val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
     val fallbackCases =
@@ -110,6 +112,8 @@ suspend fun DSLContext.processUseCases(
             conditions,
             exampleLimit,
             usedUseCases = usedUseCases,
+            allUseCases = useCases,
+            formatter = formatter,
         )
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
