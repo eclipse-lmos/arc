@@ -20,7 +20,7 @@ suspend fun List<UseCase>.formatToString(
     outputOptions: OutputOptions = OutputOptions(),
     usedUseCases: List<String> = emptyList(),
     allUseCases: List<UseCase>? = null,
-    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _ -> s },
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String = buildString {
     this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
         val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
@@ -62,6 +62,26 @@ suspend fun List<UseCase>.formatToString(
         append(formatter(temp.toString(), useCase, allUseCases, usedUseCases))
     }
 }.replace("\n\n\n", "\n\n")
+
+suspend fun UseCase.formatToString(
+    useAlternatives: Set<String> = emptySet(),
+    useFallbacks: Set<String> = emptySet(),
+    conditions: Set<String> = emptySet(),
+    exampleLimit: Int = 10_000,
+    outputOptions: OutputOptions = OutputOptions(),
+    usedUseCases: List<String> = emptyList(),
+    allUseCases: List<UseCase>? = null,
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
+): String = listOf(this).formatToString(
+    useAlternatives,
+    useFallbacks,
+    conditions,
+    exampleLimit,
+    outputOptions,
+    usedUseCases,
+    allUseCases,
+    formatter,
+)
 
 /**
  * Outputs the conditionals to the given StringBuilder based on the provided conditions.
