@@ -12,6 +12,56 @@ package org.eclipse.lmos.arc.assistants.support.usecases
  * unless the use case name is contained in the given set of alternatives.
  * In this case, the "primary" solution is filtered.
  */
+suspend fun List<UseCase>.outputToString(
+    useAlternatives: Set<String> = emptySet(),
+    useFallbacks: Set<String> = emptySet(),
+    conditions: Set<String> = emptySet(),
+    exampleLimit: Int = 10_000,
+    outputOptions: OutputOptions = OutputOptions(),
+    usedUseCases: List<String> = emptyList(),
+    formatter: suspend (String, UseCase, List<String>) -> String = { s, _, _ -> s },
+): String = buildString {
+    this@outputToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
+        val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
+        val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
+        val allConditions = conditions + "step_${usedUseCases.count { useCase.id == it } + 1}"
+        val temp = StringBuilder()
+
+        temp.append(
+            """
+            |### UseCase: ${useCase.id}
+            |#### Description
+            |${useCase.description}
+            |
+            """.trimMargin(),
+        )
+        if (useCase.steps.isNotEmpty() && outputOptions.outputSolution != false) {
+            temp.append("#### Steps\n")
+            useCase.steps.output(allConditions, temp)
+        }
+        if (!useAlternative && !useFallback && outputOptions.outputSolution != false) {
+            temp.append("#### Solution\n")
+            useCase.solution.output(allConditions, temp)
+        }
+        if (useAlternative && !useFallback && outputOptions.outputSolution != false) {
+            temp.append("#### Solution\n")
+            useCase.alternativeSolution.output(allConditions, temp)
+        }
+        if (useFallback && outputOptions.outputSolution != false) {
+            temp.append("#### Solution\n")
+            useCase.fallbackSolution.output(allConditions, temp)
+        }
+        if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
+            temp.append("#### Examples\n")
+            useCase.examples.split("\n").take(exampleLimit).forEach { example ->
+                temp.appendLine(example)
+            }
+        }
+        temp.append("\n----\n\n")
+        append(formatter(temp.toString(), useCase, usedUseCases))
+    }
+}.replace("\n\n\n", "\n\n")
+
 fun List<UseCase>.formatToString(
     useAlternatives: Set<String> = emptySet(),
     useFallbacks: Set<String> = emptySet(),
