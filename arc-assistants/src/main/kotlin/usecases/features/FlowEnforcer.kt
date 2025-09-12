@@ -58,6 +58,7 @@ suspend fun processFlow(
     conditions: Set<String>,
     context: DSLContext,
     model: String? = null,
+    noMatchResponse: String? = null,
 ): String {
     var flowOptions = extractFlowOptions(content)
 
@@ -105,7 +106,9 @@ suspend fun processFlow(
             // If the user has changed the topic, then this would automatically trigger different use cases
             // and this would not be needed.
             //
-            return "I did not understand your reply. Please repeat.".output(useCase)
+            return (noMatchResponse ?: "Kindly ask the customer to repeat. You did not understand their reply.").output(
+                useCase
+            )
         }
         return flowOptions.contentWithoutOptions
     }
