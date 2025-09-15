@@ -4,7 +4,7 @@
 
 version = 1
 SPDX-PackageName = "arc"
-SPDX-PackageSupplier = "Deutsche Telekom AG <opensource@telekom.de>"
+SPDX-PackageSupplier = "The Eclipse Foundation"
 SPDX-PackageDownloadLocation = "https://github.com/eclipse-lmos/arc"
 
 
