@@ -51,7 +51,7 @@ import org.eclipse.lmos.arc.core.result
  * the use case is updated in every turn of the conversation with the current step of the flow.
  * This ensures that the LLM cannot get distracted or confused by multiple instructions.
  */
-const val MEMORY_KEY = "current_use_case_flow"
+private const val MEMORY_KEY = "current_use_case_flow"
 
 suspend fun processFlow(
     content: String,
@@ -76,7 +76,9 @@ suspend fun processFlow(
             //
             // Jump to the current step in the flow if one is set.
             //
-            val currentFlow = context.memory<FlowProgress>(MEMORY_KEY)
+            val currentFlow = context.memory<FlowProgress>(MEMORY_KEY).also {
+                context.setLocal(MEMORY_KEY, it)
+            }
             val currentFlowStep = currentFlow?.steps?.lastOrNull()
             val currentCase =
                 currentFlowStep?.let { allUseCases?.firstOrNull { it.id == currentFlowStep } }
@@ -216,5 +218,5 @@ data class FlowProgress(val useCaseId: String, val steps: List<String>)
  * @return The current FlowProgress if available, otherwise `null`.
  */
 suspend fun DSLContext.getCurrentFlowProgress(): FlowProgress? {
-    return getLocal(MEMORY_KEY) as? FlowProgress?
+    return getLocal(MEMORY_KEY) as? FlowProgress? ?: memory<FlowProgress>(MEMORY_KEY)
 }
