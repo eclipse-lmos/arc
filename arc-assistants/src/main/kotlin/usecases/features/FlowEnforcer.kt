@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.assistants.support.usecases.features
 
+import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
@@ -50,6 +51,8 @@ import org.eclipse.lmos.arc.core.result
  * the use case is updated in every turn of the conversation with the current step of the flow.
  * This ensures that the LLM cannot get distracted or confused by multiple instructions.
  */
+const val MEMORY_KEY = "current_use_case_flow"
+
 suspend fun processFlow(
     content: String,
     useCase: UseCase,
@@ -73,7 +76,8 @@ suspend fun processFlow(
             //
             // Jump to the current step in the flow if one is set.
             //
-            val currentFlowStep = context.memory<String>("${useCase.id}#current_flow_step")
+            val currentFlow = context.memory<FlowProgress>(MEMORY_KEY)
+            val currentFlowStep = currentFlow?.steps?.lastOrNull()
             val currentCase =
                 currentFlowStep?.let { allUseCases?.firstOrNull { it.id == currentFlowStep } }
             if (currentCase != null) flowOptions = currentCase.copy(subUseCase = false).flowOptions(conditions)
@@ -89,7 +93,12 @@ suspend fun processFlow(
                 //
                 matchedOption.getReferencedUseCase(allUseCases)?.let { referenceUseCase ->
                     // Store the current step.
-                    context.memory("${useCase.id}#current_flow_step", referenceUseCase.id)
+                    val currentFlowProgress = FlowProgress(
+                        useCaseId = useCase.id,
+                        steps = currentFlow?.steps?.plus(referenceUseCase.id) ?: listOf(referenceUseCase.id),
+                    )
+                    context.memory(MEMORY_KEY, currentFlowProgress)
+                    context.setLocal(MEMORY_KEY, currentFlowProgress)
 
                     // Remove possible nested flow options.
                     return referenceUseCase.solution.output(useCase, conditions).removeFlowOptions()
@@ -107,7 +116,7 @@ suspend fun processFlow(
             // and this would not be needed.
             //
             return (noMatchResponse ?: "Kindly ask the customer to repeat. You did not understand their reply.").output(
-                useCase
+                useCase,
             )
         }
         return flowOptions.contentWithoutOptions
@@ -194,4 +203,18 @@ suspend fun DSLContext.llmMessages(
             addAll(messages)
         }
     return chatCompleter.complete(messages, functions, settings = settings)
+}
+
+@Serializable
+data class FlowProgress(val useCaseId: String, val steps: List<String>)
+
+/**
+ * Retrieves the current flow progress from the local context.
+ * If no current use case is set or no flow progress is found, `null` is returned.
+ * This function will only be able to return after the processFlow was called.
+ *
+ * @return The current FlowProgress if available, otherwise `null`.
+ */
+suspend fun DSLContext.getCurrentFlowProgress(): FlowProgress? {
+    return getLocal(MEMORY_KEY) as? FlowProgress?
 }
