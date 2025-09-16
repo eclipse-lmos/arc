@@ -10,9 +10,11 @@ import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.assistants.support.usecases.Conditional
@@ -22,6 +24,7 @@ import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.extractFlowOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.flowOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
+import org.eclipse.lmos.arc.assistants.support.usecases.output
 import org.eclipse.lmos.arc.assistants.support.usecases.parseUseCaseRefs
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.result
@@ -102,6 +105,11 @@ suspend fun processFlow(
                     context.memory(MEMORY_KEY, currentFlowProgress)
                     context.setLocal(MEMORY_KEY, currentFlowProgress)
 
+                    if (referenceUseCase.id.endsWith("_xx")) {
+                        val response = generateResponse(referenceUseCase, context, model)
+                        context.breakWith(response, reason = "Following flow option.")
+                    }
+
                     // Remove possible nested flow options.
                     return referenceUseCase.solution.output(useCase, conditions).removeFlowOptions()
                 }
@@ -154,6 +162,37 @@ fun FlowOption.getReferencedUseCase(allUseCases: List<UseCase>?): UseCase? {
     if (allUseCases == null) return null
     val (_, references) = command.parseUseCaseRefs()
     return if (references.isNotEmpty()) allUseCases.firstOrNull { it.id == references.firstOrNull() } else null
+}
+
+/**
+ * Generates a response based on the provided instructions.
+ */
+suspend fun generateResponse(
+    useCase: UseCase,
+    context: DSLContext,
+    model: String? = null,
+    conditions: Set<String> = emptySet(),
+): String {
+    val messages = context.get<Conversation>().transcript.takeLast(4)
+    val toolProvider = context.get<LLMFunctionProvider>()
+    val requiredTools = useCase.extractTools()
+    val tools = toolProvider.provideAll().filter { requiredTools.contains(it.name) }
+    val stringBuilder = StringBuilder()
+    useCase.solution.output(conditions, stringBuilder)
+
+    return context
+        .llmMessages(
+            model = model,
+            functions = tools,
+            system = """
+                    Use the following instructions to generate a response to the user.
+                    
+                    Instructions:
+                    ${stringBuilder.toString().removeFlowOptions().trim()}
+                """,
+            messages = messages,
+        ).getOrThrow()
+        .content
 }
 
 /**

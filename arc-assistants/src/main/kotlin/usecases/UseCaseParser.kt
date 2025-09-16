@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.assistants.support.usecases
 
+import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.ALTERNATIVE_SOLUTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.DESCRIPTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.EXAMPLES
@@ -172,6 +173,7 @@ enum class Section {
     EXAMPLES,
 }
 
+@Serializable
 data class UseCase(
     val id: String,
     val version: String? = null,
@@ -192,8 +194,16 @@ data class UseCase(
         alternativeSolution.forEach { addAll(it.useCaseRefs) }
         fallbackSolution.forEach { addAll(it.useCaseRefs) }
     }
+
+    fun extractTools(): Set<String> = buildSet {
+        steps.forEach { addAll(it.functions) }
+        solution.forEach { addAll(it.functions) }
+        alternativeSolution.forEach { addAll(it.functions) }
+        fallbackSolution.forEach { addAll(it.functions) }
+    }
 }
 
+@Serializable
 data class Conditional(
     val text: String = "",
     val conditions: Set<String> = emptySet(),
