@@ -38,7 +38,8 @@ suspend fun DSLContext.useCasesWithFlows(
                 usedUseCases = usedUseCases,
                 conditions = conditions,
                 context = this,
-                model = model
+                model = model,
             )
-        })
+        },
+    )
 }
