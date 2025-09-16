@@ -90,7 +90,7 @@ val DSLContext.toolCalls
  * Adds a tool that should be provided to the agent.
  */
 fun DSLContext.addTool(toolName: String) {
-    val current = getLocal(ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY) as? Set<String>?
+    val current = (getLocal(ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY) as? Set<String>?) ?: emptySet()
     setLocal(ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY, (current + toolName))
 }
 
