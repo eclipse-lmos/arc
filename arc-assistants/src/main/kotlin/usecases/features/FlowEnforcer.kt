@@ -11,6 +11,7 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
+import org.eclipse.lmos.arc.agents.dsl.extensions.emit
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -104,6 +105,14 @@ suspend fun processFlow(
                     )
                     context.memory(MEMORY_KEY, currentFlowProgress)
                     context.setLocal(MEMORY_KEY, currentFlowProgress)
+                    context.emit(
+                        FlowOptionEvent(
+                            useCaseId = useCase.id,
+                            matchedOption = matchedOption,
+                            flowOptions = flowOptions,
+                            referenceUseCase = referenceUseCase.id,
+                        ),
+                    )
 
                     if (referenceUseCase.id.endsWith("_xx")) {
                         val response = generateResponse(referenceUseCase, context, model)
@@ -112,7 +121,9 @@ suspend fun processFlow(
 
                     // Remove possible nested flow options.
                     return referenceUseCase.solution.output(useCase, conditions).removeFlowOptions()
-                }
+                } ?: context.emit(
+                    FlowOptionEvent(useCaseId = useCase.id, matchedOption = matchedOption, flowOptions = flowOptions),
+                )
 
                 //
                 // No reference to another case, just return the instructions.
