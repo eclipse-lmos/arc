@@ -14,6 +14,7 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.get
+import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -26,6 +27,7 @@ import org.eclipse.lmos.arc.assistants.support.usecases.extractFlowOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.flowOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
 import org.eclipse.lmos.arc.assistants.support.usecases.output
+import org.eclipse.lmos.arc.assistants.support.usecases.parseFunctions
 import org.eclipse.lmos.arc.assistants.support.usecases.parseUseCaseRefs
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.result
@@ -56,6 +58,7 @@ import org.eclipse.lmos.arc.core.result
  * This ensures that the LLM cannot get distracted or confused by multiple instructions.
  */
 private const val MEMORY_KEY = "current_use_case_flow"
+private val log = org.slf4j.LoggerFactory.getLogger("usecases.FlowEnforcer")
 
 suspend fun processFlow(
     content: String,
@@ -98,13 +101,7 @@ suspend fun processFlow(
                 // then we update the instructions to those of the referenced use case.
                 //
                 matchedOption.getReferencedUseCase(allUseCases)?.let { referenceUseCase ->
-                    // Store the current step.
-                    val currentFlowProgress = FlowProgress(
-                        useCaseId = useCase.id,
-                        steps = currentFlow?.steps?.plus(referenceUseCase.id) ?: listOf(referenceUseCase.id),
-                    )
-                    context.memory(MEMORY_KEY, currentFlowProgress)
-                    context.setLocal(MEMORY_KEY, currentFlowProgress)
+                    // Emit event
                     context.emit(
                         FlowOptionEvent(
                             useCaseId = useCase.id,
@@ -114,21 +111,39 @@ suspend fun processFlow(
                         ),
                     )
 
-                    if (referenceUseCase.id.endsWith("_xx")) {
-                        val response = generateResponse(referenceUseCase, context, model)
-                        context.breakWith(response, reason = "Following flow option.")
-                    }
+                    if (referenceUseCase.subUseCase) {
+                        // Store the current step.
+                        val currentFlowProgress = FlowProgress(
+                            useCaseId = useCase.id,
+                            steps = currentFlow?.steps?.plus(referenceUseCase.id) ?: listOf(referenceUseCase.id),
+                        )
+                        context.memory(MEMORY_KEY, currentFlowProgress)
+                        context.setLocal(MEMORY_KEY, currentFlowProgress)
 
-                    // Remove possible nested flow options.
-                    return referenceUseCase.solution.output(useCase, conditions).removeFlowOptions()
-                } ?: context.emit(
-                    FlowOptionEvent(useCaseId = useCase.id, matchedOption = matchedOption, flowOptions = flowOptions),
-                )
+                        // Experimental: If the referenced use case ends with _xx, then we generate the response directly.
+                        if (referenceUseCase.id.endsWith("_xx")) {
+                            // Generate the response based on the referenced use case.
+                            val instructions = referenceUseCase.toInstructions(conditions)
+                            generateResponse(instructions, context, referenceUseCase.extractTools(), model)
+                        }
+
+                        // Update the instructions to those of the referenced use case.
+                        return referenceUseCase.solution.output(useCase, conditions).removeFlowOptions()
+                    }
+                } ?: run {
+                    context.emit(
+                        FlowOptionEvent(
+                            useCaseId = useCase.id,
+                            matchedOption = matchedOption,
+                            flowOptions = flowOptions,
+                        ),
+                    )
+                }
 
                 //
                 // No reference to another case, just return the instructions.
                 //
-                return matchedOption.command.output(useCase)
+                return matchedOption.command.output(useCase, conditions)
             }
 
             //
@@ -136,13 +151,24 @@ suspend fun processFlow(
             // If the user has changed the topic, then this would automatically trigger different use cases
             // and this would not be needed.
             //
-            return (noMatchResponse ?: "Kindly ask the customer to repeat. You did not understand their reply.").output(
+            log.warn("Could not match user reply to any flow option. Asking to repeat.")
+            return (noMatchResponse
+                ?: "Kindly ask the customer to repeat. You did not understand their reply.\n").output(
                 useCase,
             )
         }
         return flowOptions.contentWithoutOptions
     }
     return content
+}
+
+/**
+ * Converts the Use Case solution to instructions.
+ * Applies the given conditionals and removes any flow options.
+ */
+private fun UseCase.toInstructions(conditions: Set<String>) = StringBuilder().let {
+    this.solution.output(conditions, it)
+    it.toString().removeFlowOptions().trim()
 }
 
 /**
@@ -179,31 +205,32 @@ fun FlowOption.getReferencedUseCase(allUseCases: List<UseCase>?): UseCase? {
  * Generates a response based on the provided instructions.
  */
 suspend fun generateResponse(
-    useCase: UseCase,
+    instructions: String,
     context: DSLContext,
+    requiredTools: Set<String>,
     model: String? = null,
-    conditions: Set<String> = emptySet(),
-): String {
+): Nothing {
     val messages = context.get<Conversation>().transcript.takeLast(4)
     val toolProvider = context.get<LLMFunctionProvider>()
-    val requiredTools = useCase.extractTools()
     val tools = toolProvider.provideAll().filter { requiredTools.contains(it.name) }
-    val stringBuilder = StringBuilder()
-    useCase.solution.output(conditions, stringBuilder)
 
-    return context
+    log.debug("Generating response with tools:[$requiredTools] and instructions: $instructions")
+
+    val response = context
         .llmMessages(
             model = model,
             functions = tools,
             system = """
                     Use the following instructions to generate a response to the user.
+                    Do not deviate from the instructions or make assumptions.
                     
                     Instructions:
-                    ${stringBuilder.toString().removeFlowOptions().trim()}
+                    $instructions
                 """,
             messages = messages,
         ).getOrThrow()
         .content
+    context.breakWith(response, reason = "Following flow option.")
 }
 
 /**
@@ -219,12 +246,21 @@ suspend fun evalUserReply(
     model: String? = null,
 ): FlowOption? {
     val messages = context.get<Conversation>().transcript.takeLast(4)
+
+    // Try to match the user reply to one of the options with code first.
+    val userMessage = messages.last().content
+    options.options.firstOrNull { it.option.equals(userMessage.trim(), ignoreCase = true) }?.let {
+        log.debug("Matched user input directly...")
+        return it
+    }
+
+    // Otherwise use the LLM to match the user reply to one of the options.
     val option =
         context
             .llmMessages(
                 model = model,
                 system = """
-                    Examine the user's reply and return the option that best matches the user's intent.
+                    Examine the user's last message and return the option that best matches the user's intent.
                     Only return one of the following options or NO_MATCH if none of the options match.
                     Do not ask follow-up questions.
                     
@@ -254,7 +290,9 @@ suspend fun DSLContext.llmMessages(
             if (system != null) add(SystemMessage(system))
             addAll(messages)
         }
-    return chatCompleter.complete(messages, functions, settings = settings)
+    val functionsWithContext =
+        functions?.map { if (it is FunctionWithContext) it.withContext(this@llmMessages) else it } ?: functions
+    return chatCompleter.complete(messages, functionsWithContext, settings = settings)
 }
 
 @Serializable
