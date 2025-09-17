@@ -16,7 +16,6 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
-import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.assistants.support.usecases.Conditional
@@ -27,7 +26,6 @@ import org.eclipse.lmos.arc.assistants.support.usecases.extractFlowOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.flowOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
 import org.eclipse.lmos.arc.assistants.support.usecases.output
-import org.eclipse.lmos.arc.assistants.support.usecases.parseFunctions
 import org.eclipse.lmos.arc.assistants.support.usecases.parseUseCaseRefs
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.result
@@ -125,12 +123,7 @@ suspend fun processFlow(
                         // Check if the instruction is to use static text.
                         val instructions = referenceUseCase.toInstructions(conditions)
                         if (instructions.trim().startsWith(">>>")) {
-                            // Generate the response based on the referenced use case.
-                            generateResponse(
-                                instructions.substringAfter(">>>"),
-                                context,
-                                model
-                            )
+                            context.breakWith(instructions.substringAfter(">>>"), reason = "Following flow option.")
                         }
 
                         // Update the instructions to those of the referenced use case.
@@ -158,8 +151,10 @@ suspend fun processFlow(
             // and this would not be needed.
             //
             log.warn("Could not match user reply to any flow option. Asking to repeat.")
-            return (noMatchResponse
-                ?: "Kindly ask the customer to repeat. You did not understand their reply.\n").output(
+            return (
+                noMatchResponse
+                    ?: "Kindly ask the customer to repeat. You did not understand their reply.\n"
+                ).output(
                 useCase,
             )
         }
@@ -205,34 +200,6 @@ fun FlowOption.getReferencedUseCase(allUseCases: List<UseCase>?): UseCase? {
     if (allUseCases == null) return null
     val (_, references) = command.parseUseCaseRefs()
     return if (references.isNotEmpty()) allUseCases.firstOrNull { it.id == references.firstOrNull() } else null
-}
-
-/**
- * Generates a response based on the provided instructions.
- */
-suspend fun generateResponse(
-    instructions: String,
-    context: DSLContext,
-    model: String? = null,
-): Nothing {
-    val messages = context.get<Conversation>().transcript.takeLast(4)
-    val response = context
-        .llmMessages(
-            model = model,
-            system = """
-                    You are Context-Aware Translator.
-                    
-                    ### Rules:
-                    - Translate the provided text into the primary language of the conversation.
-                    - Return **only the translated text** with no prefixes like "Translation:".
-
-                    ### Text to translate:
-                    $instructions
-                """,
-            messages = messages,
-        ).getOrThrow()
-        .content
-    context.breakWith(response, reason = "Following flow option.")
 }
 
 /**
