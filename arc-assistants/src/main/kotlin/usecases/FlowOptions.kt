@@ -44,8 +44,8 @@ fun extractFlowOptions(text: String): FlowOptions {
  * @return a Box if the pattern matches, otherwise null
  */
 fun extractFlowOption(text: String): FlowOption? {
-    val regex = Regex("""^\[(.*?)\]\s*(.*)""")
-    val match = regex.find(text)
+    val regex = Regex("""^\[(.*?)\]\s*([^(]+)""")
+    val match = regex.find(text.trim())
     return if (match != null) {
         val option = match.groups[1]?.value ?: ""
         val command = match.groups[2]?.value?.takeIf { it.isNotBlank() } ?: return null

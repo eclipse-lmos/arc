@@ -76,6 +76,8 @@ suspend fun processFlow(
     // Only process Use Cases that contain flow options.
     //
     if (flowOptions.options.isNotEmpty()) {
+        log.debug("Found Flow Options: ${flowOptions.options}")
+
         //
         // If we have started this use case in the last turn, then we are in a flow and should update the instructions.
         //
@@ -120,11 +122,15 @@ suspend fun processFlow(
                         context.memory(MEMORY_KEY, currentFlowProgress)
                         context.setLocal(MEMORY_KEY, currentFlowProgress)
 
-                        // Experimental: If the referenced use case ends with _xx, then we generate the response directly.
-                        if (referenceUseCase.id.endsWith("_xx")) {
+                        // Check if the instruction is to use static text.
+                        val instructions = referenceUseCase.toInstructions(conditions)
+                        if (instructions.trim().startsWith(">>>")) {
                             // Generate the response based on the referenced use case.
-                            val instructions = referenceUseCase.toInstructions(conditions)
-                            generateResponse(instructions, context, referenceUseCase.extractTools(), model)
+                            generateResponse(
+                                instructions.substringAfter(">>>"),
+                                context,
+                                model
+                            )
                         }
 
                         // Update the instructions to those of the referenced use case.
@@ -207,24 +213,20 @@ fun FlowOption.getReferencedUseCase(allUseCases: List<UseCase>?): UseCase? {
 suspend fun generateResponse(
     instructions: String,
     context: DSLContext,
-    requiredTools: Set<String>,
     model: String? = null,
 ): Nothing {
     val messages = context.get<Conversation>().transcript.takeLast(4)
-    val toolProvider = context.get<LLMFunctionProvider>()
-    val tools = toolProvider.provideAll().filter { requiredTools.contains(it.name) }
-
-    log.debug("Generating response with tools:[$requiredTools] and instructions: $instructions")
-
     val response = context
         .llmMessages(
             model = model,
-            functions = tools,
             system = """
-                    Use the following instructions to generate a response to the user.
-                    Do not deviate from the instructions or make assumptions.
+                    You are Context-Aware Translator.
                     
-                    Instructions:
+                    ### Rules:
+                    - Translate the provided text into the primary language of the conversation.
+                    - Return **only the translated text** with no prefixes like "Translation:".
+
+                    ### Text to translate:
                     $instructions
                 """,
             messages = messages,
@@ -260,11 +262,25 @@ suspend fun evalUserReply(
             .llmMessages(
                 model = model,
                 system = """
-                    Examine the user's last message and return the option that best matches the user's intent.
-                    Only return one of the following options or NO_MATCH if none of the options match.
-                    Do not ask follow-up questions.
+                    You are an assistant that accepts a list of options 
+                    and then selects the most appropriate option based on the user’s input.
                     
+                    ### Rules:
+                    - You will always be given:
+                       A list of possible options.
+                       A user input (free text).
+                    - Your task is to choose exactly one option from the list that best matches the user input.
+                    - If the user input does not sufficiently match any option, you must return: NO_MATCH
+                    - Do not explain your reasoning or provide extra commentary. Only return the chosen option (or NO_MATCH).
+                   
+                    ### Example:
                     Options:
+                     - yes
+                     - no
+                     User Input: "yes, please."
+                     Output: yes
+                    
+                    ### Options:
                     ${options.options.filter { it.option != "" }.joinToString("\n") { "- ${it.option}" }}
                 """,
                 messages = messages,
