@@ -10,8 +10,8 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.websocket.*
 import io.opentelemetry.api.GlobalOpenTelemetry
-import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agent.client.AgentClient
