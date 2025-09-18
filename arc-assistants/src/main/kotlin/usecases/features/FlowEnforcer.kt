@@ -9,6 +9,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
+import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
@@ -220,15 +221,24 @@ suspend fun evalUserReply(
         return it
     }
 
+    val optionList = options.options.filter { it.option != "" }.joinToString("\n") { "- ${it.option}" }
+
     // Otherwise use the LLM to match the user reply to one of the options.
     val option =
         context
             .llmMessages(
                 model = model,
-                system = (prompt ?: optionsAnalyserPrompt).replace(
-                    "<OPTIONS>",
-                    options.options.filter { it.option != "" }.joinToString("\n") { "- ${it.option}" }),
-                messages = messages,
+                system = (prompt ?: optionsAnalyserPrompt),
+                messages = listOf(
+                    UserMessage(
+                        """
+                    User input: "$userMessage"
+                    
+                    Options:
+                    $optionList
+                    """.trimIndent()
+                    )
+                ),
             ).getOrThrow()
             .content
             .replace("-", "")

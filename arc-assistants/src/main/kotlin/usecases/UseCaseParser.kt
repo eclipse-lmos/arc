@@ -231,12 +231,12 @@ data class Conditional(
  */
 fun Set<String>.matches(allConditions: Set<String>): Boolean {
     return isEmpty() || (
-            positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
-                allConditions.contains(
-                    it,
-                )
-            }
+        positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
+            allConditions.contains(
+                it,
             )
+        }
+        )
 }
 
 /**
