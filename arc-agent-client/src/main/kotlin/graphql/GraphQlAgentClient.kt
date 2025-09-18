@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.atomics.AtomicReference
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -124,9 +124,9 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
 
 object ClientOpenTelemetry {
 
-    private val sdk = AtomicReference<OpenTelemetry?>()
+    private val sdkHolder = AtomicReference<OpenTelemetry?>(null)
 
-    fun set(sdk: OpenTelemetry?) = sdk.set(sdk)
+    fun set(sdk: OpenTelemetry?) = sdkHolder.set(sdk)
 
-    fun get(): OpenTelemetry? = sdk.get() ?: GlobalOpenTelemetry.get()
+    fun get(): OpenTelemetry? = sdkHolder.get() ?: GlobalOpenTelemetry.get()
 }
