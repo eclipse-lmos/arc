@@ -9,6 +9,7 @@ import org.eclipse.lmos.arc.assistants.support.usecases.Section.ALTERNATIVE_SOLU
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.DESCRIPTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.EXAMPLES
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.FALLBACK_SOLUTION
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.GOAL
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.NONE
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.SOLUTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.STEPS
@@ -37,6 +38,7 @@ fun String.toUseCases(): List<UseCase> {
                 currentSection = if (currentUseCase?.subUseCase == true) SUB_START else NONE
             } else {
                 currentSection = when {
+                    line.contains("# Goal") -> GOAL
                     line.contains("# Description") -> DESCRIPTION
                     line.contains("# Solution") -> SOLUTION
                     line.contains("# Alternative") -> ALTERNATIVE_SOLUTION
@@ -53,6 +55,10 @@ fun String.toUseCases(): List<UseCase> {
         currentUseCase = when (currentSection) {
             SOLUTION -> currentUseCase?.copy(
                 solution = (currentUseCase?.solution ?: emptyList()) + line.asConditional(),
+            )
+
+            GOAL -> currentUseCase?.copy(
+                goal = (currentUseCase?.goal ?: emptyList()) + line.asConditional(),
             )
 
             STEPS -> currentUseCase?.copy(steps = (currentUseCase?.steps ?: emptyList()) + line.asConditional())
@@ -166,6 +172,7 @@ enum class Section {
     NONE,
     SUB_START,
     DESCRIPTION,
+    GOAL,
     SOLUTION,
     ALTERNATIVE_SOLUTION,
     FALLBACK_SOLUTION,
@@ -184,6 +191,7 @@ data class UseCase(
     val fallbackSolution: List<Conditional> = emptyList(),
     val examples: String = "",
     val conditions: Set<String> = emptySet(),
+    val goal: List<Conditional> = emptyList(),
     val subUseCase: Boolean = false,
 ) {
     fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
@@ -223,12 +231,12 @@ data class Conditional(
  */
 fun Set<String>.matches(allConditions: Set<String>): Boolean {
     return isEmpty() || (
-        positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
-            allConditions.contains(
-                it,
+            positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
+                allConditions.contains(
+                    it,
+                )
+            }
             )
-        }
-        )
 }
 
 /**

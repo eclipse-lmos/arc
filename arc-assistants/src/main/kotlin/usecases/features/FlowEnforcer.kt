@@ -67,6 +67,7 @@ suspend fun processFlow(
     context: DSLContext,
     model: String? = null,
     noMatchResponse: String? = null,
+    optionsAnalyserPrompt: String? = null,
 ): String {
     var flowOptions = extractFlowOptions(content)
 
@@ -94,7 +95,7 @@ suspend fun processFlow(
             //
             // Match the user reply to one of the options.
             //
-            val matchedOption = evalUserReply(flowOptions, context, model)
+            val matchedOption = evalUserReply(flowOptions, context, optionsAnalyserPrompt, model)
             if (matchedOption != null) {
                 //
                 // If the matched option contains a reference to another use case,
@@ -151,12 +152,7 @@ suspend fun processFlow(
             // and this would not be needed.
             //
             log.warn("Could not match user reply to any flow option. Asking to repeat.")
-            return (
-                noMatchResponse
-                    ?: "Kindly ask the customer to repeat. You did not understand their reply.\n"
-                ).output(
-                useCase,
-            )
+            return noMatchResponse?.output(useCase, conditions) ?: flowOptions.contentWithoutOptions
         }
         return flowOptions.contentWithoutOptions
     }
@@ -212,6 +208,7 @@ fun FlowOption.getReferencedUseCase(allUseCases: List<UseCase>?): UseCase? {
 suspend fun evalUserReply(
     options: FlowOptions,
     context: DSLContext,
+    prompt: String?,
     model: String? = null,
 ): FlowOption? {
     val messages = context.get<Conversation>().transcript.takeLast(4)
@@ -228,28 +225,9 @@ suspend fun evalUserReply(
         context
             .llmMessages(
                 model = model,
-                system = """
-                    You are an assistant that accepts a list of options 
-                    and then selects the most appropriate option based on the user’s input.
-                    
-                    ### Rules:
-                    - You will always be given:
-                       A list of possible options.
-                       A user input (free text).
-                    - Your task is to choose exactly one option from the list that best matches the user input.
-                    - If the user input does not sufficiently match any option, you must return: NO_MATCH
-                    - Do not explain your reasoning or provide extra commentary. Only return the chosen option (or NO_MATCH).
-                   
-                    ### Example:
-                    Options:
-                     - yes
-                     - no
-                     User Input: "yes, please."
-                     Output: yes
-                    
-                    ### Options:
-                    ${options.options.filter { it.option != "" }.joinToString("\n") { "- ${it.option}" }}
-                """,
+                system = (prompt ?: optionsAnalyserPrompt).replace(
+                    "<OPTIONS>",
+                    options.options.filter { it.option != "" }.joinToString("\n") { "- ${it.option}" }),
                 messages = messages,
             ).getOrThrow()
             .content

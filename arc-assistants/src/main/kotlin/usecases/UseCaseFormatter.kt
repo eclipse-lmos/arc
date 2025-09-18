@@ -36,6 +36,10 @@ suspend fun List<UseCase>.formatToString(
             |
             """.trimMargin(),
         )
+        if (useCase.goal.isNotEmpty()) {
+            temp.append("#### Goal\n")
+            useCase.goal.output(allConditions, temp)
+        }
         if (useCase.steps.isNotEmpty() && outputOptions.outputSolution != false) {
             temp.append("#### Steps\n")
             useCase.steps.output(allConditions, temp)

@@ -21,6 +21,7 @@ suspend fun DSLContext.useCasesWithFlows(
     outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
     model: String? = null,
+    optionsAnalyserPrompt: String? = null,
 ): String {
     return useCases(
         name,
@@ -38,6 +39,7 @@ suspend fun DSLContext.useCasesWithFlows(
                 usedUseCases = usedUseCases,
                 conditions = conditions,
                 context = this,
+                optionsAnalyserPrompt = optionsAnalyserPrompt,
                 model = model,
             )
         },
