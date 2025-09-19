@@ -108,6 +108,15 @@ suspend fun processFlow(
             val matchedOption = evalUserReply(updatedFlowPosition, context, optionsAnalyserPrompt, model)
             if (matchedOption != null) {
                 //
+                // The command "RESET" is a special command that clears the current flow progress.
+                //
+                if (matchedOption.command == "RESET") {
+                    context.memory(MEMORY_KEY, null)
+                    context.setLocal(MEMORY_KEY, null)
+                    return flowStart.contentWithoutOptions
+                }
+
+                //
                 // If the matched option contains a reference to another use case,
                 // then we update the instructions to those of the referenced use case.
                 //
@@ -157,11 +166,11 @@ suspend fun processFlow(
             }
 
             //
-            // We could not match the user reply to an option, so we ask the user to repeat.
-            // If the user has changed the topic, then this would automatically trigger different use cases
+            // We could not match the user reply to an option.
+            // If the user has changed the topic, then this would automatically trigger a different use cases
             // and this would not be needed.
             //
-            log.warn("Could not match user reply to any flow option. Asking to repeat.")
+            log.warn("Could not match user reply to any flow option. noMatchResponse = $noMatchResponse")
             return noMatchResponse?.output(useCase, conditions) ?: updatedFlowPosition.contentWithoutOptions
         }
         return flowStart.contentWithoutOptions
