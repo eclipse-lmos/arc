@@ -43,6 +43,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         }
 
         ClientOpenTelemetry.get()?.let { sdk ->
+            log.info("Setting OpenTelemetry sdk...")
             install(KtorClientTelemetry) {
                 setOpenTelemetry(sdk)
             }
