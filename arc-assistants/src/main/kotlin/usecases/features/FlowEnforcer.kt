@@ -56,7 +56,7 @@ import org.eclipse.lmos.arc.core.result
  * the use case is updated in every turn of the conversation with the current step of the flow.
  * This ensures that the LLM cannot get distracted or confused by multiple instructions.
  */
-private const val MEMORY_KEY = "current_use_case_flow"
+private const val MEMORY_KEY = "flow_options_current_use_case_flow"
 private val log = org.slf4j.LoggerFactory.getLogger("usecases.FlowEnforcer")
 
 suspend fun processFlow(
@@ -70,13 +70,13 @@ suspend fun processFlow(
     noMatchResponse: String? = null,
     optionsAnalyserPrompt: String? = null,
 ): String {
-    var flowOptions = extractFlowOptions(content)
+    val flowStart = extractFlowOptions(content)
 
     //
     // Only process Use Cases that contain flow options.
     //
-    if (flowOptions.options.isNotEmpty()) {
-        log.debug("Found Flow Options: ${flowOptions.options}")
+    if (flowStart.options.isNotEmpty()) {
+        log.debug("Found Flow Options: ${flowStart.options}")
 
         //
         // If we have started this use case in the last turn, then we are in a flow and should update the instructions.
@@ -91,12 +91,21 @@ suspend fun processFlow(
             val currentFlowStep = currentFlow?.steps?.lastOrNull()
             val currentCase =
                 currentFlowStep?.let { allUseCases?.firstOrNull { it.id == currentFlowStep } }
-            if (currentCase != null) flowOptions = currentCase.copy(subUseCase = false).flowOptions(conditions)
+            val updatedFlowPosition = currentCase?.copy(subUseCase = false)?.flowOptions(conditions) ?: flowStart
+
+            //
+            // We have reached the end of a flow, so we clear the current flow progress.
+            //
+            if (updatedFlowPosition.options.isEmpty()) {
+                context.memory(MEMORY_KEY, null)
+                context.setLocal(MEMORY_KEY, null)
+                return flowStart.contentWithoutOptions
+            }
 
             //
             // Match the user reply to one of the options.
             //
-            val matchedOption = evalUserReply(flowOptions, context, optionsAnalyserPrompt, model)
+            val matchedOption = evalUserReply(updatedFlowPosition, context, optionsAnalyserPrompt, model)
             if (matchedOption != null) {
                 //
                 // If the matched option contains a reference to another use case,
@@ -108,7 +117,7 @@ suspend fun processFlow(
                         FlowOptionEvent(
                             useCaseId = useCase.id,
                             matchedOption = matchedOption,
-                            flowOptions = flowOptions,
+                            flowOptions = updatedFlowPosition,
                             referenceUseCase = referenceUseCase.id,
                         ),
                     )
@@ -136,7 +145,7 @@ suspend fun processFlow(
                         FlowOptionEvent(
                             useCaseId = useCase.id,
                             matchedOption = matchedOption,
-                            flowOptions = flowOptions,
+                            flowOptions = updatedFlowPosition,
                         ),
                     )
                 }
@@ -153,9 +162,9 @@ suspend fun processFlow(
             // and this would not be needed.
             //
             log.warn("Could not match user reply to any flow option. Asking to repeat.")
-            return noMatchResponse?.output(useCase, conditions) ?: flowOptions.contentWithoutOptions
+            return noMatchResponse?.output(useCase, conditions) ?: updatedFlowPosition.contentWithoutOptions
         }
-        return flowOptions.contentWithoutOptions
+        return flowStart.contentWithoutOptions
     }
     return content
 }
