@@ -22,6 +22,7 @@ suspend fun DSLContext.useCasesWithFlows(
     filter: (UseCase) -> Boolean = { true },
     model: String? = null,
     optionsAnalyserPrompt: String? = null,
+    additionUseCases: List<String>? = null,
 ): String {
     return useCases(
         name,
@@ -31,6 +32,7 @@ suspend fun DSLContext.useCasesWithFlows(
         exampleLimit = exampleLimit,
         outputOptions = outputOptions,
         filter = filter,
+        additionUseCases = additionUseCases,
         formatter = { content, useCase, useCases, usedUseCases ->
             processFlow(
                 content = content,

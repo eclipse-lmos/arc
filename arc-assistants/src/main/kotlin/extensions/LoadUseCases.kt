@@ -33,6 +33,7 @@ suspend fun DSLContext.useCases(
     exampleLimit: Int = 4,
     outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
+    additionUseCases: List<String>? = null,
     formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
@@ -43,6 +44,10 @@ suspend fun DSLContext.useCases(
 
         if (useCaseFolder != null) {
             useCases = useCases.resolveReferences(useCaseFolder)
+        }
+        if (additionUseCases != null) {
+            log.debug("Adding additional use cases: $additionUseCases")
+            useCases = useCases + additionUseCases.mapNotNull { local(it) }.flatMap { it.toUseCases() }
         }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
