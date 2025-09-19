@@ -60,6 +60,15 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         val opId = UUID.randomUUID().toString()
         client.webSocket(url ?: defaultUrl!!, {
             requestHeaders.forEach { (key, value) -> header(key, value.toString()) }
+            // TODO fix this
+            agentRequest.systemContext.firstOrNull { it.key == "traceId" }?.value?.let {
+                log.info("Setting x-b3-traceid to $it")
+                header("x-b3-traceid", it)
+            }
+            agentRequest.systemContext.firstOrNull { it.key == "spanId" }?.value?.let {
+                log.info("Setting x-b3-spanid to $it")
+                header("x-b3-spanid", it)
+            }
         }) {
             initConnection()
             sendSubscription(opId, agentRequest, agentName)
