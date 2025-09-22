@@ -11,6 +11,9 @@ import io.ktor.client.request.*
 import io.ktor.websocket.*
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.context.Context
+import io.opentelemetry.context.propagation.TextMapSetter
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
@@ -60,14 +63,19 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         val opId = UUID.randomUUID().toString()
         client.webSocket(url ?: defaultUrl!!, {
             requestHeaders.forEach { (key, value) -> header(key, value.toString()) }
+
             // TODO fix this
-            agentRequest.systemContext.firstOrNull { it.key == "traceId" }?.value?.let {
-                log.info("Setting x-b3-traceid to $it")
-                header("x-b3-traceid", it)
-            }
-            agentRequest.systemContext.firstOrNull { it.key == "spanId" }?.value?.let {
-                log.info("Setting x-b3-spanid to $it")
-                header("x-b3-spanid", it)
+            ClientOpenTelemetry.get()?.let { sdk ->
+                val span = Span.current()
+                if (span.isRecording) {
+                    val context = Context.current()
+                    val propagator = sdk.propagators.textMapPropagator
+                    val setter = TextMapSetter<HttpRequestBuilder> { _, key, value ->
+                        log.info("Setting tracing header -> $key: $value")
+                        header(key, value)
+                    }
+                    propagator.inject(context, this, setter)
+                }
             }
         }) {
             initConnection()
