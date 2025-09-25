@@ -39,6 +39,7 @@ import org.eclipse.lmos.arc.agents.llm.TextEmbedding
 import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
+import org.eclipse.lmos.arc.agents.withLogContext
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
@@ -136,21 +137,26 @@ class AzureAIClient(
             }
         }
         llmEventPublisher.publishEvent(result, chatCompletionsResult.getOrNull(), duration)
+        val useCase = result.getOrNull()?.content?.extractUseCaseId()
 
-        chatCompletionsResult.getOrNull()?.let { chatCompletions ->
-            log.debug("ChatCompletions: ${chatCompletions.choices[0].finishReason} (${chatCompletions.choices.size})")
-            val newMessages = functionCallHandler.handle(chatCompletions).getOrThrow()
-            if (newMessages.isNotEmpty()) {
-                return getChatCompletions(
-                    messages + newMessages,
-                    openAIFunctions,
-                    functionCallHandler,
-                    settings,
-                    llmEventPublisher,
-                )
+        return withLogContext(useCase?.let { mapOf("use_case" to useCase) } ?: emptyMap()) {
+            chatCompletionsResult.getOrNull()?.let { chatCompletions ->
+                log.debug("ChatCompletions: ${chatCompletions.choices[0].finishReason} (${chatCompletions.choices.size})")
+                val newMessages = functionCallHandler.handle(chatCompletions).getOrThrow()
+                if (newMessages.isNotEmpty()) {
+                    // tool was called, continue the cycle
+                    return@withLogContext getChatCompletions(
+                        messages + newMessages,
+                        openAIFunctions,
+                        functionCallHandler,
+                        settings,
+                        llmEventPublisher,
+                    )
+                }
             }
+            // llm has completed
+            return@withLogContext result
         }
-        return result
     }
 
     @OptIn(ExperimentalContracts::class)
@@ -250,5 +256,18 @@ class AzureAIClient(
 
     override fun toString(): String {
         return "AzureAIClient(config=$config, client=$client)"
+    }
+}
+
+/**
+ * Todo come up with a better way to pass the use case id to the client
+ */
+private val useCaseIdRegex = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE)
+
+fun String.extractUseCaseId(): String? {
+    return try {
+        useCaseIdRegex.find(this)?.groupValues?.elementAtOrNull(1)?.trim()
+    } catch (ex: Exception) {
+        null
     }
 }

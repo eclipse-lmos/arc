@@ -24,6 +24,18 @@ val optionsAnalyserPrompt = """
   Options:
    - yes
    - no
-  Correct output: yes
+  Correct output: yes  
+  
+  User input: "blue"
+  Options:
+   - user choose color
+   - other
+  Correct output: user choose color  
+  
+  User input: "i dont know"
+  Options:
+   - user choose color
+   - other
+  Correct output: other
                
 """.trimIndent()
