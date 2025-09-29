@@ -72,13 +72,11 @@ suspend fun DSLContext.useCases(
         tags.tag("retrieval.documents.0.document.score", "1.0")
         tags.tag(
             "retrieval.documents.0.document.meta",
-            """
-                {"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
+            """{"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
                 conditions.joinToString(
                     ",",
                 )
-            }"}
-                """,
+            }"}""".replace("\n", " "),
         )
 
         formattedUseCases
