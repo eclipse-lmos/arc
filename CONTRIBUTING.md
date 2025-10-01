@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 # Contributing to Arc
 
 Thanks for your interest in this project.
