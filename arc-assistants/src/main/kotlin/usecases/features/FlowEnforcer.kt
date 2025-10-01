@@ -254,8 +254,8 @@ suspend fun evalUserReply(
                     
                     Options:
                     $optionList
-                    """.trimIndent()
-                    )
+                        """.trimIndent(),
+                    ),
                 ),
             ).getOrThrow()
             .content

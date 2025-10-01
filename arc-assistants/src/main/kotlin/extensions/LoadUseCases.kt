@@ -69,9 +69,9 @@ suspend fun DSLContext.useCases(
         setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases))
         tags.tag("retrieval.documents.0.document.id", name)
         tags.tag("retrieval.documents.0.document.content", formattedUseCases)
-        tags.tag("retrieval.documents.0.document.score", "1.0")
+        // tags.tag("retrieval.documents.0.document.score", "1.0")
         tags.tag(
-            "retrieval.documents.0.document.meta",
+            "retrieval.documents.0.document.metadata",
             """{"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
                 conditions.joinToString(
                     ",",
