@@ -18,7 +18,7 @@ Solution
 
 ----
 
-### UseCase: usecase2
+### UseCase: usecase2(2)
 #### Description
 The description of the use case 2.
 
@@ -28,6 +28,10 @@ Primary Solution
 #### Alternative Solution
 Alternative solution
 <web>The web solution for use case 2
+
+#### Fallback Solution
+- Fallback soultion!
+
 ----
 
 ### UseCase: usecase3
