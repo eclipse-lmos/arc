@@ -18,7 +18,7 @@ Solution
 
 ----
 
-### UseCase: usecase2(2)
+### UseCase: usecase2 (2)
 #### Description
 The description of the use case 2.
 

@@ -9,7 +9,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.dsl.extensions.local
 import org.eclipse.lmos.arc.agents.dsl.withDSLContext
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
+import org.eclipse.lmos.arc.assistants.support.usecases.parseUseCaseHeader
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class UseCaseParserTest : TestBase() {
@@ -127,5 +129,35 @@ class UseCaseParserTest : TestBase() {
         assertThat(useCases.formatToString(conditions = setOf("myCondition")).trim()).isEqualTo("""""")
         assertThat(useCases.formatToString(conditions = setOf("2Condition"))).contains("### UseCase: usecase")
         assertThat(useCases.formatToString(conditions = setOf("2Condition", "!myCondition"))).contains("### UseCase:")
+    }
+}
+
+class UseCaseHeaderParserTest : TestBase() {
+    @Test
+    fun `parst id ohne executionLimit`() {
+        val (id, limit) = parseUseCaseHeader("usecase1")
+        assertEquals("usecase1", id)
+        assertEquals(1, limit)
+    }
+
+    @Test
+    fun `parst id mit executionLimit`() {
+        val (id, limit) = parseUseCaseHeader("usecase2 (5)")
+        assertEquals("usecase2", id)
+        assertEquals(5, limit)
+    }
+
+    @Test
+    fun `parst id mit leerem Limit`() {
+        val (id, limit) = parseUseCaseHeader("usecase3()")
+        assertEquals("usecase3", id)
+        assertEquals(1, limit)
+    }
+
+    @Test
+    fun `parst id mit Leerzeichen`() {
+        val (id, limit) = parseUseCaseHeader("  usecase4 ( 3 ) ")
+        assertEquals("usecase4", id)
+        assertEquals(3, limit)
     }
 }
