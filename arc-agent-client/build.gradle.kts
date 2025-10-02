@@ -7,6 +7,9 @@ dependencies {
     implementation(libs.ktor.client.cio.jvm)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.otel)
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.54.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.54.0")
 
     implementation(project(":arc-api"))
 

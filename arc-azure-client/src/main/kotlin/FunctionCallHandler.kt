@@ -36,16 +36,16 @@ import kotlin.time.measureTime
 class FunctionCallHandler(
     val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
-    private val functionCallLimit: Int = 60,
+    private val functionCallLimit: Int = 30,
     private val tracer: AgentTracer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
 
-    private val _calledFunctions = ConcurrentHashMap<String, LLMFunction>()
-    val calledFunctions get(): Map<String, LLMFunction> = _calledFunctions
+    private val _calledFunctions = ConcurrentHashMap<String, ToolCall>()
+    val calledFunctions get(): Map<String, ToolCall> = _calledFunctions
 
-    fun calledSensitiveFunction() = _calledFunctions.any { it.value.isSensitive }
+    fun calledSensitiveFunction() = _calledFunctions.any { it.value.function.isSensitive }
 
     suspend fun handle(chatCompletions: ChatCompletions) = result<List<ChatRequestMessage>, ArcException> {
         val choice = chatCompletions.choices[0]
@@ -75,7 +75,7 @@ class FunctionCallHandler(
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
                         functionCallResult = tracer.withSpan("tool") { tags, _ ->
                             OpenInferenceTags.applyToolAttributes(functionName, toolCall, tags)
-                            callFunction(functionName, functionArguments, tags, functionHolder).also {
+                            callFunction(functionName, functionArguments, tags, functionHolder, toolCall).also {
                                 OpenInferenceTags.applyToolAttributes(it, tags)
                             }
                         }
@@ -106,6 +106,7 @@ class FunctionCallHandler(
         functionArguments: Map<String, Any?>,
         tags: Tags,
         functionHolder: AtomicReference<LLMFunction?>,
+        toolCall: ChatCompletionsFunctionToolCall,
     ) =
         result<String, ArcException> {
             val function = functions.find { it.name == functionName } ?: failWith {
@@ -115,7 +116,7 @@ class FunctionCallHandler(
             functionHolder.set(function) // TODO this is not nice
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            _calledFunctions[functionName] = function
+            _calledFunctions[functionName] = ToolCall(functionName, function, toolCall.function.arguments)
             OpenInferenceTags.applyToolAttributes(function, tags)
             function.execute(functionArguments) failWith {
                 tags.error(it)
@@ -129,3 +130,5 @@ class FunctionCallHandler(
         }
     }
 }
+
+data class ToolCall(val name: String, val function: LLMFunction, val arguments: String)

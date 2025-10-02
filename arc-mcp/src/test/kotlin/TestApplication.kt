@@ -4,7 +4,8 @@
 
 package org.eclipse.lmos.arc.mcp
 
-import io.modelcontextprotocol.server.McpServerFeatures.SyncPromptRegistration
+import io.modelcontextprotocol.server.McpServerFeatures
+import io.modelcontextprotocol.server.McpSyncServerExchange
 import io.modelcontextprotocol.spec.McpSchema
 import io.modelcontextprotocol.spec.McpSchema.GetPromptRequest
 import io.modelcontextprotocol.spec.McpSchema.GetPromptResult
@@ -57,16 +58,16 @@ open class TestApplication {
     }
 
     @Bean
-    open fun prompts(): List<SyncPromptRegistration> {
+    open fun prompts(): List<McpServerFeatures.SyncPromptSpecification> {
         val prompt = McpSchema.Prompt(
             "greeting",
             "A friendly greeting prompt",
             listOf(PromptArgument("name", "The name to greet", true)),
         )
 
-        val promptRegistration = SyncPromptRegistration(
+        val promptRegistration = McpServerFeatures.SyncPromptSpecification(
             prompt,
-        ) { getPromptRequest: GetPromptRequest ->
+        ) { exchange: McpSyncServerExchange, getPromptRequest: GetPromptRequest ->
             var nameArgument = getPromptRequest.arguments()["name"] as String?
             if (nameArgument == null) {
                 nameArgument = "friend"
