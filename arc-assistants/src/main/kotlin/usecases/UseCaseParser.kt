@@ -30,10 +30,7 @@ fun String.toUseCases(): List<UseCase> {
                 currentUseCase?.let { useCases.add(it) }
                 val (lineWithoutConditions, conditions) = line.parseConditions()
                 val useCaseHeader = lineWithoutConditions.substringAfter(":").trim()
-                val regex = Regex("""([^\(]+)(?:\((\d+)\))?""")
-                val match = regex.matchEntire(useCaseHeader)
-                val id = match?.groups?.get(1)?.value?.trim() ?: useCaseHeader
-                val executionLimit = match?.groups?.get(2)?.value?.toIntOrNull() ?: 1
+                val (id, executionLimit) = parseUseCaseHeader(useCaseHeader)
                 currentUseCase = UseCase(
                     id = id,
                     executionLimit = executionLimit,
@@ -96,6 +93,29 @@ fun String.toUseCases(): List<UseCase> {
     }
     currentUseCase?.let { useCases.add(it) }
     return useCases
+}
+
+/**
+ * Parses a use case header string to extract the use case ID and execution limit.
+ *
+ * The header string is expected to follow the format: `id(executionLimit)`, where:
+ * - `id` is the identifier of the use case.
+ * - `executionLimit` is an optional integer specifying the execution limit. If not provided, it defaults to 1.
+ *
+ * Example inputs and outputs:
+ * - Input: "usecase1" -> Output: Pair("usecase1", 1)
+ * - Input: "usecase2 (5)" -> Output: Pair("usecase2", 5)
+ * - Input: "usecase3 ()" -> Output: Pair("usecase3", 1)
+ *
+ * @param header The use case header string to parse.
+ * @return A Pair containing the use case ID as a String and the execution limit as an Int.
+ */
+fun parseUseCaseHeader(header: String): Pair<String, Int> {
+    val regex = Regex("""^\s*([^\(\s]+)\s*(?:\(\s*(\d*)\s*\))?\s*$""")
+    val match = regex.matchEntire(header)
+    val id = match?.groups?.get(1)?.value ?: header.trim()
+    val executionLimit = match?.groups?.get(2)?.value?.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 1
+    return id to executionLimit
 }
 
 /**
