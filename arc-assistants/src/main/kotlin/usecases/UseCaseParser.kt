@@ -29,8 +29,14 @@ fun String.toUseCases(): List<UseCase> {
             if (line.contains("# UseCase") || line.contains("# Case")) {
                 currentUseCase?.let { useCases.add(it) }
                 val (lineWithoutConditions, conditions) = line.parseConditions()
+                val useCaseHeader = lineWithoutConditions.substringAfter(":").trim()
+                val regex = Regex("""([^\(]+)(?:\((\d+)\))?""")
+                val match = regex.matchEntire(useCaseHeader)
+                val id = match?.groups?.get(1)?.value?.trim() ?: useCaseHeader
+                val executionLimit = match?.groups?.get(2)?.value?.toIntOrNull() ?: 1
                 currentUseCase = UseCase(
-                    id = lineWithoutConditions.substringAfter(":").trim(),
+                    id = id,
+                    executionLimit = executionLimit,
                     version = version,
                     conditions = conditions,
                     subUseCase = line.contains("# Case"),
@@ -183,6 +189,7 @@ enum class Section {
 @Serializable
 data class UseCase(
     val id: String,
+    val executionLimit: Int? = null,
     val version: String? = null,
     val description: String = "",
     val steps: List<Conditional> = emptyList(),

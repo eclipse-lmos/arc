@@ -51,7 +51,11 @@ suspend fun DSLContext.useCases(
         }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
-        val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { it.value >= fallbackLimit }.keys
+        val useCaseMap = useCases.associateBy { it.id }
+        val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { (id, count) ->
+            val execLimit = useCaseMap[id]?.executionLimit ?: fallbackLimit
+            count >= execLimit
+        }.keys
         val filteredUseCases = useCases.filter(filter)
         val formattedUseCases =
             filteredUseCases.formatToString(
