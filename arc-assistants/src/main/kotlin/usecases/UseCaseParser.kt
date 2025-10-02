@@ -108,13 +108,13 @@ fun String.toUseCases(): List<UseCase> {
  * - Input: "usecase3 ()" -> Output: Pair("usecase3", 1)
  *
  * @param header The use case header string to parse.
- * @return A Pair containing the use case ID as a String and the execution limit as an Int.
+ * @return A Pair containing the use case ID as a String and the execution limit as an Int. default limit is null if not specified.
  */
-fun parseUseCaseHeader(header: String): Pair<String, Int> {
+fun parseUseCaseHeader(header: String): Pair<String, Int?> {
     val regex = Regex("""^\s*([^\(\s]+)\s*(?:\(\s*(\d*)\s*\))?\s*$""")
     val match = regex.matchEntire(header)
     val id = match?.groups?.get(1)?.value ?: header.trim()
-    val executionLimit = match?.groups?.get(2)?.value?.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 1
+    val executionLimit = match?.groups?.get(2)?.value?.takeIf { it.isNotBlank() }?.toIntOrNull()
     return id to executionLimit
 }
 
