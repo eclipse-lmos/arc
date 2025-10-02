@@ -33,6 +33,8 @@ suspend fun DSLContext.useCases(
     exampleLimit: Int = 4,
     outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
+    additionUseCases: List<String>? = null,
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
@@ -42,6 +44,10 @@ suspend fun DSLContext.useCases(
 
         if (useCaseFolder != null) {
             useCases = useCases.resolveReferences(useCaseFolder)
+        }
+        if (additionUseCases != null) {
+            log.debug("Adding additional use cases: $additionUseCases")
+            useCases = useCases + additionUseCases.mapNotNull { local(it) }.flatMap { it.toUseCases() }
         }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
@@ -54,22 +60,23 @@ suspend fun DSLContext.useCases(
                 loadConditions() + conditions,
                 exampleLimit = exampleLimit,
                 outputOptions = outputOptions,
+                usedUseCases = usedUseCases,
+                allUseCases = useCases,
+                formatter = formatter,
             )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
         setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases))
         tags.tag("retrieval.documents.0.document.id", name)
         tags.tag("retrieval.documents.0.document.content", formattedUseCases)
-        tags.tag("retrieval.documents.0.document.score", "1.0")
+        // tags.tag("retrieval.documents.0.document.score", "1.0")
         tags.tag(
-            "retrieval.documents.0.document.meta",
-            """
-                {"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
+            "retrieval.documents.0.document.metadata",
+            """{"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
                 conditions.joinToString(
                     ",",
                 )
-            }"}
-                """,
+            }"}""".replace("\n", " "),
         )
 
         formattedUseCases
@@ -92,6 +99,7 @@ suspend fun DSLContext.processUseCases(
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
     exampleLimit: Int = 10_000,
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
     val fallbackCases =
@@ -101,7 +109,15 @@ suspend fun DSLContext.processUseCases(
             .filter { it.value >= fallbackLimit }
             .keys
     val filteredUseCases =
-        useCases.formatToString(usedUseCases.toSet(), fallbackCases, conditions, exampleLimit)
+        useCases.formatToString(
+            usedUseCases.toSet(),
+            fallbackCases,
+            conditions,
+            exampleLimit,
+            usedUseCases = usedUseCases,
+            allUseCases = useCases,
+            formatter = formatter,
+        )
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
     setLocal(LOCAL_USE_CASES, LoadedUseCases(name = "all", useCases, usedUseCases, filteredUseCases))
