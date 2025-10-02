@@ -137,7 +137,7 @@ class UseCaseHeaderParserTest : TestBase() {
     fun `parst id ohne executionLimit`() {
         val (id, limit) = parseUseCaseHeader("usecase1")
         assertEquals("usecase1", id)
-        assertEquals(1, limit)
+        assertEquals(null, limit)
     }
 
     @Test
@@ -151,7 +151,7 @@ class UseCaseHeaderParserTest : TestBase() {
     fun `parst id mit leerem Limit`() {
         val (id, limit) = parseUseCaseHeader("usecase3()")
         assertEquals("usecase3", id)
-        assertEquals(1, limit)
+        assertEquals(null, limit)
     }
 
     @Test
