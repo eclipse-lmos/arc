@@ -32,7 +32,7 @@ interface DSLContext {
     /**
      * Sets a local value that is only available during the current request.
      */
-    fun setLocal(key: String, value: Any)
+    fun setLocal(key: String, value: Any?)
 
     /**
      * Gets a local value that is only available during the current request.
@@ -53,7 +53,11 @@ class BasicDSLContext(private val beanProvider: BeanProvider) : DSLContext {
 
     private val localMap = ConcurrentHashMap<String, Any>()
 
-    override fun setLocal(key: String, value: Any) {
+    override fun setLocal(key: String, value: Any?) {
+        if (value == null) {
+            localMap.remove(key)
+            return
+        }
         localMap[key] = value
     }
 

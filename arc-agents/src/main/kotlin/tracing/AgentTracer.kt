@@ -16,6 +16,11 @@ interface AgentTracer {
         attributes: Map<String, String> = emptyMap(),
         fn: suspend (Tags, Events) -> T,
     ): T
+
+    /**
+     * Add an attribute to the current span.
+     */
+    suspend fun addToSpan(key: String, value: String) {}
 }
 
 /**

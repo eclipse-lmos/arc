@@ -4,13 +4,14 @@
 
 package org.eclipse.lmos.arc.assistants.support.usecases
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ExamplesLimitTest {
 
     @Test
-    fun `test the examples with no limit`() {
+    fun `test the examples with no limit`(): Unit = runBlocking {
         val useCases = """
         ### UseCase: usecase
         #### Description
@@ -37,7 +38,7 @@ class ExamplesLimitTest {
     }
 
     @Test
-    fun `test the examples limit`() {
+    fun `test the examples limit`(): Unit = runBlocking {
         val useCases = """
         ### UseCase: usecase
         #### Description

@@ -86,7 +86,9 @@ class AIAgentHandover(val name: String) : ConversationClassification {
 }
 
 @Serializable
-data class AnonymizationEntity(val type: String, val value: String, val replacement: String)
+data class AnonymizationEntity(val type: String, val value: String, val replacement: String) {
+    override fun toString() = "AnonymizationEntity(type='$type', value='*****', replacement='$replacement')"
+}
 
 /**
  * Converts a string to a conversation object.
