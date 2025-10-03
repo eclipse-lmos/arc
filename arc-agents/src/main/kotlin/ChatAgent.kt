@@ -64,6 +64,8 @@ const val TOOLS_LOCAL_CONTEXT_KEY = "__tools__"
 const val TOOL_CALLS_LOCAL_CONTEXT_KEY = "__tool_calls__"
 const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
+val ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY = "${ChatAgent::class.qualifiedName}_additional_tools"
+
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
  */
@@ -239,7 +241,11 @@ class ChatAgent(
 
     private suspend fun functions(context: DSLContext, beanProvider: BeanProvider): List<LLMFunction>? {
         val toolsContext = ToolsDSLContext(context)
-        val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools }
+        val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools } + (
+            context.getLocal(
+                ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY,
+            ) as? Set<String>? ?: emptySet()
+            )
         return if (tools.isNotEmpty()) {
             getFunctions(tools, beanProvider, context).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn

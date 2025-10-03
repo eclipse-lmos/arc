@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.assistants.support.usecases
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -32,7 +33,7 @@ class SubUseCaseTest {
     }
 
     @Test
-    fun `test sub use case formatting`() {
+    fun `test sub use case formatting`(): Unit = runBlocking {
         val result = testCases.formatToString()
         assertThat(result).isEqualTo(
             """

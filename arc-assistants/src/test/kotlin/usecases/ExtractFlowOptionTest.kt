@@ -7,7 +7,7 @@ package org.eclipse.lmos.arc.assistants.support.usecases
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-class BoxesTest {
+class ExtractFlowOptionTest {
 
     @Test
     fun `extracts option and command from square brackets`() {
@@ -42,6 +42,20 @@ class BoxesTest {
     }
 
     @Test
+    fun `extracts option with whitespaces`() {
+        val box = extractFlowOption("     [eins] command")
+        assertEquals("eins", box?.option)
+    }
+
+    @Test
+    fun `ignores links`() {
+        var box = extractFlowOption("[link text] (https://example.com)")
+        assertNull(box)
+        box = extractFlowOption("[link text](https://example.com)")
+        assertNull(box)
+    }
+
+    @Test
     fun `extracts empty option and command for empty brackets`() {
         val box = extractFlowOption("[] Text")
         assertEquals("", box?.option)
@@ -65,9 +79,9 @@ class BoxesTest {
 
         val result = extractFlowOptions(input)
         assertEquals("Some normal text\nAnother line", result.contentWithoutOptions)
-        assertEquals(2, result.boxes.size)
-        assertEquals(Box("key1", "value1"), result.boxes[0])
-        assertEquals(Box("key2", "value2"), result.boxes[1])
+        assertEquals(2, result.options.size)
+        assertEquals(FlowOption("key1", "value1"), result.options[0])
+        assertEquals(FlowOption("key2", "value2"), result.options[1])
     }
 
     @Test
@@ -79,14 +93,14 @@ class BoxesTest {
 
         val result = extractFlowOptions(input)
         assertEquals("Just some text\nAnother line", result.contentWithoutOptions)
-        assertTrue(result.boxes.isEmpty())
+        assertTrue(result.options.isEmpty())
     }
 
     @Test
     fun `handles empty input`() {
         val result = extractFlowOptions("")
         assertEquals("", result.contentWithoutOptions)
-        assertTrue(result.boxes.isEmpty())
+        assertTrue(result.options.isEmpty())
     }
 
     @Test
@@ -99,8 +113,8 @@ class BoxesTest {
 
         val result = extractFlowOptions(input)
         assertEquals("\nText", result.contentWithoutOptions)
-        assertEquals(1, result.boxes.size)
-        assertEquals(Box("key", "value"), result.boxes[0])
+        assertEquals(1, result.options.size)
+        assertEquals(FlowOption("key", "value"), result.options[0])
     }
 
     @Test
@@ -108,6 +122,6 @@ class BoxesTest {
         val input = "[] "
         val result = extractFlowOptions(input)
         assertEquals("[] ", result.contentWithoutOptions)
-        assertEquals(0, result.boxes.size)
+        assertEquals(0, result.options.size)
     }
 }

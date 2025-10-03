@@ -33,6 +33,7 @@ suspend fun DSLContext.useCases(
     exampleLimit: Int = 4,
     outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
+    additionUseCases: List<String>? = null,
     formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
@@ -44,9 +45,17 @@ suspend fun DSLContext.useCases(
         if (useCaseFolder != null) {
             useCases = useCases.resolveReferences(useCaseFolder)
         }
+        if (additionUseCases != null) {
+            log.debug("Adding additional use cases: $additionUseCases")
+            useCases = useCases + additionUseCases.mapNotNull { local(it) }.flatMap { it.toUseCases() }
+        }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
-        val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { it.value >= fallbackLimit }.keys
+        val useCaseMap = useCases.associateBy { it.id }
+        val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { (id, count) ->
+            val execLimit = useCaseMap[id]?.executionLimit ?: fallbackLimit
+            count >= execLimit
+        }.keys
         val filteredUseCases = useCases.filter(filter)
         val formattedUseCases =
             filteredUseCases.formatToString(
@@ -64,16 +73,14 @@ suspend fun DSLContext.useCases(
         setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases))
         tags.tag("retrieval.documents.0.document.id", name)
         tags.tag("retrieval.documents.0.document.content", formattedUseCases)
-        tags.tag("retrieval.documents.0.document.score", "1.0")
+        // tags.tag("retrieval.documents.0.document.score", "1.0")
         tags.tag(
-            "retrieval.documents.0.document.meta",
-            """
-                {"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
+            "retrieval.documents.0.document.metadata",
+            """{"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
                 conditions.joinToString(
                     ",",
                 )
-            }"}
-                """,
+            }"}""".replace("\n", " "),
         )
 
         formattedUseCases
