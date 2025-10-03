@@ -25,3 +25,16 @@ suspend fun DSLContext.breakWith(
 
 class InterruptProcessingException(override val conversation: Conversation, reason: String?) :
     Exception("Agent processing interrupted. Reason:[${reason ?: "none"}]"), WithConversationResult
+
+/**
+ * Checks if the given exception or any of its causes is an InterruptProcessingException.
+ * The InterruptProcessingException is not to be considered as an error, but as a control flow mechanism to
+ * break the normal processing of the agent and return a specific message.
+ */
+fun Throwable.isFlowBreak(): Boolean {
+    if (this is InterruptProcessingException) return true
+    if (this.cause is InterruptProcessingException) return true
+    if (this.cause?.cause is InterruptProcessingException) return true
+    if (this.cause?.cause?.cause is InterruptProcessingException) return true
+    return false
+}

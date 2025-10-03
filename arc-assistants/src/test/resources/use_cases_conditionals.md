@@ -11,35 +11,38 @@ SPDX-License-Identifier: CC0-1.0
 The description of the use case 1.
 
 #### Steps
-- Step one of the use case 1.
+- <off>Step off
+- <on>Step on</>
 
 #### Solution 
-Solution
+<on>Solution</>
 
 ----
 
-### UseCase: usecase2 (2)
+### UseCase: usecase2
 #### Description
 The description of the use case 2.
 
 #### Solution
-Primary Solution
+<on>Primary 1
+Primary 2</>
+end
 
 #### Alternative Solution
 Alternative solution
 <web>The web solution for use case 2
-
-#### Fallback Solution
-- Fallback soultion!
-
 ----
 
 ### UseCase: usecase3
 #### Description
 The description of the use case 3.
+Second description.
 
 #### Solution
 Solution for use case 3
 <mobile>The mobile solution for use case 3
+<off>
+Off solution
+</>
 
 ----

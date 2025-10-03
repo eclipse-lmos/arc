@@ -4,6 +4,7 @@
 
 package org.eclipse.lmos.arc.agents.dsl.extensions
 
+import org.eclipse.lmos.arc.agents.ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.AGENT_LOCAL_CONTEXT_KEY
 import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.AgentFailedException
@@ -72,15 +73,25 @@ fun DSLContext.getCurrentAgent(): Agent<*, *>? {
 /**
  * Returns the current tools available to the agent.
  */
-val DSLContext.tools get(): List<LLMFunction>? {
-    return getLocal(TOOLS_LOCAL_CONTEXT_KEY) as? List<LLMFunction>?
-}
+val DSLContext.tools
+    get(): List<LLMFunction>? {
+        return getLocal(TOOLS_LOCAL_CONTEXT_KEY) as? List<LLMFunction>?
+    }
 
 /**
  * Returns the tools that were called during the execution of the agent.
  */
-val DSLContext.toolCalls get(): List<ToolCall>? {
-    return getLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY) as? List<ToolCall>?
+val DSLContext.toolCalls
+    get(): List<ToolCall>? {
+        return getLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY) as? List<ToolCall>?
+    }
+
+/**
+ * Adds a tool that should be provided to the agent.
+ */
+fun DSLContext.addTool(toolName: String) {
+    val current = (getLocal(ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY) as? Set<String>?) ?: emptySet()
+    setLocal(ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY, (current + toolName))
 }
 
 /**

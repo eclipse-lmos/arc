@@ -9,6 +9,12 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.websocket.*
+import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.context.Context
+import io.opentelemetry.context.propagation.TextMapSetter
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agent.client.AgentClient
@@ -18,6 +24,7 @@ import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -37,6 +44,13 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         install(WebSockets) {
             pingInterval = 20.seconds
         }
+
+        ClientOpenTelemetry.get()?.let { sdk ->
+            log.info("Setting OpenTelemetry sdk...")
+            install(KtorClientTelemetry) {
+                setOpenTelemetry(sdk)
+            }
+        }
     }
 
     override suspend fun callAgent(
@@ -49,6 +63,20 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         val opId = UUID.randomUUID().toString()
         client.webSocket(url ?: defaultUrl!!, {
             requestHeaders.forEach { (key, value) -> header(key, value.toString()) }
+
+            // TODO fix this
+            ClientOpenTelemetry.get()?.let { sdk ->
+                val span = Span.current()
+                if (span.isRecording) {
+                    val context = Context.current()
+                    val propagator = sdk.propagators.textMapPropagator
+                    val setter = TextMapSetter<HttpRequestBuilder> { _, key, value ->
+                        log.info("Setting tracing header -> $key: $value")
+                        header(key, value)
+                    }
+                    propagator.inject(context, this, setter)
+                }
+            }
         }) {
             initConnection()
             sendSubscription(opId, agentRequest, agentName)
@@ -110,4 +138,13 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         closing.set(true)
         client.close()
     }
+}
+
+object ClientOpenTelemetry {
+
+    private val sdkHolder = AtomicReference<OpenTelemetry?>(null)
+
+    fun set(sdk: OpenTelemetry?) = sdkHolder.set(sdk)
+
+    fun get(): OpenTelemetry? = sdkHolder.get() ?: GlobalOpenTelemetry.get()
 }

@@ -113,7 +113,7 @@ data class AssistantMessage(
  * Represents a tool call made by the LLM Model.
  */
 @Serializable
-data class ToolCall(val name: String)
+data class ToolCall(val name: String, val arguments: String)
 
 /**
  * A message sent by the Developer.

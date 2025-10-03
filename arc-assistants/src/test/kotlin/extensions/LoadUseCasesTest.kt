@@ -60,7 +60,7 @@ class LoadUseCasesTest : TestBase() {
     @Test
     fun `test use case filtering`(): Unit = runBlocking {
         withDSLContext(setOf(Conversation(), InMemoryMemory())) {
-            val result = useCases("use_cases.md") { useCase -> useCase.id != "usecase2" }
+            val result = useCases("use_cases.md", filter = { useCase -> useCase.id != "usecase2" })
             assertThat(result).doesNotContain("usecase2")
         }
     }
