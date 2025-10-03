@@ -11,7 +11,7 @@ resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
 graphql-kotlin-version = "8.8.1"
 openfeature-version = "1.15.1"
-spring-ai-mcp-version = "1.0.1"
+spring-ai-mcp-version = "1.0.3"
 mcp-version = "0.10.0"
 ktor-otel-version = "2.18.1-alpha"
 
