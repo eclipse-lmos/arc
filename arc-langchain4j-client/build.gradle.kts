@@ -10,7 +10,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.17")
 
     // LangChain4J
-    val langchain4jVersion = "0.36.2"
+    val langchain4jVersion = "1.7.1"
     compileOnly("dev.langchain4j:langchain4j-bedrock:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-google-ai-gemini:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
