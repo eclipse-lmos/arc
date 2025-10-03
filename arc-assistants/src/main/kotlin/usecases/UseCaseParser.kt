@@ -29,8 +29,11 @@ fun String.toUseCases(): List<UseCase> {
             if (line.contains("# UseCase") || line.contains("# Case")) {
                 currentUseCase?.let { useCases.add(it) }
                 val (lineWithoutConditions, conditions) = line.parseConditions()
+                val useCaseHeader = lineWithoutConditions.substringAfter(":").trim()
+                val (id, executionLimit) = parseUseCaseHeader(useCaseHeader)
                 currentUseCase = UseCase(
-                    id = lineWithoutConditions.substringAfter(":").trim(),
+                    id = id,
+                    executionLimit = executionLimit,
                     version = version,
                     conditions = conditions,
                     subUseCase = line.contains("# Case"),
@@ -90,6 +93,29 @@ fun String.toUseCases(): List<UseCase> {
     }
     currentUseCase?.let { useCases.add(it) }
     return useCases
+}
+
+/**
+ * Parses a use case header string to extract the use case ID and execution limit.
+ *
+ * The header string is expected to follow the format: `id(executionLimit)`, where:
+ * - `id` is the identifier of the use case.
+ * - `executionLimit` is an optional integer specifying the execution limit. If not provided, it defaults to 1.
+ *
+ * Example inputs and outputs:
+ * - Input: "usecase1" -> Output: Pair("usecase1", 1)
+ * - Input: "usecase2 (5)" -> Output: Pair("usecase2", 5)
+ * - Input: "usecase3 ()" -> Output: Pair("usecase3", 1)
+ *
+ * @param header The use case header string to parse.
+ * @return A Pair containing the use case ID as a String and the execution limit as an Int. default limit is null if not specified.
+ */
+fun parseUseCaseHeader(header: String): Pair<String, Int?> {
+    val regex = Regex("""^\s*([^\(\s]+)\s*(?:\(\s*(\d*)\s*\))?\s*$""")
+    val match = regex.matchEntire(header)
+    val id = match?.groups?.get(1)?.value ?: header.trim()
+    val executionLimit = match?.groups?.get(2)?.value?.takeIf { it.isNotBlank() }?.toIntOrNull()
+    return id to executionLimit
 }
 
 /**
@@ -183,6 +209,7 @@ enum class Section {
 @Serializable
 data class UseCase(
     val id: String,
+    val executionLimit: Int? = null,
     val version: String? = null,
     val description: String = "",
     val steps: List<Conditional> = emptyList(),
