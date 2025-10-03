@@ -23,6 +23,7 @@ import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.measureTime
 
 /**
@@ -68,9 +69,10 @@ class FunctionCallHandler(
                     val functionArguments = toolCall.function().arguments().toJson() failWith { it }
 
                     val functionCallResult: Result<String, ArcException>
+                    val functionHolder = AtomicReference<LLMFunction?>()
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
-                        functionCallResult = callFunction(functionName, functionArguments)
+                        functionCallResult = callFunction(functionName, functionArguments, functionHolder)
                     }
                     eventHandler?.publish(
                         LLMFunctionCalledEvent(
@@ -78,6 +80,9 @@ class FunctionCallHandler(
                             functionArguments,
                             functionCallResult,
                             duration = duration,
+                            version = functionHolder.get()?.version,
+                            description = functionHolder.get()?.description,
+                            outputDescription = functionHolder.get()?.outputDescription,
                         ),
                     )
 
@@ -98,10 +103,15 @@ class FunctionCallHandler(
         }
     }
 
-    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>) =
+    private suspend fun callFunction(
+        functionName: String,
+        functionArguments: Map<String, Any?>,
+        functionHolder: AtomicReference<LLMFunction?>,
+    ) =
         result<String, ArcException> {
             val function = functions.find { it.name == functionName }
                 ?: failWith { ArcException("Cannot find function called $functionName!") }
+            functionHolder.set(function)
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = function

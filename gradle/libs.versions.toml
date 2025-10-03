@@ -1,14 +1,19 @@
 [versions]
-kotlin-x-version = "1.10.1"
-kotlinx-serialization-version = "1.8.0"
+kotlin-x-version = "1.10.2"
+kotlinx-serialization-version = "1.9.0"
 slf4j-version = "2.0.17"
 spring-boot-version = "3.5.0"
 ktor-version = "3.2.0"
+ktor-server-version = "2.3.12"
 lettuce-version = "6.7.1.RELEASE"
-jackson-version = "2.18.3"
+jackson-version = "2.19.2"
 resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
-graphql-kotlin-version = "8.8.0"
+graphql-kotlin-version = "8.8.1"
+openfeature-version = "1.15.1"
+spring-ai-mcp-version = "1.0.1"
+mcp-version = "0.10.0"
+ktor-otel-version = "2.18.1-alpha"
 
 [libraries]
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlin-x-version" }
@@ -24,6 +29,8 @@ slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j-version" 
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback-version" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
 
+openfeature-sdk = { module = "dev.openfeature:sdk", version.ref = "openfeature-version" }
+
 #
 # Spring Boot dependencies
 #
@@ -36,18 +43,26 @@ spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-aut
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot-version" }
 
 #
+# MCP
+#
+spring-ai-starter-mcp-server-webflux = { module = "org.springframework.ai:spring-ai-starter-mcp-server-webflux", version.ref = "spring-ai-mcp-version" }
+mcp-spring-webflux = { module = "io.modelcontextprotocol.sdk:mcp-spring-webflux", version.ref = "mcp-version" }
+mcp-sdk = { module = "io.modelcontextprotocol.sdk:mcp", version.ref = "mcp-version" }
+
+#
 # Ktor dependencies
 #
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor-version" }
 ktor-client-cio-jvm = { module = "io.ktor:ktor-client-cio-jvm", version.ref = "ktor-version" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-version" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
+ktor-client-otel = { module = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0", version.ref = "ktor-otel-version" }
 
-ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor-version" }
-ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor-version" }
-ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor-version" }
-ktor-server-static = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor-version" }
-ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor-version" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor-server-version" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor-server-version" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor-server-version" }
+ktor-server-static = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor-server-version" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor-server-version" }
 
 graphql-kotlin-ktor = { module = "com.expediagroup:graphql-kotlin-ktor-server", version.ref = "graphql-kotlin-version" }
 graphql-kotlin-spring = { module = "com.expediagroup:graphql-kotlin-spring-server", version.ref = "graphql-kotlin-version" }

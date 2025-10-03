@@ -4,13 +4,16 @@
 
 package org.eclipse.lmos.arc.assistants.support.usecases
 
+import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.ALTERNATIVE_SOLUTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.DESCRIPTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.EXAMPLES
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.FALLBACK_SOLUTION
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.GOAL
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.NONE
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.SOLUTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.STEPS
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.SUB_START
 
 /**
  * Parses the given string into a list of use cases.
@@ -23,17 +26,22 @@ fun String.toUseCases(): List<UseCase> {
 
     forEachLine { line ->
         if (line.trimStart().startsWith("#")) {
-            if (line.contains("# UseCase")) {
+            if (line.contains("# UseCase") || line.contains("# Case")) {
                 currentUseCase?.let { useCases.add(it) }
                 val (lineWithoutConditions, conditions) = line.parseConditions()
+                val useCaseHeader = lineWithoutConditions.substringAfter(":").trim()
+                val (id, executionLimit) = parseUseCaseHeader(useCaseHeader)
                 currentUseCase = UseCase(
-                    id = lineWithoutConditions.substringAfter(":").trim(),
+                    id = id,
+                    executionLimit = executionLimit,
                     version = version,
                     conditions = conditions,
+                    subUseCase = line.contains("# Case"),
                 )
-                currentSection = NONE
+                currentSection = if (currentUseCase?.subUseCase == true) SUB_START else NONE
             } else {
                 currentSection = when {
+                    line.contains("# Goal") -> GOAL
                     line.contains("# Description") -> DESCRIPTION
                     line.contains("# Solution") -> SOLUTION
                     line.contains("# Alternative") -> ALTERNATIVE_SOLUTION
@@ -52,6 +60,10 @@ fun String.toUseCases(): List<UseCase> {
                 solution = (currentUseCase?.solution ?: emptyList()) + line.asConditional(),
             )
 
+            GOAL -> currentUseCase?.copy(
+                goal = (currentUseCase?.goal ?: emptyList()) + line.asConditional(),
+            )
+
             STEPS -> currentUseCase?.copy(steps = (currentUseCase?.steps ?: emptyList()) + line.asConditional())
             EXAMPLES -> currentUseCase?.copy(examples = (currentUseCase?.examples ?: "") + line)
             DESCRIPTION -> currentUseCase?.copy(
@@ -66,11 +78,44 @@ fun String.toUseCases(): List<UseCase> {
                 alternativeSolution = (currentUseCase?.alternativeSolution ?: emptyList()) + line.asConditional(),
             )
 
+            SUB_START -> {
+                if (!line.contains("# Case")) {
+                    currentUseCase?.copy(
+                        solution = (currentUseCase?.solution ?: emptyList()) + line.asConditional(),
+                    )
+                } else {
+                    currentUseCase
+                }
+            }
+
             NONE -> currentUseCase
         }
     }
     currentUseCase?.let { useCases.add(it) }
     return useCases
+}
+
+/**
+ * Parses a use case header string to extract the use case ID and execution limit.
+ *
+ * The header string is expected to follow the format: `id(executionLimit)`, where:
+ * - `id` is the identifier of the use case.
+ * - `executionLimit` is an optional integer specifying the execution limit. If not provided, it defaults to 1.
+ *
+ * Example inputs and outputs:
+ * - Input: "usecase1" -> Output: Pair("usecase1", 1)
+ * - Input: "usecase2 (5)" -> Output: Pair("usecase2", 5)
+ * - Input: "usecase3 ()" -> Output: Pair("usecase3", 1)
+ *
+ * @param header The use case header string to parse.
+ * @return A Pair containing the use case ID as a String and the execution limit as an Int. default limit is null if not specified.
+ */
+fun parseUseCaseHeader(header: String): Pair<String, Int?> {
+    val regex = Regex("""^\s*([^\(\s]+)\s*(?:\(\s*(\d*)\s*\))?\s*$""")
+    val match = regex.matchEntire(header)
+    val id = match?.groups?.get(1)?.value ?: header.trim()
+    val executionLimit = match?.groups?.get(2)?.value?.takeIf { it.isNotBlank() }?.toIntOrNull()
+    return id to executionLimit
 }
 
 /**
@@ -124,15 +169,21 @@ fun String.parseUseCaseRefs(): Pair<String, Set<String>> {
  */
 fun String.parseConditions(): Pair<String, Set<String>> {
     val regex = Regex("<(.*?)>")
-    val conditions = regex.find(this)?.groupValues?.get(1)
-    return replace(regex, "").trim() to (conditions?.split(",")?.map { it.trim() }?.toSet() ?: emptySet())
+    val conditions = buildSet {
+        regex.findAll(this@parseConditions).map { it.groupValues[1] }.flatMap { condition ->
+            condition.split(",").map { it.trim() }.toSet()
+        }.toSet().let { addAll(it) }
+    }
+    return replace(regex, "").trim() to conditions
 }
 
 fun String.asConditional(): Conditional {
     val (text, conditions) = parseConditions()
     val (textAfterFunctions, functions) = text.parseFunctions()
     val (finalText, useCaseRefs) = textAfterFunctions.parseUseCaseRefs()
-    return Conditional(finalText, conditions, functions, useCaseRefs)
+    val endConditional = conditions.contains("/")
+    val finalConditions = conditions.filter { it != "/" }.toSet()
+    return Conditional(finalText, finalConditions, functions, useCaseRefs, endConditional)
 }
 
 /**
@@ -145,7 +196,9 @@ private inline fun String.forEachLine(crossinline fn: (String) -> Unit) {
 
 enum class Section {
     NONE,
+    SUB_START,
     DESCRIPTION,
+    GOAL,
     SOLUTION,
     ALTERNATIVE_SOLUTION,
     FALLBACK_SOLUTION,
@@ -153,8 +206,10 @@ enum class Section {
     EXAMPLES,
 }
 
+@Serializable
 data class UseCase(
     val id: String,
+    val executionLimit: Int? = null,
     val version: String? = null,
     val description: String = "",
     val steps: List<Conditional> = emptyList(),
@@ -163,6 +218,8 @@ data class UseCase(
     val fallbackSolution: List<Conditional> = emptyList(),
     val examples: String = "",
     val conditions: Set<String> = emptySet(),
+    val goal: List<Conditional> = emptyList(),
+    val subUseCase: Boolean = false,
 ) {
     fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
 
@@ -172,13 +229,22 @@ data class UseCase(
         alternativeSolution.forEach { addAll(it.useCaseRefs) }
         fallbackSolution.forEach { addAll(it.useCaseRefs) }
     }
+
+    fun extractTools(): Set<String> = buildSet {
+        steps.forEach { addAll(it.functions) }
+        solution.forEach { addAll(it.functions) }
+        alternativeSolution.forEach { addAll(it.functions) }
+        fallbackSolution.forEach { addAll(it.functions) }
+    }
 }
 
+@Serializable
 data class Conditional(
     val text: String = "",
     val conditions: Set<String> = emptySet(),
     val functions: Set<String> = emptySet(),
     val useCaseRefs: Set<String> = emptySet(),
+    val endConditional: Boolean = false,
 ) {
     operator fun plus(other: String): Conditional {
         return copy(text = text + other)

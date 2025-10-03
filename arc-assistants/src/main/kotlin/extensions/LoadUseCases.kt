@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.agents.dsl.extensions
 
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.assistants.support.extensions.LoadedUseCases
+import org.eclipse.lmos.arc.assistants.support.usecases.OutputOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
@@ -29,6 +30,11 @@ suspend fun DSLContext.useCases(
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
     useCaseFolder: File? = null,
+    exampleLimit: Int = 4,
+    outputOptions: OutputOptions = OutputOptions(),
+    filter: (UseCase) -> Boolean = { true },
+    additionUseCases: List<String>? = null,
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
@@ -39,29 +45,45 @@ suspend fun DSLContext.useCases(
         if (useCaseFolder != null) {
             useCases = useCases.resolveReferences(useCaseFolder)
         }
+        if (additionUseCases != null) {
+            log.debug("Adding additional use cases: $additionUseCases")
+            useCases = useCases + additionUseCases.mapNotNull { local(it) }.flatMap { it.toUseCases() }
+        }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
-        val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { it.value >= fallbackLimit }.keys
-        val filteredUseCases =
-            useCases.formatToString(usedUseCases.toSet(), fallbackCases, loadConditions() + conditions)
+        val useCaseMap = useCases.associateBy { it.id }
+        val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { (id, count) ->
+            val execLimit = useCaseMap[id]?.executionLimit ?: fallbackLimit
+            count >= execLimit
+        }.keys
+        val filteredUseCases = useCases.filter(filter)
+        val formattedUseCases =
+            filteredUseCases.formatToString(
+                usedUseCases.toSet(),
+                fallbackCases,
+                loadConditions() + conditions,
+                exampleLimit = exampleLimit,
+                outputOptions = outputOptions,
+                usedUseCases = usedUseCases,
+                allUseCases = useCases,
+                formatter = formatter,
+            )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
-        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, filteredUseCases))
+        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases))
         tags.tag("retrieval.documents.0.document.id", name)
-        tags.tag("retrieval.documents.0.document.content", filteredUseCases)
-        tags.tag("retrieval.documents.0.document.score", "1.0")
+        tags.tag("retrieval.documents.0.document.content", formattedUseCases)
+        // tags.tag("retrieval.documents.0.document.score", "1.0")
         tags.tag(
-            "retrieval.documents.0.document.meta",
-            """
-                {"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
+            "retrieval.documents.0.document.metadata",
+            """{"version": "${useCases.firstOrNull()?.version ?: "1.0.0"}", "fallbackLimit": "$fallbackLimit", "conditions": "${
                 conditions.joinToString(
                     ",",
                 )
-            }"}
-                """,
+            }"}""".replace("\n", " "),
         )
 
-        filteredUseCases
+        formattedUseCases
     }
 }
 
@@ -80,6 +102,8 @@ suspend fun DSLContext.processUseCases(
     useCases: List<UseCase>,
     fallbackLimit: Int = 2,
     conditions: Set<String> = emptySet(),
+    exampleLimit: Int = 10_000,
+    formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
     val fallbackCases =
@@ -89,7 +113,15 @@ suspend fun DSLContext.processUseCases(
             .filter { it.value >= fallbackLimit }
             .keys
     val filteredUseCases =
-        useCases.formatToString(usedUseCases.toSet(), fallbackCases, conditions)
+        useCases.formatToString(
+            usedUseCases.toSet(),
+            fallbackCases,
+            conditions,
+            exampleLimit,
+            usedUseCases = usedUseCases,
+            allUseCases = useCases,
+            formatter = formatter,
+        )
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
     setLocal(LOCAL_USE_CASES, LoadedUseCases(name = "all", useCases, usedUseCases, filteredUseCases))
@@ -149,7 +181,8 @@ fun List<UseCase>.resolveReferences(folderOrFile: File): List<UseCase> = buildLi
 
     val references = currentUseCases.flatMap { it.extractReferences() }.toSet()
     references.forEach { ref ->
-        val fileName = ref.substringBeforeLast("/", missingDelimiterValue = "").takeIf { it.isNotBlank() }?.let { "$it.md" }
+        val fileName =
+            ref.substringBeforeLast("/", missingDelimiterValue = "").takeIf { it.isNotBlank() }?.let { "$it.md" }
         if (fileName != null) {
             val useCaseId = ref.substringAfterLast("/")
             val file = if (folderOrFile.isFile) folderOrFile else File(folderOrFile, fileName)

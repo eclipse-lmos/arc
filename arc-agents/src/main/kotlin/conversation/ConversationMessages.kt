@@ -101,11 +101,19 @@ data class AssistantMessage(
     override val anonymized: Boolean = false,
     override val binaryData: List<BinaryData> = emptyList(),
     override val format: MessageFormat = MessageFormat.TEXT,
+    val toolCalls: List<ToolCall>? = null,
     val userTranscript: String? = null,
+    val last: Boolean = true,
 ) : ConversationMessage() {
     override fun applyTurn(turnId: String): AssistantMessage = copy(turnId = turnId)
     override fun update(content: String): AssistantMessage = copy(content = content)
 }
+
+/**
+ * Represents a tool call made by the LLM Model.
+ */
+@Serializable
+data class ToolCall(val name: String, val arguments: String)
 
 /**
  * A message sent by the Developer.

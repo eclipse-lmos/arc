@@ -9,9 +9,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.AbstractRedisClient
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs
+import io.lettuce.core.api.StatefulConnection
+import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands
 import io.lettuce.core.api.reactive.RedisStringReactiveCommands
 import io.lettuce.core.cluster.RedisClusterClient
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.eclipse.lmos.arc.agents.memory.Memory
@@ -24,9 +27,16 @@ import java.time.Duration
  */
 class RedisMemory(
     private val shortTermTTL: Duration,
+    private val longTermTTL: Duration = Duration.ofDays(180),
     private val redisClient: AbstractRedisClient,
 ) : Memory {
     private val log = getLogger(RedisMemory::class.java)
+
+    private val redisConnection: StatefulConnection<String, String> = when (redisClient) {
+        is RedisClusterClient -> redisClient.connect()
+        else -> (redisClient as RedisClient).connect()
+    }
+
     private val json = jacksonObjectMapper().apply {
         enableDefaultTyping()
     }
@@ -36,7 +46,7 @@ class RedisMemory(
         if (value != null) {
             log.debug("Storing $key for $owner in LONG_TERM memory.")
             val valueJson = json.writeValueAsString(MemoryEntry(value))
-            val setArgs = SetArgs().ex(shortTermTTL.toSeconds())
+            val setArgs = SetArgs().ex(longTermTTL.toSeconds())
             commands.set(compositeKey, valueJson, setArgs).awaitSingle().also {
                 if (it != "OK") {
                     throw MemoryException("Failed to store $key for $owner in LONG_TERM memory.")
@@ -72,17 +82,9 @@ class RedisMemory(
     }
 
     private suspend fun <T> withClient(fn: suspend (RedisStringReactiveCommands<String, String>, RedisKeyReactiveCommands<String, String>) -> T): T {
-        val closeable: AutoCloseable
-        val commands = when (redisClient) {
-            is RedisClusterClient -> {
-                closeable = redisClient.connect()
-                closeable.reactive()
-            }
-
-            else -> {
-                closeable = (redisClient as RedisClient).connect()
-                closeable.reactive()
-            }
+        val commands = when (redisConnection) {
+            is StatefulRedisClusterConnection -> redisConnection.reactive()
+            else -> (redisConnection as StatefulRedisConnection).reactive()
         }
         val result = try {
             fn(commands, commands)
@@ -91,7 +93,11 @@ class RedisMemory(
             if (ex is MemoryException) throw ex
             throw MemoryException("Error while executing Redis command!", ex)
         }
-        closeable.close()
         return result
+    }
+
+    fun close() {
+        redisConnection.close()
+        redisClient.shutdown()
     }
 }

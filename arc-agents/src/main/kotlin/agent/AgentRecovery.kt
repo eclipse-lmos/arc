@@ -38,7 +38,7 @@ suspend fun ConversationAgent.recoverAgentFailure(
     context: Set<Any>,
     onFail: suspend DSLContext.(Exception) -> AssistantMessage?,
 ): Pair<Conversation, Boolean>? {
-    log.info("Agent $name interrupted!", error)
+    log.info("Agent $name interrupted by ${error.cause?.message ?: error.message}.")
 
     val cause = error.cause
     return when {
@@ -91,7 +91,8 @@ private suspend fun ConversationAgent.retry(
     context: Set<Any>,
 ): Pair<Conversation, Boolean>? {
     log.info("Retrying Agent $name with $retrySignal...")
-    return execute(input, context + retrySignal).onFailure {
+    val cleanContext = context.filter { it !is RetrySignal }.toSet()
+    return execute(input, cleanContext + retrySignal).onFailure {
         log.warn("Agent retry failed! Returning original exception!", it)
     }.getOrNull()?.let { it to true }
 }

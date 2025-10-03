@@ -5,6 +5,7 @@ package org.eclipse.lmos.arc.agents.agent
 
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agents.AGENT_LOG_CONTEXT_KEY
+import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
@@ -35,11 +36,14 @@ suspend fun BeanProvider.agentTracer() = provideOptional<AgentTracer>() ?: Defau
  * Sets the agent tracing attributes to the given function.
  */
 suspend fun <T> AgentTracer.withAgentSpan(
-    name: String,
+    agent: Agent<*, *>,
     input: Conversation,
     fn: suspend (Tags, Events) -> T,
 ): T {
+    val name = agent.name
     return withSpan("agent $name", mapOf(AGENT_LOG_CONTEXT_KEY to (MDC.get("agent") ?: name))) { tags, events ->
+        tags.tag("version", agent.version)
+        tags.tag("description", agent.description)
         tags.tag("input.value", input.transcript.lastOrNull()?.content ?: "")
         tags.tag("input.mime_type", "text/plain")
         tags.tag("openinference.span.kind", "AGENT")
@@ -107,4 +111,29 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
     val mdc: Map<String, String> = MDC.getCopyOfContextMap() ?: emptyMap()
     val details: Map<String, String> = mapOf("status" to status, "flowBreak" to "$flowBreak")
     tag("metadata", Json.encodeToString(mdc + details))
+}
+
+/**
+ * Sets the tracing attributes for the prompt version.
+ */
+fun Tags.promptVersion(version: String?) {
+    if (version != null) tag("llm.prompt_template.version", version)
+}
+
+/**
+ * Sets the tracing attributes for the input values.
+ * The content type defaults to "text/plain" if not specified.
+ */
+fun Tags.input(input: String?, contentType: String = "text/plain") {
+    tag("input.value", input ?: "")
+    tag("input.mime_type", contentType)
+}
+
+/**
+ * Sets the tracing attributes for the output values.
+ * The content type defaults to "text/plain" if not specified.
+ */
+fun Tags.output(output: String?, contentType: String = "text/plain") {
+    tag("output.value", output ?: "")
+    tag("output.mime_type", contentType)
 }

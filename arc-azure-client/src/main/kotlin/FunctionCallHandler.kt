@@ -27,6 +27,7 @@ import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.measureTime
 
 /**
@@ -35,16 +36,16 @@ import kotlin.time.measureTime
 class FunctionCallHandler(
     val functions: List<LLMFunction>,
     private val eventHandler: EventPublisher?,
-    private val functionCallLimit: Int = 60,
+    private val functionCallLimit: Int = 30,
     private val tracer: AgentTracer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val functionCallCount = AtomicInteger(0)
 
-    private val _calledFunctions = ConcurrentHashMap<String, LLMFunction>()
-    val calledFunctions get(): Map<String, LLMFunction> = _calledFunctions
+    private val _calledFunctions = ConcurrentHashMap<String, ToolCall>()
+    val calledFunctions get(): Map<String, ToolCall> = _calledFunctions
 
-    fun calledSensitiveFunction() = _calledFunctions.any { it.value.isSensitive }
+    fun calledSensitiveFunction() = _calledFunctions.any { it.value.function.isSensitive }
 
     suspend fun handle(chatCompletions: ChatCompletions) = result<List<ChatRequestMessage>, ArcException> {
         val choice = chatCompletions.choices[0]
@@ -69,11 +70,12 @@ class FunctionCallHandler(
                     val functionArguments = toolCall.function.arguments.toJson() failWith { it }
 
                     val functionCallResult: Result<String, ArcException>
+                    val functionHolder = AtomicReference<LLMFunction?>()
                     val duration = measureTime {
                         eventHandler?.publish(LLMFunctionStartedEvent(functionName, functionArguments))
                         functionCallResult = tracer.withSpan("tool") { tags, _ ->
                             OpenInferenceTags.applyToolAttributes(functionName, toolCall, tags)
-                            callFunction(functionName, functionArguments, tags).also {
+                            callFunction(functionName, functionArguments, tags, functionHolder, toolCall).also {
                                 OpenInferenceTags.applyToolAttributes(it, tags)
                             }
                         }
@@ -84,6 +86,9 @@ class FunctionCallHandler(
                             functionArguments,
                             functionCallResult,
                             duration = duration,
+                            version = functionHolder.get()?.version,
+                            description = functionHolder.get()?.description,
+                            outputDescription = functionHolder.get()?.outputDescription,
                         ),
                     )
 
@@ -96,13 +101,22 @@ class FunctionCallHandler(
         }
     }
 
-    private suspend fun callFunction(functionName: String, functionArguments: Map<String, Any?>, tags: Tags) =
+    private suspend fun callFunction(
+        functionName: String,
+        functionArguments: Map<String, Any?>,
+        tags: Tags,
+        functionHolder: AtomicReference<LLMFunction?>,
+        toolCall: ChatCompletionsFunctionToolCall,
+    ) =
         result<String, ArcException> {
-            val function = functions.find { it.name == functionName }
-                ?: failWith { FunctionNotFoundException(functionName) }
+            val function = functions.find { it.name == functionName } ?: failWith {
+                tags.error(FunctionNotFoundException(functionName))
+                FunctionNotFoundException(functionName)
+            }
+            functionHolder.set(function) // TODO this is not nice
 
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            _calledFunctions[functionName] = function
+            _calledFunctions[functionName] = ToolCall(functionName, function, toolCall.function.arguments)
             OpenInferenceTags.applyToolAttributes(function, tags)
             function.execute(functionArguments) failWith {
                 tags.error(it)
@@ -116,3 +130,5 @@ class FunctionCallHandler(
         }
     }
 }
+
+data class ToolCall(val name: String, val function: LLMFunction, val arguments: String)

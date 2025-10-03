@@ -4,13 +4,14 @@
 
 version = 1
 SPDX-PackageName = "arc"
-SPDX-PackageSupplier = "Deutsche Telekom AG <opensource@telekom.de>"
+SPDX-PackageSupplier = "The Eclipse Foundation"
 SPDX-PackageDownloadLocation = "https://github.com/eclipse-lmos/arc"
 
 
 [[annotations]]
 path = ["**/fonts/**",
     "**/assets/**",
+    "**/flags.flagd.json",
     "**/org.eclipse.lmos.arc.agents.llm.CompleterLoaderService",
     "**/org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader",
     "**/chat/flutter*.js",
