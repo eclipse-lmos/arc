@@ -11,9 +11,10 @@ import org.eclipse.lmos.arc.core.*
 
 class Functions {
 
-    context(FunctionDefinitionContext)
-    fun build() {
-    //@@CODE@@
+    fun build(context: FunctionDefinitionContext) {
+      with(context) {
+        //@@CODE@@
+      }
     }
 
     //@@OUTER_CODE@@

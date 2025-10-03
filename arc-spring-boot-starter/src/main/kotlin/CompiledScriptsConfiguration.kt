@@ -21,9 +21,7 @@ class CompiledScriptsConfiguration {
     @ConditionalOnClass(org.eclipse.lmos.arc.agents.gen.Agents::class)
     fun agents(agentFactory: ChatAgentFactory): AgentLoader {
         val context = BasicAgentDefinitionContext(agentFactory)
-        with(context) {
-            org.eclipse.lmos.arc.agents.gen.Agents().build()
-        }
+        org.eclipse.lmos.arc.agents.gen.Agents().build(context)
         val agents = context.agents.toList()
         return AgentLoader { agents }
     }
@@ -32,9 +30,7 @@ class CompiledScriptsConfiguration {
     @ConditionalOnClass(org.eclipse.lmos.arc.agents.gen.Functions::class)
     fun functions(beanProvider: BeanProvider): LLMFunctionLoader {
         val context = BasicFunctionDefinitionContext(beanProvider)
-        with(context) {
-            org.eclipse.lmos.arc.agents.gen.Functions().build()
-        }
+        org.eclipse.lmos.arc.agents.gen.Functions().build(context)
         val functions = context.functions.toList()
         return LLMFunctionLoader { functions }
     }

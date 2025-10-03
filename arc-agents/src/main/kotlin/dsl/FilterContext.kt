@@ -4,10 +4,10 @@
 
 package org.eclipse.lmos.arc.agents.dsl
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.extensions.emit
@@ -152,14 +152,14 @@ abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scrip
 
     suspend operator fun AgentFilter.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
-            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg) }
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg, this@FilterContext) }
         }
     }
 
     suspend operator fun KClass<out AgentFilter>.unaryPlus() {
         this@FilterContext.mapLatest { msg ->
             trace(this@unaryPlus::class.simpleName ?: "unknown", msg) {
-                context(this@unaryPlus).filter(msg)
+                context(this@unaryPlus).filter(msg, this@FilterContext)
             }
         }
     }
@@ -191,7 +191,31 @@ fun interface AgentFilter {
      * Filters or transform Conversation Messages.
      * If the fun returns null, the message will be removed from the conversation transcript.
      */
-    suspend fun filter(message: ConversationMessage): ConversationMessage?
+    suspend fun filter(message: ConversationMessage, context: FilterContext): ConversationMessage?
+}
+
+/**
+ * Filters are used to modify or remove messages from the conversation transcript.
+ */
+fun interface AgentInputFilter {
+
+    /**
+     * Filters or transform Conversation Messages.
+     * If the fun returns null, the message will be removed from the conversation transcript.
+     */
+    suspend fun filter(message: ConversationMessage, context: InputFilterContext): ConversationMessage?
+}
+
+/**
+ * Filters are used to modify or remove messages from the conversation transcript.
+ */
+fun interface AgentOutputFilter {
+
+    /**
+     * Filters or transform Conversation Messages.
+     * If the fun returns null, the message will be removed from the conversation transcript.
+     */
+    suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage?
 }
 
 /**

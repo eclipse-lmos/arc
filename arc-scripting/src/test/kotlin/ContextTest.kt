@@ -6,8 +6,6 @@ package org.eclipse.lmos.arc.scripting
 
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.arc.agents.dsl.BasicFunctionDefinitionContext
-import org.eclipse.lmos.arc.agents.dsl.DSLContext
-import org.eclipse.lmos.arc.agents.dsl.FunctionDefinitionContext
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.junit.jupiter.api.Test
 
@@ -46,8 +44,6 @@ class ContextTest : TestBase() {
     }
 }
 
-context(DSLContext)
 class ContextFilter
 
-context(FunctionDefinitionContext)
 class ContextFunction
