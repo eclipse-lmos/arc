@@ -15,6 +15,7 @@ import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.llm.LLMFinishedEvent
 import org.eclipse.lmos.arc.agents.router.RouterRoutedEvent
 import org.eclipse.lmos.arc.core.Success
+import org.eclipse.lmos.arc.core.getOrNull
 import java.math.RoundingMode.DOWN
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -38,6 +39,7 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
                             "agent" to agent.name,
                             "flowBreak" to flowBreak.toString(),
                             "model" to (model ?: "default"),
+                            "tools" to tools.toString(),
                         ),
                     )
                 } else {
@@ -50,10 +52,22 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
             }
 
             is LLMFinishedEvent -> with(event) {
+                val toolCallNames = result.getOrNull()?.toolCalls?.joinToString(",") { it.name } ?: ""
+                val content = result.getOrNull()?.content ?: ""
+                val useCaseId = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE).find(content)?.groupValues?.get(1) ?: ""
                 timer(
                     "arc.llm.finished",
                     duration,
-                    tags = mapOf("model" to model),
+                    tags = mapOf(
+                        "model" to model,
+                        "totalTokens" to totalTokens.toString(),
+                        "promptTokens" to promptTokens.toString(),
+                        "completionTokens" to completionTokens.toString(),
+                        "functionCallCount" to functionCallCount.toString(),
+                        "tools" to (functions?.joinToString(",") { it.name } ?: ""),
+                        "called_tools" to toolCallNames,
+                        "useCaseId" to useCaseId,
+                    ),
                 )
             }
 
