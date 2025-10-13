@@ -7,11 +7,13 @@ package org.eclipse.lmos.arc.assistants.support.extensions
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.conversation.Conversation
+import org.eclipse.lmos.arc.agents.dsl.extensions.getFallbackCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.useCases
 import org.eclipse.lmos.arc.agents.dsl.withDSLContext
 import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.assistants.support.TestBase
 import org.eclipse.lmos.arc.assistants.support.usecases.OutputOptions
+import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.junit.jupiter.api.Test
 
 class LoadUseCasesTest : TestBase() {
@@ -95,5 +97,43 @@ class LoadUseCasesTest : TestBase() {
                 """.trimIndent().trim(),
             )
         }
+    }
+
+}
+
+class GetFallbackCasesTest {
+
+    @Test
+    fun `executionLimit positive - streak reached`() {
+        val useCases = listOf(UseCase(id = "A", executionLimit = 3))
+        val used = listOf("A", "A", "A", "B", "C")
+        val result = getFallbackCases(used, useCases, fallbackLimit = 5)
+        assert(result.contains("A"))
+    }
+
+    @Test
+    fun `executionLimit negative - streak not reached`() {
+        val useCases = listOf(UseCase(id = "A", executionLimit = 3))
+        val used = listOf("A", "B", "A", "A", "C")
+        val result = getFallbackCases(used, useCases, fallbackLimit = 5)
+        assert(!result.contains("A"))
+        assert(!result.contains("B"))
+        assert(!result.contains("C"))
+    }
+
+    @Test
+    fun `fallbackLimit positive - count reached`() {
+        val useCases = listOf(UseCase(id = "B"))
+        val used = listOf("B", "A", "B", "C", "B", "B")
+        val result = getFallbackCases(used, useCases, fallbackLimit = 4)
+        assert(result.contains("B"))
+    }
+
+    @Test
+    fun `fallbackLimit negative - count not reached`() {
+        val useCases = listOf(UseCase(id = "B"))
+        val used = listOf("B", "A", "B", "C")
+        val result = getFallbackCases(used, useCases, fallbackLimit = 4)
+        assert(!result.contains("B"))
     }
 }
