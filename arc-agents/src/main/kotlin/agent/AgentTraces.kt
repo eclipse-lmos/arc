@@ -137,3 +137,21 @@ fun Tags.output(output: String?, contentType: String = "text/plain") {
     tag("output.value", output ?: "")
     tag("output.mime_type", contentType)
 }
+/**
+ * Sets the tracing attributes for the output values and extracts a use case ID if present.
+ * The content type defaults to "text/plain" if not specified.
+ */
+fun Tags.outputWithUseCase(output: String?, contentType: String = "text/plain") {
+    tag("output.value", output ?: "")
+    tag("output.mime_type", contentType)
+    val useCaseId = output?.let { "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE).find(it)?.groupValues?.get(1) } ?: ""
+    tag("usecase.id", useCaseId)
+
+}
+
+/**
+ * Sets the tracing attribute for the user ID.
+ */
+fun Tags.userId(userId: String) {
+    tag("user.id", userId)
+}

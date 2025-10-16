@@ -5,15 +5,7 @@
 package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
-import org.eclipse.lmos.arc.agents.agent.Skill
-import org.eclipse.lmos.arc.agents.agent.addResultTags
-import org.eclipse.lmos.arc.agents.agent.agentTracer
-import org.eclipse.lmos.arc.agents.agent.input
-import org.eclipse.lmos.arc.agents.agent.onError
-import org.eclipse.lmos.arc.agents.agent.output
-import org.eclipse.lmos.arc.agents.agent.recoverAgentFailure
-import org.eclipse.lmos.arc.agents.agent.spanChain
-import org.eclipse.lmos.arc.agents.agent.withAgentSpan
+import org.eclipse.lmos.arc.agents.agent.*
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
@@ -210,9 +202,10 @@ class ChatAgent(
                 ),
             ) { tags, _ ->
                 tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
+                tags.userId(conversation.user?.id ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
                 val outputMessage = chatCompleter.complete(fullConversation, functions, completionSettings)
-                    .getOrThrow().also { tags.output(it.content) }
+                    .getOrThrow().also { tags.outputWithUseCase(it.content) }
                 outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
                 dslContext.getOptional<GenerateResponseTagger>()?.tag(tags, outputMessage, dslContext)
                 conversation + outputMessage
