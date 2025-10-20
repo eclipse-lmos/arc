@@ -103,7 +103,7 @@ suspend fun DSLContext.useCases(
 fun getFallbackCases(
     usedUseCases: List<String>,
     useCases: List<UseCase>,
-    fallbackLimit: Int
+    fallbackLimit: Int,
 ): Set<String> {
     val useCaseMap = useCases.associateBy { it.id }
     val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { (id, count) ->
@@ -129,6 +129,7 @@ fun getFallbackCases(
     }
     return fallbackCases
 }
+
 /**
  * Extension function to format a list of use cases into a string representation.
  *

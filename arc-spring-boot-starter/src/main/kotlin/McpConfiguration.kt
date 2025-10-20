@@ -4,22 +4,22 @@
 
 package org.eclipse.lmos.arc.spring
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper
+import io.modelcontextprotocol.server.McpServerFeatures
+import io.modelcontextprotocol.spec.McpSchema
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
-import org.eclipse.lmos.arc.agents.dsl.CoroutineBeanProvider
+import org.eclipse.lmos.arc.agents.dsl.beans
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
-import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
-import org.eclipse.lmos.arc.agents.functions.toJsonMap
 import org.eclipse.lmos.arc.agents.functions.toJsonString
 import org.eclipse.lmos.arc.core.getOrThrow
+import org.eclipse.lmos.arc.mcp.ToolCallMetadata
 import org.slf4j.LoggerFactory
-import org.springframework.ai.chat.model.ToolContext
-import org.springframework.ai.tool.ToolCallback
 import org.springframework.ai.tool.ToolCallbackProvider
-import org.springframework.ai.tool.definition.ToolDefinition
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -36,71 +36,63 @@ class McpConfiguration {
     private val scope = CoroutineScope(SupervisorJob())
     private val log = LoggerFactory.getLogger(McpConfiguration::class.java)
 
-    @Bean
-    @ConditionalOnProperty("arc.mcp.tools.expose", havingValue = "true")
-    fun toolCallbackProvider(functionProvider: LLMFunctionProvider): ToolCallbackProvider {
-        log.info("Exposing tools over MCP...")
-        return ToolCallbackProvider {
-            val result = AtomicReference<Array<ToolCallback>>()
-            val wait = Semaphore(0)
-            scope.launch {
-                result.set(
-                    functionProvider.provideAll().map {
-                        FunctionToolCallback(it)
-                    }.toTypedArray(),
-                )
-                wait.release()
-            }
-            wait.tryAcquire(1, TimeUnit.MINUTES)
-            result.get()
-        }
-    }
+    private val mcpMapper = JacksonMcpJsonMapper(ObjectMapper())
 
     /**
-     * Wrapper for an LLMFunction to be used as a ToolCallback.
+     * Note: for some reason Spring does not yet support AsyncToolSpecifications.
      */
-    class FunctionToolCallback(private val llmFunction: LLMFunction) : ToolCallback {
+    @Bean
+    @ConditionalOnProperty("arc.mcp.tools.expose", havingValue = "true")
+    fun syncToolSpecifications(functionProvider: LLMFunctionProvider): List<McpServerFeatures.SyncToolSpecification> {
+        val result = AtomicReference<List<McpServerFeatures.SyncToolSpecification>>()
+        val wait = Semaphore(0)
+        log.info("Exposing tools over MCP...")
+        scope.launch {
+            result.set(
+                functionProvider.provideAll().map { fn ->
+                    McpServerFeatures.SyncToolSpecification.builder()
+                        .tool(
+                            McpSchema.Tool.builder()
+                                .name(fn.name)
+                                .title(fn.description)
+                                .description(fn.description)
+                                .meta(
+                                    buildMap {
+                                        fn.version?.let { put("version", it) }
+                                    },
+                                )
+                                .inputSchema(mcpMapper, fn.parameters.toJsonString())
+                                .build(),
 
-        private val scope = CoroutineScope(SupervisorJob())
-        private val log = LoggerFactory.getLogger(javaClass)
-
-        override fun call(toolInput: String, toolContext: ToolContext?): String {
-            return call(toolInput)
+                        )
+                        .callHandler { _, req ->
+                            val result = AtomicReference<McpSchema.CallToolResult>()
+                            val wait = Semaphore(0)
+                            scope.launch {
+                                log.warn("Calling MCP function: $req")
+                                val args = req.arguments
+                                try {
+                                    val functionResult = if (fn is FunctionWithContext) {
+                                        val context = BasicDSLContext(beans(ToolCallMetadata(req.meta ?: emptyMap())))
+                                        fn.withContext(context).execute(args)
+                                    } else {
+                                        fn.execute(args)
+                                    }
+                                    result.set(McpSchema.CallToolResult(functionResult.getOrThrow(), false))
+                                } catch (e: Exception) {
+                                    result.set(McpSchema.CallToolResult(e.message, true))
+                                }
+                                wait.release()
+                            }
+                            wait.tryAcquire(1, TimeUnit.MINUTES)
+                            result.get()
+                        }
+                        .build()
+                },
+            )
+            wait.release()
         }
-
-        override fun call(toolInput: String): String {
-            log.warn("Calling MCP function: $toolInput")
-            val args = toolInput.toJsonMap()
-            val result = AtomicReference<String?>()
-            val error = AtomicReference<Exception?>()
-            val wait = Semaphore(0)
-            scope.launch {
-                try {
-                    val functionResult = if (llmFunction is FunctionWithContext) {
-                        val context = BasicDSLContext(CoroutineBeanProvider())
-                        llmFunction.withContext(context).execute(args)
-                    } else {
-                        llmFunction.execute(args)
-                    }
-                    result.set(functionResult.getOrThrow())
-                } catch (e: Exception) {
-                    log.error("Failed to execute tool: ${llmFunction.name}!!", e)
-                    error.set(e)
-                }
-                wait.release()
-            }
-            wait.tryAcquire(1, TimeUnit.MINUTES)
-            return result.get() ?: error.get()?.let { throw it } ?: ""
-        }
-
-        override fun getToolDefinition(): ToolDefinition {
-            return object : ToolDefinition {
-                override fun name(): String = llmFunction.name
-
-                override fun description(): String = llmFunction.description
-
-                override fun inputSchema(): String = llmFunction.parameters.toJsonString()
-            }
-        }
+        wait.tryAcquire(1, TimeUnit.MINUTES)
+        return result.get()
     }
 }
