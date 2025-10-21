@@ -22,10 +22,12 @@ suspend fun DSLContext.emit(event: Event) {
 
 /**
  * Emits a message to the client.
+ *
+ * @last If true, indicates that this is the last message in the conversation turn.
  */
-suspend fun DSLContext.emitMessage(msg: String) {
+suspend fun DSLContext.emitMessage(msg: String, last: Boolean = false) {
     val currentTurnId = get<Conversation>().currentTurnId
-    emitMessage(AssistantMessage(msg, turnId = currentTurnId))
+    emitMessage(AssistantMessage(msg, turnId = currentTurnId, last = last))
 }
 
 suspend fun DSLContext.emitMessage(msg: AssistantMessage) {

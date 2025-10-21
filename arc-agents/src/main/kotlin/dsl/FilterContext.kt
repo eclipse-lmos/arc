@@ -22,7 +22,6 @@ import kotlin.time.measureTime
 /**
  * Context for filtering messages before being processed by an Agent.
  */
-context(CoroutineScope)
 class InputFilterContext(
     scriptingContext: DSLContext,
     @Volatile var input: Conversation,
@@ -55,18 +54,23 @@ class InputFilterContext(
     /**
      * Runs a block of code asynchronously.
      */
-    fun runAsync(fn: suspend InputFilterContext.() -> Unit) {
+    suspend fun CoroutineScope.runAsync(fn: suspend InputFilterContext.() -> Unit) {
         val job = async {
             fn()
         }
         jobs.updateAndGet { it + job }
+    }
+
+    suspend operator fun AgentInputFilter.unaryPlus() {
+        this@InputFilterContext.mapLatest { msg ->
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg, this@InputFilterContext) }
+        }
     }
 }
 
 /**
  * Context for filtering messages after being processed by an Agent.
  */
-context(CoroutineScope)
 class OutputFilterContext(
     scriptingContext: DSLContext,
     val input: Conversation,
@@ -100,15 +104,20 @@ class OutputFilterContext(
     /**
      * Runs a block of code asynchronously.
      */
-    fun runAsync(fn: suspend OutputFilterContext.() -> Unit) {
+    suspend fun CoroutineScope.runAsync(fn: suspend OutputFilterContext.() -> Unit) {
         val job = async {
             fn()
         }
         jobs.updateAndGet { it + job }
     }
+
+    suspend operator fun AgentOutputFilter.unaryPlus() {
+        this@OutputFilterContext.mapLatest { msg ->
+            trace(this@unaryPlus::class.simpleName ?: "unknown", msg) { filter(msg, this@OutputFilterContext) }
+        }
+    }
 }
 
-context(CoroutineScope)
 abstract class FilterContext(scriptingContext: DSLContext) : DSLContext by scriptingContext {
 
     protected val jobs = AtomicReference<List<Deferred<Unit>>>(emptyList())
@@ -186,6 +195,30 @@ fun interface AgentFilter {
 }
 
 /**
+ * Filters are used to modify or remove messages from the conversation transcript.
+ */
+fun interface AgentInputFilter {
+
+    /**
+     * Filters or transform Conversation Messages.
+     * If the fun returns null, the message will be removed from the conversation transcript.
+     */
+    suspend fun filter(message: ConversationMessage, context: InputFilterContext): ConversationMessage?
+}
+
+/**
+ * Filters are used to modify or remove messages from the conversation transcript.
+ */
+fun interface AgentOutputFilter {
+
+    /**
+     * Filters or transform Conversation Messages.
+     * If the fun returns null, the message will be removed from the conversation transcript.
+     */
+    suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage?
+}
+
+/**
  * Events
  */
 sealed class FilterEvent : Event by BaseEvent()
@@ -193,7 +226,9 @@ sealed class FilterEvent : Event by BaseEvent()
 data class FilterExecutedEvent(
     val name: String,
     val duration: Duration,
+    val input: String? = null,
     val output: String? = null,
+    val triggered: Boolean = true,
 ) : FilterEvent()
 
 /**
@@ -214,6 +249,14 @@ private suspend fun <T> DSLContext.trace(name: String, input: ConversationMessag
             tags.tag("output.mime_type", "text/plain")
         }
     }
-    emit(FilterExecutedEvent(name, duration, output = output))
+    emit(
+        FilterExecutedEvent(
+            name,
+            duration,
+            input = input.content,
+            output = output,
+            triggered = input.content != output,
+        ),
+    )
     return result!!
 }

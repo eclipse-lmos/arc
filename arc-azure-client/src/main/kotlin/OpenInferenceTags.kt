@@ -21,6 +21,7 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.getOrNull
+import org.slf4j.MDC
 
 /**
  * Helper object to apply attributes to the tags following the OpenInference spec.
@@ -110,6 +111,7 @@ object OpenInferenceTags {
         tags.tag("tool_call.function.arguments", functionArguments)
         tags.tag("input.value", functionArguments)
         tags.tag("input.mime_type", "application/json")
+        MDC.get("use_case")?.let { tags.tag("use_case", it) }
     }
 
     fun applyToolAttributes(function: LLMFunction, tags: Tags) {

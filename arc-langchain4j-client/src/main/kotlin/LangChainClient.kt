@@ -103,7 +103,12 @@ class LangChainClient(
                         val output = AssistantMessage(
                             response!!.content().text() ?: "",
                             sensitive = functionCallHandler.calledSensitiveFunction(),
-                            toolCalls = functionCallHandler.calledFunctions.map { ToolCall(it.key) },
+                            toolCalls = functionCallHandler.calledFunctions.map {
+                                ToolCall(
+                                    it.value.name,
+                                    it.value.arguments,
+                                )
+                            },
                         )
                         tags.addLLMTags(
                             config,

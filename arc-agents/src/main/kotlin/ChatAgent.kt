@@ -30,6 +30,7 @@ import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.addData
+import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
 import org.eclipse.lmos.arc.agents.dsl.setSystemPrompt
 import org.eclipse.lmos.arc.agents.events.EventPublisher
@@ -43,6 +44,7 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
+import org.eclipse.lmos.arc.agents.tracing.GenerateResponseTagger
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
@@ -58,7 +60,11 @@ const val PHASE_LOG_CONTEXT_KEY = "phase"
 const val PROMPT_LOG_CONTEXT_KEY = "prompt"
 const val INPUT_LOG_CONTEXT_KEY = "input"
 const val AGENT_LOCAL_CONTEXT_KEY = "agent"
+const val TOOLS_LOCAL_CONTEXT_KEY = "__tools__"
+const val TOOL_CALLS_LOCAL_CONTEXT_KEY = "__tool_calls__"
 const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
+
+val ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY = "${ChatAgent::class.qualifiedName}_additional_tools"
 
 /**
  * A ChatAgent is an Agent that can interact with a user in a chat-like manner.
@@ -189,6 +195,7 @@ class ChatAgent(
             //
             val functions = functions(dslContext, compositeBeanProvider)
             usedFunctions.set(functions)
+            functions?.let { dslContext.setLocal(TOOLS_LOCAL_CONTEXT_KEY, it) }
 
             //
             // Generate response
@@ -204,8 +211,11 @@ class ChatAgent(
             ) { tags, _ ->
                 tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
-                conversation + chatCompleter.complete(fullConversation, functions, completionSettings)
+                val outputMessage = chatCompleter.complete(fullConversation, functions, completionSettings)
                     .getOrThrow().also { tags.output(it.content) }
+                outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
+                dslContext.getOptional<GenerateResponseTagger>()?.tag(tags, outputMessage, dslContext)
+                conversation + outputMessage
             }
 
             //
@@ -231,7 +241,11 @@ class ChatAgent(
 
     private suspend fun functions(context: DSLContext, beanProvider: BeanProvider): List<LLMFunction>? {
         val toolsContext = ToolsDSLContext(context)
-        val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools }
+        val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools } + (
+            context.getLocal(
+                ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY,
+            ) as? Set<String>? ?: emptySet()
+            )
         return if (tools.isNotEmpty()) {
             getFunctions(tools, beanProvider, context).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn
