@@ -16,6 +16,8 @@ import io.modelcontextprotocol.spec.McpSchema.TextContent
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
+import org.eclipse.lmos.arc.agents.dsl.boolean
+import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.dsl.string
 import org.eclipse.lmos.arc.agents.dsl.types
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -33,12 +35,23 @@ import org.springframework.context.annotation.Bean
 open class TestApplication {
 
     @Bean
-    open fun tool(function: Functions) = function(
+    open fun getBooks(function: Functions) = function(
         name = "getBooks",
         description = "description",
         params = types(string("id", "the id")),
     ) { (id) ->
         """[{"name":"Spring Boot"},{"name":"$id"}]"""
+    }
+
+    @Bean
+    open fun getBookDetails(function: Functions) = function(
+        name = "getBookDetails",
+        description = "description",
+        version = "1.0.0",
+        params = types(string("id", "the id"), boolean("readonly", "flag")),
+    ) { (id) ->
+        val meta = get<ToolCallMetadata>()
+        meta.toString()
     }
 
     @Bean

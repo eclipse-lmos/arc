@@ -38,7 +38,9 @@ class McpPromptRetriever(private val url: String) : PromptRetriever, Closeable {
      */
     private fun Exception.toException(promptName: String) = when (this) {
         is McpError -> {
-            if (this.jsonRpcError.code == -32603) {
+            if (this.jsonRpcError.code == McpSchema.ErrorCodes.RESOURCE_NOT_FOUND) {
+                NoPromptFoundException(promptName)
+            } else if (this.jsonRpcError.code == McpSchema.ErrorCodes.INVALID_PARAMS) {
                 NoPromptFoundException(promptName)
             } else {
                 PromptServerException(promptName, this)

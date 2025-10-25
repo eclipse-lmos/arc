@@ -4,9 +4,13 @@
 
 package org.eclipse.lmos.arc.mcp
 
+import io.modelcontextprotocol.spec.McpSchema
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest
 import io.modelcontextprotocol.spec.McpSchema.TextContent
 import kotlinx.coroutines.reactor.awaitSingle
+import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.getOptional
+import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionException
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
@@ -43,29 +47,7 @@ class McpTools(private val url: String, private val cacheDuration: Duration?) :
         val result = clientBuilder.execute { client ->
             client.listTools().awaitSingle().tools.map { tool ->
                 log.debug("Loaded tool: ${tool.name} from $url")
-                object : LLMFunction {
-                    override val name: String = tool.name
-                    override val version: String? = null
-                    override val outputDescription: String? = null
-                    override val parameters = parameters(tool)
-                    override val description: String = tool.description
-                    override val group: String = "MCP"
-                    override val isSensitive: Boolean = false
-
-                    override suspend fun execute(input: Map<String, Any?>) = result<String, LLMFunctionException> {
-                        clientBuilder.execute { client ->
-                            val result = try {
-                                client.callTool(CallToolRequest(tool.name, input)).awaitSingle()
-                            } catch (e: Exception) {
-                                failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}!", e) }
-                            }
-                            if (result.isError) {
-                                failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}! Error: ${result.content}") }
-                            }
-                            result.content.joinToString(separator = "\n") { if (it is TextContent) it.text else it.toString() }
-                        }.getOrThrow()
-                    }
-                }
+                ToolWrapper(tool, clientBuilder)
             }
         }
         when (result) {
@@ -90,3 +72,44 @@ class McpTools(private val url: String, private val cacheDuration: Duration?) :
  * Used to implement a simple cache for listing tools.
  */
 private class ToolCacheEntry(val createdAt: Instant, val tools: List<LLMFunction>)
+
+/**
+ * Maps to the MCP tool "_meta" field.
+ */
+data class ToolCallMetadata(val data: Map<String, Any>)
+
+class ToolWrapper(
+    private val tool: McpSchema.Tool,
+    private val clientBuilder: McpClientBuilder,
+    private val context: DSLContext? = null,
+) :
+    LLMFunction,
+    FunctionWithContext {
+    override val name: String = tool.name
+    override val version: String? = null
+    override val outputDescription: String? = null
+    override val parameters = parameters(tool)
+    override val description: String = tool.description
+    override val group: String = "MCP"
+    override val isSensitive: Boolean = false
+
+    override suspend fun execute(input: Map<String, Any?>) = result<String, LLMFunctionException> {
+        clientBuilder.execute { client ->
+            val result = try {
+                client.callTool(
+                    CallToolRequest(tool.name, input, context?.getOptional<ToolCallMetadata>()?.data),
+                ).awaitSingle()
+            } catch (e: Exception) {
+                failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}!", e) }
+            }
+            if (result.isError) {
+                failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}! Error: ${result.content}") }
+            }
+            result.content.joinToString(separator = "\n") { if (it is TextContent) it.text else it.toString() }
+        }.getOrThrow()
+    }
+
+    override fun withContext(context: DSLContext): LLMFunction {
+        return ToolWrapper(tool, clientBuilder, context)
+    }
+}
