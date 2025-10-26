@@ -27,7 +27,16 @@ class UseCaseToJson {
     )
 
     fun parse(useCases: String): UseCaseResult {
-        val parsed = useCases.toUseCases()
+        val parsed = try {
+            useCases.toUseCases()
+        } catch (e: Exception) {
+            return UseCaseResult(
+                useCases = emptyList(),
+                errors = listOf(
+                    UseCaseSyntaxError(message = e.message ?: ""),
+                ),
+            )
+        }
         val errors: List<UseCaseValidationError> = validators.mapNotNull { it.validate(parsed) }.toList()
         return UseCaseResult(useCases = parsed, errors = errors)
     }
