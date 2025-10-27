@@ -12,18 +12,31 @@ import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 object UniqueExamples : UseCaseValidator {
 
     override fun validate(useCases: List<UseCase>): UseCaseValidationError? {
-        val examples = mutableMapOf<String, String>()
+        val examples = mutableMapOf<String, UseCase>()
         useCases.forEach { uc ->
             uc.examples.lines().filter { it.isNotEmpty() }.forEach { example ->
                 val trimmed = example.trim()
-                val usedExampleId = examples[trimmed]
-                if (usedExampleId != null && usedExampleId != uc.id) {
-                    return ExamplesReUsed(useCases = listOf(usedExampleId, uc.id))
+                val usedExampleUc = examples[trimmed]
+                if (usedExampleUc != null && usedExampleUc.id != uc.id && uc conditionsMatch usedExampleUc) {
+                    return ExamplesReUsed(useCases = listOf(usedExampleUc.id, uc.id))
                 }
-                examples[trimmed] = uc.id
+                examples[trimmed] = uc
             }
         }
         return null
+    }
+
+    /**
+     * Checks if the conditions of two use cases match, i.e. if it is possible
+     * for both use cases to be valid at the same time.
+     * If they can be valid at the same time, then reusing examples is not allowed.
+     */
+    private infix fun UseCase.conditionsMatch(other: UseCase): Boolean {
+        if (other.conditions.isEmpty()) return true
+        if (conditions.isEmpty()) return true
+        if (conditions.all { condition -> other.conditions.contains(condition) }) return true
+        if (other.conditions.all { condition -> conditions.contains(condition) }) return true
+        return false
     }
 }
 

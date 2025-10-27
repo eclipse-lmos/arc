@@ -29,4 +29,103 @@ class UseCaseToJsonTest {
         assertEquals("Duplicate use case IDs found: usecase1", result.errors[0].message)
         assertEquals("The same examples were used in multiple use cases: usecase1, usecase3", result.errors[1].message)
     }
+
+    @Test
+    fun `parse example errors`() {
+        val result = useCaseToJson.parse(
+            """
+            ### UseCase: usecase1 (1)  
+            #### Description
+            The description 
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----
+            ### UseCase: usecase2 (1) 
+            #### Description
+            The description
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----""",
+        )
+        assertEquals(1, result.errors!!.size)
+        assertEquals("The same examples were used in multiple use cases: usecase1, usecase2", result.errors[0].message)
+    }
+
+    @Test
+    fun `parse example errors - error with conditionals`() {
+        val result = useCaseToJson.parse(
+            """
+            ### UseCase: usecase1 (1)  
+            #### Description
+            The description 
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----
+            ### UseCase: usecase2 (1) <foo>
+            #### Description
+            The description
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----""",
+        )
+        assertEquals(1, result.errors!!.size)
+        assertEquals("The same examples were used in multiple use cases: usecase1, usecase2", result.errors[0].message)
+    }
+
+    @Test
+    fun `parse example errors - no error when conditionals are different`() {
+        val result = useCaseToJson.parse(
+            """
+            ### UseCase: usecase1 (1) <bar>
+            #### Description
+            The description 
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----
+            ### UseCase: usecase2 (1) <foo>
+            #### Description
+            The descriptions
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----""",
+        )
+        assertEquals(0, result.errors!!.size)
+    }
+
+    @Test
+    fun `parse example errors - error when conditionals match`() {
+        val result = useCaseToJson.parse(
+            """
+            ### UseCase: usecase1 (1) <bar>
+            #### Description
+            The description 
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----
+            ### UseCase: usecase2 (1) <foo> <bar>
+            #### Description
+            The descriptions
+            #### Solution
+            Primary Solution
+            #### Examples
+            - Example 1
+            ----""",
+        )
+        assertEquals(1, result.errors!!.size)
+        assertEquals("The same examples were used in multiple use cases: usecase1, usecase2", result.errors[0].message)
+    }
 }
