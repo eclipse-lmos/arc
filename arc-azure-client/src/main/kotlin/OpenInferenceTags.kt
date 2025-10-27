@@ -41,6 +41,12 @@ object OpenInferenceTags {
         tags.tag("llm.model_name", config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown")
         tags.tag("llm.provider", "azure")
         tags.tag("llm.system", "openai")
+        if (completions.choices.isNotEmpty()) {
+            tags.tag(
+                "finish_reason",
+                completions.choices[0].finishReason?.value ?: "unknown",
+            )
+        }
         settings?.let {
             tags.tag(
                 "llm.invocation_parameters",
