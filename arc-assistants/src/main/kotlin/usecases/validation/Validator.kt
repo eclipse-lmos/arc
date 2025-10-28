@@ -10,7 +10,7 @@ interface UseCaseValidator {
     fun validate(useCases: List<UseCase>): UseCaseValidationError?
 }
 
-interface UseCaseValidationError {
+sealed interface UseCaseValidationError {
     val message: String
     val code: String
     val useCases: List<String>
