@@ -39,7 +39,7 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
                             "agent" to agent.name,
                             "flowBreak" to flowBreak.toString(),
                             "model" to (model ?: "default"),
-                            "tools" to tools.toString(),
+                            "tools" to tools.joinToString(","),
                         ),
                     )
                 } else {
@@ -52,23 +52,25 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
             }
 
             is LLMFinishedEvent -> with(event) {
-                val toolCallNames = result.getOrNull()?.toolCalls?.joinToString(",") { it.name } ?: ""
+                val toolCallNames = result.getOrNull()?.toolCalls?.joinToString(",") { it.name }
                 val content = result.getOrNull()?.content ?: ""
-                val useCaseId = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE).find(content)?.groupValues?.get(1) ?: ""
+                val useCaseId = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE).find(content)?.groupValues?.get(1)
                 timer(
                     "arc.llm.finished",
                     duration,
-                    tags = mapOf(
-                        "model" to model,
-                        "totalTokens" to totalTokens.toString(),
-                        "promptTokens" to promptTokens.toString(),
-                        "completionTokens" to completionTokens.toString(),
-                        "functionCallCount" to functionCallCount.toString(),
-                        "tools" to (functions?.joinToString(",") { it.name } ?: ""),
-                        "called_tools" to toolCallNames,
-                        "useCaseId" to useCaseId,
-                    ),
+                    tags = buildMap {
+                        put("model", model)
+                        put("tools", functions?.joinToString(",") { it.name } ?: "")
+                        toolCallNames?.takeIf { it.isNotEmpty() }?.let { put("called_tools", it) }
+                        useCaseId?.takeIf { it.isNotEmpty() }?.let { put("useCaseId", it) }
+                    },
                 )
+                metrics.counter("arc.llm.finished.executor", "model", model, "type", "totalTokens").increment(totalTokens.toDouble())
+                metrics.counter("arc.llm.finished.executor", "model", model, "type", "promptTokens").increment(promptTokens.toDouble())
+                metrics.counter("arc.llm.finished.executor", "model", model, "type", "completionTokens").increment(completionTokens.toDouble())
+                if (functionCallCount > 0) {
+                    metrics.counter("arc.llm.finished.executor", "model", model, "type", "function_calls").increment(functionCallCount.toDouble())
+                }
             }
 
             is RateLimitedEvent -> with(event) {
