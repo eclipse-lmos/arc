@@ -53,7 +53,7 @@ fun String.toUseCases(): List<UseCase> {
                 }
                 return@forEachLine
             }
-        } else if (line.startsWith("----")) {
+        } else if (line.trimStart().startsWith("----")) {
             currentSection = NONE
         }
         currentUseCase = when (currentSection) {

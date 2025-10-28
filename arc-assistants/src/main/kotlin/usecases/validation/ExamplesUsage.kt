@@ -13,16 +13,21 @@ object UniqueExamples : UseCaseValidator {
 
     override fun validate(useCases: List<UseCase>): UseCaseValidationError? {
         val examples = mutableMapOf<String, UseCase>()
+        val duplicates = mutableSetOf<String>()
+        val duplicateExamples = mutableSetOf<String>()
         useCases.forEach { uc ->
             uc.examples.lines().filter { it.isNotEmpty() }.forEach { example ->
                 val trimmed = example.trim()
                 val usedExampleUc = examples[trimmed]
                 if (usedExampleUc != null && usedExampleUc.id != uc.id && uc conditionsMatch usedExampleUc) {
-                    return ExamplesReUsed(useCases = listOf(usedExampleUc.id, uc.id))
+                    duplicates.add(usedExampleUc.id)
+                    duplicates.add(uc.id)
+                    duplicateExamples.add(trimmed)
                 }
                 examples[trimmed] = uc
             }
         }
+        if (duplicates.isNotEmpty()) return ExamplesReUsed(useCases = duplicates.toList(), examples = duplicateExamples)
         return null
     }
 
@@ -44,5 +49,6 @@ object UniqueExamples : UseCaseValidator {
 data class ExamplesReUsed(
     override val code: String = "REUSED_EXAMPLES",
     override val useCases: List<String>,
-    override val message: String = "The same examples were used in multiple use cases: ${useCases.joinToString(", ")}",
+    val examples: Set<String>,
+    override val message: String = "The same examples were used in multiple Use Cases: [${useCases.joinToString(", ")}] Examples: [${examples.joinToString(", ")}]",
 ) : UseCaseValidationError
