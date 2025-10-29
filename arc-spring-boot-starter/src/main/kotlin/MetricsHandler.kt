@@ -52,6 +52,7 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
             }
 
             is LLMFinishedEvent -> with(event) {
+                val agentName = this.context?.get("agent") ?: ""
                 val toolCallNames = result.getOrNull()?.toolCalls?.joinToString(",") { it.name }
                 val content = result.getOrNull()?.content ?: ""
                 val useCaseId = "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE).find(content)?.groupValues?.get(1)
@@ -60,50 +61,55 @@ class MetricsHandler(private val metrics: MeterRegistry) : EventHandler<Event> {
                     duration,
                     tags = buildMap {
                         put("model", model)
+                        put("agent", agentName)
                         put("tools", functions?.joinToString(",") { it.name } ?: "")
                         toolCallNames?.takeIf { it.isNotEmpty() }?.let { put("called_tools", it) }
                         useCaseId?.takeIf { it.isNotEmpty() }?.let { put("useCaseId", it) }
                     },
                 )
-                metrics.counter("arc.llm.finished.executor", "model", model, "type", "totalTokens").increment(totalTokens.toDouble())
-                metrics.counter("arc.llm.finished.executor", "model", model, "type", "promptTokens").increment(promptTokens.toDouble())
-                metrics.counter("arc.llm.finished.executor", "model", model, "type", "completionTokens").increment(completionTokens.toDouble())
+                metrics.counter("arc.llm.finished.executor", "model", model, "type", "totalTokens", "agent", agentName).increment(totalTokens.toDouble())
+                metrics.counter("arc.llm.finished.executor", "model", model, "type", "promptTokens", "agent", agentName).increment(promptTokens.toDouble())
+                metrics.counter("arc.llm.finished.executor", "model", model, "type", "completionTokens", "agent", agentName).increment(completionTokens.toDouble())
                 if (functionCallCount > 0) {
-                    metrics.counter("arc.llm.finished.executor", "model", model, "type", "function_calls").increment(functionCallCount.toDouble())
+                    metrics.counter("arc.llm.finished.executor", "model", model, "type", "function_calls", "agent", agentName).increment(functionCallCount.toDouble())
                 }
             }
 
             is RateLimitedEvent -> with(event) {
+                val agentName = this.context?.get("agent") ?: ""
                 timer(
                     "arc.agent.rate.limited",
                     duration,
-                    tags = mapOf("name" to name),
+                    tags = mapOf("name" to name, "agent" to agentName),
                 )
             }
 
             is RateLimitTimeoutEvent -> with(event) {
+                val agentName = this.context?.get("agent") ?: ""
                 timer(
                     "arc.agent.rate.timeout",
                     duration,
-                    tags = mapOf("name" to name),
+                    tags = mapOf("name" to name, "agent" to agentName),
                 )
             }
 
             is FilterExecutedEvent -> with(event) {
+                val agentName = this.context?.get("agent") ?: ""
                 timer(
                     "arc.filter.executed",
                     duration,
-                    tags = mapOf("name" to name),
+                    tags = mapOf("name" to name, "agent" to agentName),
                 )
             }
 
             is RouterRoutedEvent -> with(event) {
                 val accuracy = destination?.accuracy?.toBigDecimal()?.setScale(1, DOWN)?.toString() ?: "-1"
                 val destination = destination?.destination ?: "null"
+                val agentName = this.context?.get("agent") ?: ""
                 timer(
                     "arc.router.routed",
                     duration,
-                    tags = mapOf("accuracy" to accuracy, "destination" to destination),
+                    tags = mapOf("accuracy" to accuracy, "destination" to destination, "agent" to agentName),
                 )
             }
         }
