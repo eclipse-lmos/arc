@@ -222,7 +222,7 @@ data class UseCase(
     val goal: List<Conditional> = emptyList(),
     val subUseCase: Boolean = false,
 ) {
-    fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
+    fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
     fun extractReferences(): Set<String> = buildSet {
         steps.forEach { addAll(it.useCaseRefs) }
@@ -257,7 +257,15 @@ data class Conditional(
 /**
  * Matches conditionals.
  */
-fun Set<String>.matches(allConditions: Set<String>): Boolean {
+fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean {
+    val allConditions = if (input != null) {
+        mapNotNull { condition ->
+            if (!condition.isRegexConditional()) return@mapNotNull condition
+            if (condition.regex().containsMatchIn(input)) condition else null
+        }.toSet() + this
+    } else {
+        conditions
+    }
     return isEmpty() || (
         positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
             allConditions.contains(
@@ -293,8 +301,8 @@ fun UseCase.regexConditionals(input: String?): Set<String> {
         fallbackSolution.forEach { addAll(it.conditions) }
         goal.forEach { addAll(it.conditions) }
     }.mapNotNull { conditional ->
-        if (conditional.startsWith("regex:")) {
-            conditional to Regex(conditional.substringAfter("regex:"), IGNORE_CASE)
+        if (conditional.isRegexConditional()) {
+            conditional to conditional.regex()
         } else {
             null
         }
@@ -302,3 +310,6 @@ fun UseCase.regexConditionals(input: String?): Set<String> {
         if (regex.containsMatchIn(input)) conditional else null
     }.toSet()
 }
+
+private fun String.isRegexConditional(): Boolean = startsWith("regex:")
+private fun String.regex(): Regex = Regex(substringAfter("regex:"), IGNORE_CASE)
