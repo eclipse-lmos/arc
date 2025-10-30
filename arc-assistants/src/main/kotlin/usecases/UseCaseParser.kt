@@ -262,7 +262,7 @@ fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean
         mapNotNull { condition ->
             if (!condition.isRegexConditional()) return@mapNotNull condition
             if (condition.regex().containsMatchIn(input)) condition else null
-        }.toSet() + this
+        }.toSet()
     } else {
         conditions
     }
