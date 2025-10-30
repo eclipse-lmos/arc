@@ -11,5 +11,5 @@ dependencies {
 
     // jsoup
     implementation("org.jsoup:jsoup:1.21.1")
-    implementation("org.apache.pdfbox:pdfbox:3.0.3")
+    implementation("org.apache.pdfbox:pdfbox:3.0.6")
 }
