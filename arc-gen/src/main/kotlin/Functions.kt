@@ -9,8 +9,7 @@ import org.eclipse.lmos.arc.agents.dsl.FunctionDefinitionContext
 
 class Functions {
 
-    context(FunctionDefinitionContext)
-    fun build() {
+    fun build(context: FunctionDefinitionContext) {
 
     }
 }

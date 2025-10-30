@@ -8,12 +8,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.boot.test.web.server.LocalServerPort
 import java.time.DateTimeException
 
 class McpToolsByEnvironmentTest : TestBase() {
 
     private val originalProperties = mutableMapOf<String, String?>()
     private val testProperties = listOf("ARC_MCP_TOOLS_URLS", "ARC_MCP_TOOLS_CACHE_DURATION")
+
+    @LocalServerPort
+    private var port: Int = 0
 
     @BeforeEach
     fun saveOriginalProperties() {
@@ -37,7 +41,7 @@ class McpToolsByEnvironmentTest : TestBase() {
     @Test
     fun `test loading tools from environment variables`(): Unit = runBlocking {
         // Set up environment variables
-        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:8080")
+        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:$port")
 
         // Create the loader and load tools
         val loader = McpToolsByEnvironment()
@@ -45,13 +49,13 @@ class McpToolsByEnvironmentTest : TestBase() {
 
         // Verify that tools were loaded correctly
         assertThat(tools).isNotEmpty
-        assertThat(tools.map { it.name }).containsOnly("getBooks")
+        assertThat(tools.map { it.name }).containsOnly("getBooks", "getBookDetails")
     }
 
     @Test
     fun `test loading tools from multiple URLs`(): Unit = runBlocking {
         // Set up environment variables with multiple URLs
-        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:8080, http://localhost:8080")
+        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:$port, http://localhost:$port")
 
         // Create the loader and load tools
         val loader = McpToolsByEnvironment()
@@ -59,14 +63,14 @@ class McpToolsByEnvironmentTest : TestBase() {
 
         // Verify that tools were loaded from both URLs
         assertThat(tools).isNotEmpty
-        assertThat(tools.size).isEqualTo(2) // One tool from each URL
-        assertThat(tools.map { it.name }).containsOnly("getBooks")
+        assertThat(tools.size).isEqualTo(4) // One tool from each URL
+        assertThat(tools.map { it.name }).containsOnly("getBooks", "getBookDetails")
     }
 
     @Test
     fun `test loading tools with cache duration`(): Unit = runBlocking {
         // Set up environment variables with cache duration
-        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:8080")
+        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:$port")
         System.setProperty("ARC_MCP_TOOLS_CACHE_DURATION", "PT1M") // 1 minute
 
         // Create the loader and load tools
@@ -75,7 +79,7 @@ class McpToolsByEnvironmentTest : TestBase() {
 
         // Verify that tools were loaded correctly
         assertThat(tools).isNotEmpty
-        assertThat(tools.map { it.name }).containsOnly("getBooks")
+        assertThat(tools.map { it.name }).containsOnly("getBooks", "getBookDetails")
     }
 
     @Test
@@ -95,7 +99,7 @@ class McpToolsByEnvironmentTest : TestBase() {
     @Test
     fun `test invalid cache duration format`(): Unit = runBlocking {
         // Set up environment variables with invalid cache duration
-        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:8080")
+        System.setProperty("ARC_MCP_TOOLS_URLS", "http://localhost:$port")
         System.setProperty("ARC_MCP_TOOLS_CACHE_DURATION", "invalid")
 
         try {

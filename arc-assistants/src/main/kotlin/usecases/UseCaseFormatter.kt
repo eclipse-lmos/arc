@@ -20,12 +20,14 @@ suspend fun List<UseCase>.formatToString(
     outputOptions: OutputOptions = OutputOptions(),
     usedUseCases: List<String> = emptyList(),
     allUseCases: List<UseCase>? = null,
+    input: String? = null,
     formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String = buildString {
-    this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions) }.forEach { useCase ->
+    this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions, input) }.forEach { useCase ->
         val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
         val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
-        val allConditions = conditions + "step_${usedUseCases.count { useCase.id == it } + 1}"
+        val allConditions =
+            conditions + "step_${usedUseCases.count { useCase.id == it } + 1}" + useCase.regexConditionals(input)
         val temp = StringBuilder()
 
         temp.append(
@@ -75,6 +77,7 @@ suspend fun UseCase.formatToString(
     outputOptions: OutputOptions = OutputOptions(),
     usedUseCases: List<String> = emptyList(),
     allUseCases: List<UseCase>? = null,
+    input: String? = null,
     formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String = listOf(this).formatToString(
     useAlternatives,
@@ -84,6 +87,7 @@ suspend fun UseCase.formatToString(
     outputOptions,
     usedUseCases,
     allUseCases,
+    input,
     formatter,
 )
 
