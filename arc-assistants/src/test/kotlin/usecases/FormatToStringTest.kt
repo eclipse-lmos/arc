@@ -36,6 +36,45 @@ class FormatToStringTest {
     }
 
     @Test
+    fun `test format use case with conditional - no match`(): Unit = runBlocking {
+        val input = """
+            ### UseCase: usecase1 <beta>
+            #### Description
+            The description of the use case 1.
+            #### Solution 
+            Solution
+            ----
+        """.trimIndent().toUseCases()
+        val result = input.formatToString()
+        assertThat(result).isEqualTo("")
+    }
+
+    @Test
+    fun `test format use case with conditional - match`(): Unit = runBlocking {
+        val input = """
+            ### UseCase: usecase1 <beta>
+            #### Description
+            The description of the use case 1.
+            #### Solution 
+            Solution
+            ----
+        """.trimIndent().toUseCases()
+        val result = input.formatToString(conditions = setOf("beta")).trim()
+        assertThat(result).isEqualTo(
+            """
+            ### UseCase: usecase1
+            #### Description
+            The description of the use case 1.
+
+            #### Solution
+            Solution
+
+            ----
+            """.trimIndent(),
+        )
+    }
+
+    @Test
     fun `test format use case with regex conditional - no match`(): Unit = runBlocking {
         val input = """
             ### UseCase: usecase1 <regex:.*uc1.*>
