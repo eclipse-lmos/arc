@@ -14,6 +14,7 @@ import org.eclipse.lmos.arc.assistants.support.usecases.Section.NONE
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.SOLUTION
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.STEPS
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.SUB_START
+import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
  * Parses the given string into a list of use cases.
@@ -52,7 +53,7 @@ fun String.toUseCases(): List<UseCase> {
                 }
                 return@forEachLine
             }
-        } else if (line.startsWith("----")) {
+        } else if (line.trimStart().startsWith("----")) {
             currentSection = NONE
         }
         currentUseCase = when (currentSection) {
@@ -273,3 +274,31 @@ private fun Set<String>.negativeConditionals() = filter { it.startsWith("!") }
     .map { it.removePrefix("!") }
 
 private fun Set<String>.positiveConditionals() = filter { !it.startsWith("!") }
+
+/**
+ * Evaluates regex conditionals against the given input string.
+ * Returns a set of conditions where the regex pattern matched.
+ * Example,
+ * if the UseCase has a conditional "<regex:.*urgent.*>"
+ * and the input string is "This is an urgent request",
+ * the returned set will contain "regex:.*urgent.*". which would inturn enable the conditional.
+ */
+fun UseCase.regexConditionals(input: String?): Set<String> {
+    if (input == null) return emptySet()
+    return buildSet {
+        addAll(conditions)
+        steps.forEach { addAll(it.conditions) }
+        solution.forEach { addAll(it.conditions) }
+        alternativeSolution.forEach { addAll(it.conditions) }
+        fallbackSolution.forEach { addAll(it.conditions) }
+        goal.forEach { addAll(it.conditions) }
+    }.mapNotNull { conditional ->
+        if (conditional.startsWith("regex:")) {
+            conditional to Regex(conditional.substringAfter("regex:"), IGNORE_CASE)
+        } else {
+            null
+        }
+    }.mapNotNull { (conditional, regex) ->
+        if (regex.containsMatchIn(input)) conditional else null
+    }.toSet()
+}

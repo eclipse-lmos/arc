@@ -98,7 +98,6 @@ class LoadUseCasesTest : TestBase() {
             )
         }
     }
-
 }
 
 class GetFallbackCasesTest {

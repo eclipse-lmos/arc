@@ -4,7 +4,11 @@
 
 package org.eclipse.lmos.arc.agents.dsl.extensions
 
+import org.eclipse.lmos.arc.agents.conversation.Conversation
+import org.eclipse.lmos.arc.agents.conversation.UserMessage
+import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.assistants.support.extensions.LoadedUseCases
 import org.eclipse.lmos.arc.assistants.support.usecases.OutputOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
@@ -34,6 +38,7 @@ suspend fun DSLContext.useCases(
     outputOptions: OutputOptions = OutputOptions(),
     filter: (UseCase) -> Boolean = { true },
     additionUseCases: List<String>? = null,
+    input: String? = null,
     formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String {
     return tracer().withSpan("load $name") { tags, _ ->
@@ -63,6 +68,7 @@ suspend fun DSLContext.useCases(
                 outputOptions = outputOptions,
                 usedUseCases = usedUseCases,
                 allUseCases = useCases,
+                input = input ?: getOptional<Conversation>()?.latest<UserMessage>()?.content,
                 formatter = formatter,
             )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
@@ -103,7 +109,7 @@ suspend fun DSLContext.useCases(
 fun getFallbackCases(
     usedUseCases: List<String>,
     useCases: List<UseCase>,
-    fallbackLimit: Int
+    fallbackLimit: Int,
 ): Set<String> {
     val useCaseMap = useCases.associateBy { it.id }
     val fallbackCases = usedUseCases.groupingBy { it }.eachCount().filter { (id, count) ->
@@ -129,6 +135,7 @@ fun getFallbackCases(
     }
     return fallbackCases
 }
+
 /**
  * Extension function to format a list of use cases into a string representation.
  *
