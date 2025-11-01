@@ -12,7 +12,6 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.agents.dsl.extensions.llm
 import org.eclipse.lmos.arc.core.getOrNull
 
-context(DSLContext)
 class LLMHackingDetector : AgentFilter {
 
     override suspend fun filter(message: ConversationMessage): ConversationMessage {
