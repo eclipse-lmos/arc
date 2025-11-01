@@ -4,6 +4,8 @@
 
 package org.eclipse.lmos.arc.agents.llm
 
+import kotlin.reflect.KClass
+
 data class ChatCompletionSettings(
     val temperature: Double? = null,
     val maxTokens: Int? = null,
@@ -14,6 +16,7 @@ data class ChatCompletionSettings(
     val format: OutputFormat? = null,
     val model: String? = null,
     val deploymentName: String? = null,
+    val outputSchema: OutputSchema? = null,
 ) {
     fun deploymentNameOrModel(): String? {
         return deploymentName ?: model
@@ -24,6 +27,12 @@ enum class OutputFormat {
     TEXT,
     JSON,
 }
+
+data class OutputSchema(
+    val name: String,
+    val description: String,
+    val type: KClass<*>,
+)
 
 /**
  * Assigns the deployment or model name to the settings.

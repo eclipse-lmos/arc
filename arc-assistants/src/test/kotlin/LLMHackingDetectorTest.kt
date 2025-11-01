@@ -6,7 +6,7 @@ package org.eclipse.lmos.arc.assistants.support
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.lmos.arc.agents.dsl.AgentFilter
+import org.eclipse.lmos.arc.agents.dsl.AgentInputFilter
 import org.eclipse.lmos.arc.agents.dsl.withDSLContext
 import org.eclipse.lmos.arc.assistants.support.filters.LLMHackingDetector
 import org.junit.jupiter.api.Test
@@ -18,7 +18,7 @@ class LLMHackingDetectorTest : TestBase() {
         // Verify that LLMHackingDetector implements AgentFilter
         withDSLContext {
             val detector = LLMHackingDetector()
-            assertThat(detector).isInstanceOf(AgentFilter::class.java)
+            assertThat(detector).isInstanceOf(AgentInputFilter::class.java)
         }
     }
 }

@@ -4,7 +4,6 @@
 
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -13,6 +12,8 @@ import java.net.URI
 
 group = "org.eclipse.lmos"
 version = project.findProperty("version") as String
+
+val ignoreKtLint = setOf("arc-result", "arc-azure-client")
 
 plugins {
     kotlin("jvm") version "2.2.21" apply false
@@ -31,7 +32,7 @@ subprojects {
     apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "kotlinx-serialization")
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    if (!ignoreKtLint.contains(project.name)) apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "org.jetbrains.kotlinx.kover")
     apply(plugin = "com.vanniktech.maven.publish")
 
@@ -39,8 +40,11 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_21
     }
 
-    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        debug.set(true)
+    // currently ktlint has issues with context parameters.
+    if (!ignoreKtLint.contains(project.name)) {
+        configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+            debug.set(true)
+        }
     }
 
     tasks.named<KotlinJvmCompile>("compileKotlin") {
@@ -48,6 +52,10 @@ subprojects {
             freeCompilerArgs.addAll(listOf("-Xcontext-parameters", "-Xjsr305=strict"))
             jvmTarget = JvmTarget.fromTarget("21")
         }
+    }
+
+    tasks.withType<AbstractTestTask>().configureEach {
+        failOnNoDiscoveredTests = false
     }
 
     tasks.withType<Test> {
