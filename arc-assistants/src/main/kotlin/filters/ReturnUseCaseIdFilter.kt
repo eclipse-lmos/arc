@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory
  * Returns the use case id if the system property "returnUseCaseId" is set to true.
  * This will only work for Agents that use the useCase function.
  */
-context(OutputFilterContext)
 class ReturnUseCaseIdFilter : AgentFilter {
     private val log = LoggerFactory.getLogger(javaClass)
 

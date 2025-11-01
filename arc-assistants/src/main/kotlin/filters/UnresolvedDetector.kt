@@ -10,7 +10,7 @@ import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.assistants.support.Unresolved
 
-context(DSLContext)
+
 class UnresolvedDetector(
     private val fallbackReply: DSLContext.() -> String,
 ) : AgentFilter {

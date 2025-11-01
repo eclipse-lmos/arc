@@ -125,7 +125,7 @@ suspend inline fun <reified T : Any> ToolLoaderContext.get(): T = context(T::cla
  * Returns the requested bean or null if it is not available.
  */
 suspend inline fun <reified T : Any> ToolLoaderContext.getOptional() =
-    result<T, MissingBeanException> { context(T::class) }.getOrNull()
+    result<T, MissingBeanException> { this@getOptional.context(T::class) }.getOrNull()
 
 /**
  * Adapter to convert a [DSLContext] to a [ToolLoaderContext].
