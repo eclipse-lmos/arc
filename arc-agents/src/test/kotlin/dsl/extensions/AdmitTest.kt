@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.User
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.toConversation
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
+import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.beans
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -25,12 +26,13 @@ class AdmitTest : TestBase() {
     fun `test first conversation is blocked`(): Unit = runBlocking {
         with(BasicDSLContext(beans(Conversation(conversationId = "10")))) {
             val filter = AdmitFilter(50, "rejected")
-            val success = filter.runTest()
+            val success =
+                filter.runTest(context = InputFilterContext(this, input = Conversation(conversationId = "10")))
             assertThat(success).isEqualTo(0)
         }
         with(BasicDSLContext(beans(Conversation(conversationId = "1")))) {
             val filter = AdmitFilter(50, "rejected")
-            val success = filter.runTest()
+            val success = filter.runTest(context = InputFilterContext(this, input = Conversation(conversationId = "1")))
             assertThat(success).isEqualTo(100)
         }
     }
@@ -43,7 +45,11 @@ class AdmitTest : TestBase() {
                 launch {
                     with(BasicDSLContext(beans(Conversation(conversationId = "$it")))) {
                         val filter = AdmitFilter(10, "rejected")
-                        if (filter.runTest(times = 1) > 0) {
+                        if (filter.runTest(
+                                times = 1,
+                                context = InputFilterContext(this, input = Conversation(conversationId = "$it")),
+                            ) > 0
+                        ) {
                             success.incrementAndGet()
                         }
                     }
@@ -53,11 +59,11 @@ class AdmitTest : TestBase() {
         assertThat(success.get()).isEqualTo(9)
     }
 
-    private suspend fun AdmitFilter.runTest(times: Int = 100): Int {
+    private suspend fun AdmitFilter.runTest(times: Int = 100, context: InputFilterContext): Int {
         var success = 0
         repeat(times) {
             try {
-                filter(message)
+                filter(message, context)
                 success++
             } catch (e: InterruptProcessingException) {
                 assertThat(e.conversation.transcript.last().content).isEqualTo("rejected")

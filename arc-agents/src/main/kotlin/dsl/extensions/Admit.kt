@@ -6,10 +6,8 @@ package org.eclipse.lmos.arc.agents.dsl.extensions
 
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
-import org.eclipse.lmos.arc.agents.dsl.AgentFilter
-import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.AgentInputFilter
 import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
-import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.slf4j.LoggerFactory
 
@@ -28,16 +26,11 @@ suspend fun InputFilterContext.admit(percent: Int, returnValue: String) {
     +AdmitFilter(percent, returnValue)
 }
 
-suspend fun OutputFilterContext.admit(percent: Int, returnValue: String) {
-    +AdmitFilter(percent, returnValue)
-}
-
-context(DSLContext)
 class AdmitFilter(
     private val percent: Int,
     private val rejectValue: String,
 ) :
-    AgentFilter {
+    AgentInputFilter {
 
     init {
         require(percent in 1..100) { "Percent must be between 1 and 100" }
@@ -45,13 +38,13 @@ class AdmitFilter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun filter(message: ConversationMessage): ConversationMessage {
-        val conversationId = get<Conversation>().conversationId
+    override suspend fun filter(message: ConversationMessage, context: InputFilterContext): ConversationMessage {
+        val conversationId = context.get<Conversation>().conversationId
         val hashBucket = conversationId.hashCode() % 100
         val accepted = hashBucket <= percent
         if (!accepted) {
             log.debug("Rejecting message: $conversationId")
-            breakWith(rejectValue, reason = "AdmitFilter: rejected")
+            context.breakWith(rejectValue, reason = "AdmitFilter: rejected")
         }
         return message
     }
