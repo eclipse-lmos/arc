@@ -9,6 +9,8 @@ import com.azure.ai.openai.models.ChatCompletions
 import com.azure.ai.openai.models.ChatCompletionsFunctionToolDefinition
 import com.azure.ai.openai.models.ChatCompletionsFunctionToolDefinitionFunction
 import com.azure.ai.openai.models.ChatCompletionsJsonResponseFormat
+import com.azure.ai.openai.models.ChatCompletionsJsonSchemaResponseFormat
+import com.azure.ai.openai.models.ChatCompletionsJsonSchemaResponseFormatJsonSchema
 import com.azure.ai.openai.models.ChatCompletionsOptions
 import com.azure.ai.openai.models.ChatRequestAssistantMessage
 import com.azure.ai.openai.models.ChatRequestMessage
@@ -17,7 +19,18 @@ import com.azure.ai.openai.models.ChatRequestUserMessage
 import com.azure.ai.openai.models.EmbeddingsOptions
 import com.azure.core.exception.ClientAuthenticationException
 import com.azure.core.util.BinaryData
+import com.azure.core.util.BinaryData.fromObject
+import com.azure.core.util.BinaryData.fromString
+import sh.ondr.koja.JsonSchema
+import sh.ondr.koja.KojaEntry
+import sh.ondr.koja.jsonSchema
+import sh.ondr.koja.toJsonElement
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.serializer
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.MissingModelNameException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -34,6 +47,7 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
+import org.eclipse.lmos.arc.agents.llm.OutputSchema
 import org.eclipse.lmos.arc.agents.llm.TextEmbedder
 import org.eclipse.lmos.arc.agents.llm.TextEmbedding
 import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
@@ -48,11 +62,14 @@ import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
+import sh.ondr.koja.Schema
+import sh.ondr.koja.toSchema
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 import kotlin.time.Duration
 import kotlin.time.measureTime
+
 
 /**
  * Calls the OpenAI endpoints and automatically handles LLM function calls.
@@ -100,7 +117,7 @@ class AzureAIClient(
         AssistantMessage(
             it ?: "",
             sensitive = sensitive,
-            format = when (settings?.format) {
+            format = settings?.outputSchema?.let { MessageFormat.JSON } ?: when (settings?.format) {
                 JSON -> MessageFormat.JSON
                 else -> MessageFormat.TEXT
             },
@@ -205,12 +222,29 @@ class AzureAIClient(
         return result to duration
     }
 
+    @OptIn(InternalSerializationApi::class)
+    private fun OutputSchema.toSchema(): String {
+        return (type.serializer().descriptor.toSchema() as Schema.ObjectSchema).copy(
+            additionalProperties = JsonPrimitive(false)
+        ).toJsonElement().toString()
+    }
+
     private fun toCompletionsOptions(
         messages: List<ChatRequestMessage>,
         openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
         settings: ChatCompletionSettings?,
     ) = ChatCompletionsOptions(messages)
         .apply {
+            settings?.outputSchema?.let { jsonSchema ->
+                val schema = jsonSchema.toSchema()
+                log.debug("Using output schema: $schema")
+                responseFormat = ChatCompletionsJsonSchemaResponseFormat(
+                    ChatCompletionsJsonSchemaResponseFormatJsonSchema(jsonSchema.name)
+                        .setStrict(true)
+                        .setDescription(jsonSchema.description)
+                        .setSchema(fromString(schema))
+                )
+            }
             settings?.temperature?.let { temperature = it }
             settings?.topP?.let { topP = it }
             settings?.seed?.let { seed = it }
@@ -242,7 +276,7 @@ class AzureAIClient(
         ChatCompletionsFunctionToolDefinition(
             ChatCompletionsFunctionToolDefinitionFunction(fn.name).apply {
                 description = fn.description
-                parameters = BinaryData.fromObject(fn.parameters.toJsonMap())
+                parameters = fromObject(fn.parameters.toJsonMap())
             },
         )
     }.takeIf { it.isNotEmpty() }

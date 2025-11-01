@@ -4,7 +4,6 @@
 
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -31,7 +30,7 @@ subprojects {
     apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "kotlinx-serialization")
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    if (project.name != "arc-result") apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "org.jetbrains.kotlinx.kover")
     apply(plugin = "com.vanniktech.maven.publish")
 
@@ -39,8 +38,10 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_21
     }
 
-    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        debug.set(true)
+    if (project.name != "arc-result") {
+        configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+            debug.set(true)
+        }
     }
 
     tasks.named<KotlinJvmCompile>("compileKotlin") {

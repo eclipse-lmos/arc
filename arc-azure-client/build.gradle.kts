@@ -2,6 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+plugins {
+    id("sh.ondr.koja") version "0.4.6"
+}
+
 dependencies {
     implementation(project(":arc-result"))
     implementation(project(":arc-agents"))

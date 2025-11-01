@@ -9,7 +9,6 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
-import org.eclipse.lmos.arc.agents.dsl.AgentFilter
 import org.eclipse.lmos.arc.agents.dsl.AgentOutputFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
@@ -50,7 +49,7 @@ class ApplyLLM(
     private val model: String? = null,
     private val settings: ChatCompletionSettings? = null,
     private val onError: ((Throwable) -> Unit)? = null,
-) : AgentOutputFilter{
+) : AgentOutputFilter {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
