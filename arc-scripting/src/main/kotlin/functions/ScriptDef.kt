@@ -24,7 +24,7 @@ object ScriptConfiguration : ScriptCompilationConfiguration(
     {
         implicitReceivers(FunctionDefinitionContext::class)
 
-        compilerOptions("-Xcontext-receivers")
+        compilerOptions("-Xcontext-parameters")
 
         defaultImports(
             "org.eclipse.lmos.arc.agents.dsl.get",
