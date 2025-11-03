@@ -13,6 +13,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers:3.5.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
     testImplementation("org.springframework.boot:spring-boot-starter:3.5.0")
-    testImplementation("org.testcontainers:mongodb:1.21.1")
+    testImplementation("org.testcontainers:mongodb:1.21.3")
     testImplementation("org.testcontainers:junit-jupiter:1.15.1")
 }
