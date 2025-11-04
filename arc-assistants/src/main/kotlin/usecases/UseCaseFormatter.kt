@@ -105,9 +105,15 @@ suspend fun UseCase.formatToString(
 fun List<Conditional>.output(conditions: Set<String>, output: StringBuilder) {
     var currentConditionals = emptySet<String>()
     var temp = StringBuilder()
+    val allConditions = if (flatMap { it.conditions }.filter { it != "else" }.any { setOf(it).matches(conditions) }) {
+        conditions
+    } else {
+        conditions + "else"
+    }
+
     forEach {
         if (it.conditions.isEmpty() && it.endConditional) {
-            if (currentConditionals.matches(conditions)) {
+            if (currentConditionals.matches(allConditions)) {
                 output.append(temp.toString())
                 if (it.text.isNotBlank()) output.append("${it.text}\n")
             }
@@ -119,7 +125,7 @@ fun List<Conditional>.output(conditions: Set<String>, output: StringBuilder) {
                 output.append(temp.toString())
                 temp = StringBuilder()
             }
-            if (it.matches(conditions)) temp.append("${it.text}\n")
+            if (it.matches(allConditions)) temp.append("${it.text}\n")
         }
     }
     output.append(temp.toString())
