@@ -9,10 +9,11 @@ import org.eclipse.lmos.arc.agents.dsl.AgentDefinitionContext
 
 class Agents {
 
-    context(AgentDefinitionContext)
-    fun build() {
-        agent {
-            name = "weather-gen"
+    fun build(context: AgentDefinitionContext) {
+        with(context) {
+            agent {
+                name = "weather-gen"
+            }
         }
     }
 }

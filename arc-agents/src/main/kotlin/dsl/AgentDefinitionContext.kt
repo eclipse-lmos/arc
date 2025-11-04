@@ -8,6 +8,8 @@ import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.OutputFormat
+import org.eclipse.lmos.arc.agents.llm.OutputSchema
 
 @DslMarker
 annotation class AgentDefinitionContextMarker
@@ -53,6 +55,27 @@ class AgentDefinition {
     var settings: suspend DSLContext.() -> ChatCompletionSettings? = { null }
     fun settings(fn: suspend DSLContext.() -> ChatCompletionSettings) {
         settings = fn
+    }
+
+    inline fun <reified T> output(
+        name: String = "",
+        description: String = "",
+        temperature: Double? = null,
+        seed: Long? = null,
+    ) {
+        val previous = settings
+        settings = {
+            (previous() ?: ChatCompletionSettings()).copy(
+                outputSchema = OutputSchema(
+                    name = name,
+                    description = description,
+                    type = T::class,
+                ),
+                format = OutputFormat.JSON,
+                temperature = temperature,
+                seed = seed,
+            )
+        }
     }
 
     private var _toolsProvider: suspend DSLContext.() -> Unit = { tools.forEach { +it } }

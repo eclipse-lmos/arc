@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
 //
 // SPDX-License-Identifier: Apache-2.0
-
+@file:Suppress("ktlint")
 package org.eclipse.lmos.arc.core
 
 import org.slf4j.LoggerFactory.getLogger
@@ -67,9 +67,9 @@ fun <R, E : Exception> ResultBlock<R, E>.finally(block: (Result<R, E>) -> Unit) 
  * The specified block of code that is always called after result block has finished,
  * even on failures caused by undefined Throwables or Exceptions.
  */
-context(ResultBlock<R, E>)
+context(rb: ResultBlock<R, E>)
 infix fun <R, E : Exception, T> T.closeWith(block: (T) -> Unit): T {
-    (this@ResultBlock as BasicResultBlock).finallyBlocks.add { block(this) }
+    (rb as BasicResultBlock).finallyBlocks.add { block(this) }
     return this
 }
 
@@ -77,7 +77,7 @@ infix fun <R, E : Exception, T> T.closeWith(block: (T) -> Unit): T {
  * Return the value of the success case or throws the exception from the "onFailure" block.
  * This acts as a bridge to the standard [kotlin.Result].
  */
-context(ResultBlock<R, E>)
+context(rb: ResultBlock<R, E>)
 inline infix fun <R, E : Exception> kotlin.Result<R>.failWith(block: (Exception) -> E): R {
     return try {
         getOrThrow()
@@ -89,8 +89,8 @@ inline infix fun <R, E : Exception> kotlin.Result<R>.failWith(block: (Exception)
 /**
  * Return the value of the success case or fail with the exception returned from the "block" block.
  */
-context(ResultBlock<R, E>)
-inline infix fun <R, E : Exception, R2, E2 : Exception> Result<R2, E2>.failWith(block: (E2) -> E): R2 {
+// context(rb: ResultBlock<R, E>)
+inline infix fun <E : Exception, R2, E2 : Exception> Result<R2, E2>.failWith(block: (E2) -> E): R2 {
     return when (this) {
         is Success -> value
         is Failure -> throw block(reason)

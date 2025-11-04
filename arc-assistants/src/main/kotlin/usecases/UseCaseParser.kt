@@ -5,15 +5,7 @@
 package org.eclipse.lmos.arc.assistants.support.usecases
 
 import kotlinx.serialization.Serializable
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.ALTERNATIVE_SOLUTION
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.DESCRIPTION
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.EXAMPLES
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.FALLBACK_SOLUTION
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.GOAL
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.NONE
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.SOLUTION
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.STEPS
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.SUB_START
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.*
 import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
@@ -40,6 +32,10 @@ fun String.toUseCases(): List<UseCase> {
                     subUseCase = line.contains("# Case"),
                 )
                 currentSection = if (currentUseCase?.subUseCase == true) SUB_START else NONE
+            } else if (line.contains("# Category:")) {
+                val category = line.substringAfter(":").trim()
+                if (category.isEmpty()) error("Missing category in: ${line.trim()}")
+                currentUseCase = currentUseCase?.copy(category = category)
             } else {
                 currentSection = when {
                     line.contains("# Goal") -> GOAL
@@ -49,7 +45,7 @@ fun String.toUseCases(): List<UseCase> {
                     line.contains("# Fallback") -> FALLBACK_SOLUTION
                     line.contains("# Step") -> STEPS
                     line.contains("# Example") -> EXAMPLES
-                    else -> error("Unknown UseCase section: $line")
+                    else -> error("Unknown UseCase section: ${line.trim()}")
                 }
                 return@forEachLine
             }
@@ -221,8 +217,9 @@ data class UseCase(
     val conditions: Set<String> = emptySet(),
     val goal: List<Conditional> = emptyList(),
     val subUseCase: Boolean = false,
+    val category: String? = null,
 ) {
-    fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
+    fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
     fun extractReferences(): Set<String> = buildSet {
         steps.forEach { addAll(it.useCaseRefs) }
@@ -257,12 +254,18 @@ data class Conditional(
 /**
  * Matches conditionals.
  */
-fun Set<String>.matches(allConditions: Set<String>): Boolean {
+fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean {
+    val allConditions = if (input != null && isNotEmpty()) {
+        this.mapNotNull { condition ->
+            if (!condition.isRegexConditional()) return@mapNotNull null
+            if (condition.regex().containsMatchIn(input)) condition else null
+        }.toSet()
+    } else {
+        conditions
+    }
     return isEmpty() || (
         positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
-            allConditions.contains(
-                it,
-            )
+            allConditions.contains(it)
         }
         )
 }
@@ -293,8 +296,8 @@ fun UseCase.regexConditionals(input: String?): Set<String> {
         fallbackSolution.forEach { addAll(it.conditions) }
         goal.forEach { addAll(it.conditions) }
     }.mapNotNull { conditional ->
-        if (conditional.startsWith("regex:")) {
-            conditional to Regex(conditional.substringAfter("regex:"), IGNORE_CASE)
+        if (conditional.isRegexConditional()) {
+            conditional to conditional.regex()
         } else {
             null
         }
@@ -302,3 +305,6 @@ fun UseCase.regexConditionals(input: String?): Set<String> {
         if (regex.containsMatchIn(input)) conditional else null
     }.toSet()
 }
+
+private fun String.isRegexConditional(): Boolean = startsWith("regex:")
+private fun String.regex(): Regex = Regex(substringAfter("regex:"), IGNORE_CASE)
