@@ -54,9 +54,10 @@ subprojects {
         }
     }
 
-    tasks.withType<AbstractTestTask>().configureEach {
-        failOnNoDiscoveredTests = false
-    }
+    // Needed for gradle 9
+    // tasks.withType<AbstractTestTask>().configureEach {
+    //    failOnNoDiscoveredTests = false
+    // }
 
     tasks.withType<Test> {
         useJUnitPlatform()
