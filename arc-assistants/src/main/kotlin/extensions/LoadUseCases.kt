@@ -10,6 +10,7 @@ import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.assistants.support.extensions.LoadedUseCases
+import org.eclipse.lmos.arc.assistants.support.extensions.UseCaseLoader
 import org.eclipse.lmos.arc.assistants.support.usecases.OutputOptions
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.formatToString
@@ -44,15 +45,15 @@ suspend fun DSLContext.useCases(
     return tracer().withSpan("load $name") { tags, _ ->
         tags.tag("openinference.span.kind", "RETRIEVER")
         val requestUseCase = system("usecase", defaultValue = "").takeIf { it.isNotEmpty() }
-        var useCases =
-            (requestUseCase ?: local(name))?.toUseCases() ?: kotlin.error("No use case file found with the name $name!")
+        var useCases = (requestUseCase?.toUseCases() ?: loadUseCases(name))
+            ?: kotlin.error("No use case file found with the name $name!")
 
         if (useCaseFolder != null) {
             useCases = useCases.resolveReferences(useCaseFolder)
         }
         if (additionUseCases != null) {
             log.debug("Adding additional use cases: $additionUseCases")
-            useCases = useCases + additionUseCases.mapNotNull { local(it) }.flatMap { it.toUseCases() }
+            useCases = useCases + additionUseCases.flatMap { loadUseCases(it) ?: emptyList() }
         }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
@@ -235,4 +236,15 @@ fun List<UseCase>.resolveReferences(folderOrFile: File): List<UseCase> = buildLi
             }
         }
     }
+}
+
+/**
+ * Loads use cases using a UseCaseLoader if present in the DSLContext, otherwise loads from local storage.
+ * @param name The name/key of the use case file or resource.
+ * @receiver dslContext The DSLContext which may provide a UseCaseLoader.
+ * @return List of loaded UseCases.
+ */
+suspend fun DSLContext.loadUseCases(name: String): List<UseCase>? {
+    val loader = getOptional<UseCaseLoader>()
+    return loader?.loadUseCases(name, this) ?: local(name)?.toUseCases()
 }

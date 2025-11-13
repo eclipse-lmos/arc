@@ -11,7 +11,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.54.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.54.0")
 
-    implementation(project(":arc-api"))
+    api(project(":arc-api"))
 
     testImplementation(project(":arc-result"))
     testImplementation(project(":arc-agents"))
