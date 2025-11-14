@@ -57,9 +57,9 @@ suspend fun DSLContext.useCases(
         }
 
         val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
-        val useCaseMap = useCases.associateBy { it.id }
         val fallbackCases = getFallbackCases(usedUseCases, useCases, fallbackLimit)
         val filteredUseCases = useCases.filter(filter)
+        val processUseCaseMap = mutableMapOf<String, String>()
         val formattedUseCases =
             filteredUseCases.formatToString(
                 usedUseCases.toSet(),
@@ -70,11 +70,18 @@ suspend fun DSLContext.useCases(
                 usedUseCases = usedUseCases,
                 allUseCases = useCases,
                 input = input ?: getOptional<Conversation>()?.latest<UserMessage>()?.content,
-                formatter = formatter,
+                formatter = { s, useCase, allUseCases, usedUseCasesList ->
+                    val formatted = formatter(s, useCase, allUseCases, usedUseCasesList)
+                    processUseCaseMap[useCase.id] = formatted
+                    formatted
+                },
             )
         log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
-        setLocal(LOCAL_USE_CASES, LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases))
+        setLocal(
+            LOCAL_USE_CASES,
+            LoadedUseCases(name = name, useCases, usedUseCases, formattedUseCases, processUseCaseMap),
+        )
         tags.tag("retrieval.documents.0.document.id", name)
         tags.tag("retrieval.documents.0.document.content", formattedUseCases)
         // tags.tag("retrieval.documents.0.document.score", "1.0")
@@ -157,6 +164,7 @@ suspend fun DSLContext.processUseCases(
 ): String {
     val usedUseCases = memory("usedUseCases") as List<String>? ?: emptyList()
     val fallbackCases = getFallbackCases(usedUseCases, useCases, fallbackLimit)
+    val processUseCaseMap = mutableMapOf<String, String>()
     val filteredUseCases =
         useCases.formatToString(
             usedUseCases.toSet(),
@@ -165,11 +173,15 @@ suspend fun DSLContext.processUseCases(
             exampleLimit,
             usedUseCases = usedUseCases,
             allUseCases = useCases,
-            formatter = formatter,
+            formatter = { s, useCase, allUseCases, usedUseCasesList ->
+                val formatted = formatter(s, useCase, allUseCases, usedUseCasesList)
+                processUseCaseMap[useCase.id] = formatted
+                formatted
+            },
         )
     log.info("Loaded use cases: ${useCases.map { it.id }} Fallback cases: $fallbackCases")
 
-    setLocal(LOCAL_USE_CASES, LoadedUseCases(name = "all", useCases, usedUseCases, filteredUseCases))
+    setLocal(LOCAL_USE_CASES, LoadedUseCases(name = "all", useCases, usedUseCases, filteredUseCases, processUseCaseMap))
 
     return filteredUseCases
 }
