@@ -26,7 +26,7 @@ dependencies {
     compileOnly("io.micrometer:micrometer-tracing")
     compileOnly("io.micrometer:micrometer-registry-otlp")
 
-    val langchain4jVersion = "0.36.2"
+    val langchain4jVersion = "1.8.0"
     compileOnly("dev.langchain4j:langchain4j-bedrock:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-google-ai-gemini:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
