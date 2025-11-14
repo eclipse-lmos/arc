@@ -14,6 +14,7 @@ data class LoadedUseCases(
     val useCases: List<UseCase>,
     val usedUseCases: List<String>,
     val processedUseCases: String,
+    val processedUseCaseMap: Map<String, String>,
     val currentStep: String? = null,
     val currentUseCaseId: String? = null,
 )

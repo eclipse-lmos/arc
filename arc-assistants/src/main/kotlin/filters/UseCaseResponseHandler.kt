@@ -67,6 +67,7 @@ class UseCaseResponseHandler : AgentOutputFilter {
                     )
                     addData(Data(name = it.name, data = it.processedUseCases))
                     outputContext("useCase", useCaseId)
+                    outputContext("useCaseContent", loadedUseCases.processedUseCaseMap[useCaseId] ?: "")
                 }
             }
             return message.update(cleanMessage)
