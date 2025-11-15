@@ -288,14 +288,7 @@ private fun Set<String>.positiveConditionals() = filter { !it.startsWith("!") }
  */
 fun UseCase.regexConditionals(input: String?): Set<String> {
     if (input == null) return emptySet()
-    return buildSet {
-        addAll(conditions)
-        steps.forEach { addAll(it.conditions) }
-        solution.forEach { addAll(it.conditions) }
-        alternativeSolution.forEach { addAll(it.conditions) }
-        fallbackSolution.forEach { addAll(it.conditions) }
-        goal.forEach { addAll(it.conditions) }
-    }.mapNotNull { conditional ->
+    return allConditionals().mapNotNull { conditional ->
         if (conditional.isRegexConditional()) {
             conditional to conditional.regex()
         } else {
@@ -306,5 +299,21 @@ fun UseCase.regexConditionals(input: String?): Set<String> {
     }.toSet()
 }
 
+/**
+ * Adds the else conditional if none of the other conditionals match.
+ */
+fun Set<String>.elseConditional(useCase: UseCase): Set<String> {
+    return if (useCase.allConditionals().matches(this)) this else this + "else"
+}
+
 private fun String.isRegexConditional(): Boolean = startsWith("regex:")
 private fun String.regex(): Regex = Regex(substringAfter("regex:"), IGNORE_CASE)
+
+fun UseCase.allConditionals(): Set<String> = buildSet {
+    addAll(conditions)
+    steps.forEach { addAll(it.conditions) }
+    solution.forEach { addAll(it.conditions) }
+    alternativeSolution.forEach { addAll(it.conditions) }
+    fallbackSolution.forEach { addAll(it.conditions) }
+    goal.forEach { addAll(it.conditions) }
+}
