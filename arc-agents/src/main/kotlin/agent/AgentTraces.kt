@@ -11,6 +11,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
@@ -20,9 +21,11 @@ import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrNull
+import org.slf4j.LoggerFactory.getLogger
 import org.slf4j.MDC
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.util.Collections.synchronizedList
 
 /**
  * Provides an [AgentTracer] instance.
@@ -38,6 +41,7 @@ suspend fun BeanProvider.agentTracer() = provideOptional<AgentTracer>() ?: Defau
 suspend fun <T> AgentTracer.withAgentSpan(
     agent: Agent<*, *>,
     input: Conversation,
+    context: DSLContext,
     fn: suspend (Tags, Events) -> T,
 ): T {
     val name = agent.name
@@ -50,6 +54,7 @@ suspend fun <T> AgentTracer.withAgentSpan(
         tags.tag("conversation", input.conversationId)
         tags.tag("session.id", input.conversationId)
         input.user?.id?.let { tags.tag("user.id", it) }
+        AgentTaggers.tagAgent(tags, input, context)
         fn(tags, events)
     }
 }
@@ -142,11 +147,13 @@ fun Tags.output(output: String?, contentType: String = "text/plain") {
  * Sets the tracing attributes for the output values and extracts a use case ID if present.
  * The content type defaults to "text/plain" if not specified.
  */
-fun Tags.outputWithUseCase(output: String?, contentType: String = "text/plain") {
+suspend fun Tags.outputWithUseCase(output: String?, contentType: String = "text/plain", context: DSLContext) {
     tag("output.value", output ?: "")
     tag("output.mime_type", contentType)
     val useCaseId = output?.let { "<ID:(.*?)>".toRegex(RegexOption.IGNORE_CASE).find(it)?.groupValues?.get(1) } ?: ""
     tag("usecase.id", useCaseId)
+    tag("usecase.content", useCaseId)
+    AgentTaggers.tagResponse(this, output, context)
 }
 
 /**
@@ -154,4 +161,46 @@ fun Tags.outputWithUseCase(output: String?, contentType: String = "text/plain") 
  */
 fun Tags.userId(userId: String) {
     tag("user.id", userId)
+}
+
+/**
+ * A singleton to register global "taggers". These Taggers can add tracing tags to the "generate response" span.
+ */
+object AgentTaggers {
+
+    private val log = getLogger(this::class.java)
+
+    private val responseTaggers =
+        synchronizedList(mutableListOf<suspend (String?, DSLContext) -> Map<String, String>>())
+
+    private val agentTaggers =
+        synchronizedList(mutableListOf<suspend (Conversation, DSLContext) -> Map<String, String>>())
+
+    fun addToAgent(fn: suspend (Conversation, DSLContext) -> Map<String, String>) {
+        agentTaggers.add(fn)
+    }
+
+    fun addToGenerateResponse(fn: suspend (String?, DSLContext) -> Map<String, String>) {
+        responseTaggers.add(fn)
+    }
+
+    suspend fun tagAgent(tags: Tags, input: Conversation, context: DSLContext) {
+        try {
+            val newTags =
+                agentTaggers.flatMap { it(input, context).entries }.associateBy({ it.key }, { it.value })
+            newTags.forEach { (key, value) -> tags.tag(key, value) }
+        } catch (ex: Exception) {
+            log.error("Error in agent tagger!", ex)
+        }
+    }
+
+    suspend fun tagResponse(tags: Tags, outputMessage: String?, context: DSLContext) {
+        try {
+            val newTags =
+                responseTaggers.flatMap { it(outputMessage, context).entries }.associateBy({ it.key }, { it.value })
+            newTags.forEach { (key, value) -> tags.tag(key, value) }
+        } catch (ex: Exception) {
+            log.error("Error in generate response tagger!", ex)
+        }
+    }
 }

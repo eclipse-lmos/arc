@@ -100,10 +100,10 @@ class ChatAgent(
         val compositeBeanProvider =
             CompositeBeanProvider(context + setOf(input, input.user, this).filterNotNull(), beanProvider)
         val tracer = compositeBeanProvider.agentTracer()
+        val dslContext = BasicDSLContext(compositeBeanProvider)
 
-        return tracer.withAgentSpan(this, input) { tags, _ ->
+        return tracer.withAgentSpan(this, input, dslContext) { tags, _ ->
             val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
-            val dslContext = BasicDSLContext(compositeBeanProvider)
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))
@@ -215,7 +215,7 @@ class ChatAgent(
                 tags.userId(conversation.user?.id ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
                 val outputMessage = chatCompleter.complete(fullConversation, functions, completionSettings)
-                    .getOrThrow().also { tags.outputWithUseCase(it.content) }
+                    .getOrThrow().also { tags.outputWithUseCase(it.content, context = dslContext) }
                 outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
                 dslContext.getOptional<GenerateResponseTagger>()?.tag(tags, outputMessage, dslContext)
                 conversation + outputMessage
