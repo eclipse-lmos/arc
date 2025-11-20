@@ -4,7 +4,7 @@
 
 dependencies {
     val ktorVersion = "3.1.1"
-    val langchain4jVersion = "0.36.2"
+    val langchain4jVersion = "1.8.0"
     val graphqlKotlinVersion = "8.3.0"
     val logbackVersion = "1.5.17"
     val arcVersion = "0.121.0"

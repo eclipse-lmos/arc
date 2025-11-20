@@ -4,8 +4,7 @@
 
 package org.eclipse.lmos.arc.client.langchain4j
 
-import dev.langchain4j.data.message.AiMessage
-import dev.langchain4j.model.output.Response
+import dev.langchain4j.model.chat.response.ChatResponse
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -30,7 +29,7 @@ class LLMEventPublisher(
 
     fun publishEvent(
         result: Result<AssistantMessage, ArcException>,
-        response: Response<AiMessage>?,
+        response: ChatResponse?,
         duration: Duration,
         functionCallHandler: FunctionCallHandler,
     ) {
