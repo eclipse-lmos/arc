@@ -211,6 +211,7 @@ class ChatAgent(
                     INPUT_LOG_CONTEXT_KEY to filteredInput.transcript.toLogString(),
                 ),
             ) { tags, _ ->
+                tags.tag("agent", name)
                 tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 tags.userId(conversation.user?.id ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
