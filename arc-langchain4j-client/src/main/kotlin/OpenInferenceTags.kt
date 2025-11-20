@@ -9,7 +9,7 @@ import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
-import dev.langchain4j.model.output.Response
+import dev.langchain4j.model.chat.response.ChatResponse
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonString
@@ -50,7 +50,7 @@ fun Tags.addLLMTags(
     config: AIClientConfig,
     settings: ChatCompletionSettings?,
     inputMessages: List<ChatMessage>,
-    outputMessages: List<Response<AiMessage>>,
+    outputMessages: List<ChatResponse>,
     functions: List<LLMFunction>,
     usage: Usage,
 ) {
@@ -69,6 +69,7 @@ fun Tags.addLLMTags(
 
     tag("input.mime_type", "text/plain")
     inputMessages.forEachIndexed { i, message ->
+
         val role = when (message) {
             is UserMessage -> "user"
             is AiMessage -> "assistant"
@@ -77,15 +78,16 @@ fun Tags.addLLMTags(
             else -> "unknown"
         }
         tag("llm.input_messages.$i.message.role", role)
-        if (message.text() != null) {
-            tag("llm.input_messages.$i.message.content", message.text())
+        val text = message.safeText()
+        if (text != null) {
+            tag("llm.input_messages.$i.message.content", text)
         }
         if (i == inputMessages.size - 1) {
-            tag("input.value", message.text() ?: "")
+            tag("input.value", text ?: "")
         }
     }
     outputMessages.forEachIndexed { i, response ->
-        val message = response.content()
+        val message = response.aiMessage()
         tag("llm.output_messages.$i.message.role", "assistant")
         tag("llm.output_messages.$i.message.content", message.text() ?: "")
         message.toolExecutionRequests()?.forEachIndexed { y, toolCall ->
@@ -104,7 +106,7 @@ fun Tags.addLLMTags(
         )
     }
 
-    tag("output.value", outputMessages.firstOrNull()?.content()?.text() ?: "")
+    tag("output.value", outputMessages.firstOrNull()?.aiMessage()?.text() ?: "")
     tag("output.mime_type", "text/plain") // TODO
     tag("llm.token_count.prompt", usage.promptCount.toLong())
     tag("llm.token_count.completion", usage.completionCount.toLong())

@@ -11,6 +11,7 @@ data class AIClientConfig(
     val apiKey: String? = null,
     val accessKey: String? = null,
     val accessSecret: String? = null,
+    val region: String? = null,
 ) {
 
     init {

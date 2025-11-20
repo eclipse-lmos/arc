@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.arc.client.langchain4j.builders
 
-import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.chat.request.ResponseFormat
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel
 import org.eclipse.lmos.arc.agents.llm.AIClientConfig
@@ -14,7 +14,7 @@ import org.eclipse.lmos.arc.agents.llm.OutputFormat
 /**
  * Builds a Gemini client that uses an API key for authentication.
  */
-fun geminiBuilder(): (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel {
+fun geminiBuilder(): (AIClientConfig, ChatCompletionSettings?) -> ChatModel {
     return { config, settings ->
         GoogleAiGeminiChatModel.builder()
             .apiKey(config.apiKey ?: error("API key is required for Gemini!"))

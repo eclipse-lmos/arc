@@ -49,7 +49,7 @@ open class ArcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(BeanProvider::class)
-    fun beanProvider(beanFactory: ConfigurableBeanFactory): BeanProvider = CoroutineBeanProvider(object : BeanProvider {
+    open fun beanProvider(beanFactory: ConfigurableBeanFactory): BeanProvider = CoroutineBeanProvider(object : BeanProvider {
         override suspend fun <T : Any> provide(bean: KClass<T>) = try {
             beanFactory.getBean(bean.java)
         } catch (e: NoSuchBeanDefinitionException) {
@@ -59,35 +59,35 @@ open class ArcAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty("arc.mcp.prompts.url")
-    fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String): PromptRetriever = McpPromptRetriever(url)
+    open fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String): PromptRetriever = McpPromptRetriever(url)
 
     @Bean
-    fun eventPublisher(eventHandlers: List<EventHandler<*>>) = BasicEventPublisher().apply {
+    open fun eventPublisher(eventHandlers: List<EventHandler<*>>) = BasicEventPublisher().apply {
         addAll(eventHandlers)
     }
 
     @Bean
     @ConditionalOnMissingBean(AgentFactory::class)
-    fun agentFactory(beanProvider: BeanProvider) = ChatAgentFactory(beanProvider)
+    open fun agentFactory(beanProvider: BeanProvider) = ChatAgentFactory(beanProvider)
 
     @Bean
     @ConditionalOnMissingBean(Memory::class)
-    fun memory() = InMemoryMemory()
+    open fun memory() = InMemoryMemory()
 
     @Bean
-    fun loggingEventHandler() = LoggingEventHandler()
+    open fun loggingEventHandler() = LoggingEventHandler()
 
     @Bean
-    fun agentCardController(agentProvider: AgentProvider) = AgentCardController(agentProvider)
+    open fun agentCardController(agentProvider: AgentProvider) = AgentCardController(agentProvider)
 
     @Bean
     @ConditionalOnMissingBean(AgentProvider::class)
-    fun agentProvider(loaders: List<AgentLoader>, agents: List<Agent<*, *>>): AgentProvider =
+    open fun agentProvider(loaders: List<AgentLoader>, agents: List<Agent<*, *>>): AgentProvider =
         CompositeAgentProvider(loaders, agents)
 
     @Bean
     @ConditionalOnMissingBean(LLMFunctionProvider::class)
-    fun llmFunctionProvider(
+    open fun llmFunctionProvider(
         loaders: List<LLMFunctionLoader>,
         functions: List<LLMFunction>,
         @Value("\${arc.mcp.tools.urls:}") urls: List<String>? = null,
@@ -99,8 +99,8 @@ open class ArcAutoConfiguration {
         )
 
     @Bean
-    fun agentLoader(agentFactory: AgentFactory<*>) = Agents(agentFactory)
+    open fun agentLoader(agentFactory: AgentFactory<*>) = Agents(agentFactory)
 
     @Bean
-    fun functionLoader(beanProvider: BeanProvider) = Functions(beanProvider)
+    open fun functionLoader(beanProvider: BeanProvider) = Functions(beanProvider)
 }

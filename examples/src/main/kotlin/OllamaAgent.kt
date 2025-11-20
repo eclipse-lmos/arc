@@ -18,7 +18,7 @@ import org.eclipse.lmos.arc.core.getOrNull
  * Dependencies:
  *  implementation(project(":arc-agents"))
  *  implementation(project(":arc-langchain4j-client"))
- *  implementation("dev.langchain4j:langchain4j-ollama:0.36.2")
+ *  implementation("dev.langchain4j:langchain4j-ollama:1.8.0")
  */
 fun main(): Unit = runBlocking {
     System.setProperty("ARC_CLIENT", "ollama")

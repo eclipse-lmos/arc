@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.arc.client.langchain4j.builders
 
-import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.openai.OpenAiChatModel
 import org.eclipse.lmos.arc.agents.llm.AIClientConfig
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
@@ -12,7 +12,7 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 /**
  * Builds a groq client.
  */
-fun groqBuilder(): (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel {
+fun groqBuilder(): (AIClientConfig, ChatCompletionSettings?) -> ChatModel {
     return { config, settings ->
         OpenAiChatModel
             .builder()

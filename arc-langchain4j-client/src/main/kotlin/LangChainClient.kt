@@ -5,14 +5,14 @@
 package org.eclipse.lmos.arc.client.langchain4j
 
 import dev.langchain4j.agent.tool.ToolSpecification
-import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.AudioContent
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.Content
 import dev.langchain4j.data.message.ImageContent
 import dev.langchain4j.data.message.TextContent
 import dev.langchain4j.data.message.VideoContent
-import dev.langchain4j.model.chat.ChatLanguageModel
+import dev.langchain4j.model.chat.ChatModel
+import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.request.json.JsonArraySchema
 import dev.langchain4j.model.chat.request.json.JsonBooleanSchema
 import dev.langchain4j.model.chat.request.json.JsonEnumSchema
@@ -21,7 +21,7 @@ import dev.langchain4j.model.chat.request.json.JsonNumberSchema
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema
 import dev.langchain4j.model.chat.request.json.JsonSchemaElement
 import dev.langchain4j.model.chat.request.json.JsonStringSchema
-import dev.langchain4j.model.output.Response
+import dev.langchain4j.model.chat.response.ChatResponse
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.MissingModelNameException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -54,7 +54,7 @@ import kotlin.time.measureTime
  */
 class LangChainClient(
     private val config: AIClientConfig,
-    private val clientBuilder: (AIClientConfig, ChatCompletionSettings?) -> ChatLanguageModel,
+    private val clientBuilder: (AIClientConfig, ChatCompletionSettings?) -> ChatModel,
     private val eventHandler: EventPublisher? = null,
     private val tracer: AgentTracer? = null,
 ) : ChatCompleter {
@@ -89,19 +89,23 @@ class LangChainClient(
         return try {
             val client = clientBuilder(config, settings)
             val result: Result<AssistantMessage, ArcException>
-            var response: Response<AiMessage>? = null
+            var response: ChatResponse? = null
 
             // Call the LLM
             val duration = measureTime {
                 tracer.spanLLMCall { tags, _ ->
                     result = result<AssistantMessage, Exception> {
                         response = if (langChainFunctions?.isNotEmpty() == true) {
-                            client.generate(messages, langChainFunctions)
+                            val request = ChatRequest.builder()
+                                .messages(messages)
+                                .toolSpecifications(langChainFunctions)
+                                .build()
+                            client.chat(request)
                         } else {
-                            client.generate(messages)
+                            client.chat(messages)
                         }
                         val output = AssistantMessage(
-                            response!!.content().text() ?: "",
+                            response!!.aiMessage().text() ?: "",
                             sensitive = functionCallHandler.calledSensitiveFunction(),
                             toolCalls = functionCallHandler.calledFunctions.map {
                                 ToolCall(
@@ -114,9 +118,9 @@ class LangChainClient(
                             config,
                             settings,
                             messages,
-                            listOf(response!!),
+                            listOf(response),
                             functionCallHandler.functions,
-                            response!!.tokenUsage().toUsage(),
+                            response.tokenUsage().toUsage(),
                         )
                         output
                     }.mapFailure {
@@ -131,10 +135,14 @@ class LangChainClient(
             if (result is Failure) {
                 return result
             }
-            log.debug("ChatCompletions: ${response?.finishReason()} (${response?.content()?.toolExecutionRequests()})")
+            log.debug(
+                "ChatCompletions: {} ({})",
+                response?.finishReason(),
+                response?.aiMessage()?.toolExecutionRequests(),
+            )
 
             // Check if the response contains any function calls
-            val newMessages = functionCallHandler.handle(response!!.content()).getOrThrow()
+            val newMessages = functionCallHandler.handle(response!!.aiMessage()).getOrThrow()
             return if (newMessages.isNotEmpty()) {
                 chat(messages + newMessages, langChainFunctions, settings, functionCallHandler, eventPublisher)
             } else {
@@ -187,7 +195,7 @@ class LangChainClient(
             .parameters(
                 JsonObjectSchema.builder()
                     .apply {
-                        properties(fn.parameters.properties.mapValues { (_, v) -> v.toJsonElement() })
+                        addProperties(fn.parameters.properties.mapValues { (_, v) -> v.toJsonElement() })
                         required(fn.parameters.required)
                     }
                     .build(),
@@ -211,7 +219,7 @@ class LangChainClient(
             "object" -> JsonObjectSchema.builder()
                 .apply {
                     description(description)
-                    properties(properties?.mapValues { it.value.toJsonElement() } ?: emptyMap())
+                    addProperties(properties?.mapValues { it.value.toJsonElement() } ?: emptyMap())
                     required(required)
                 }
                 .build()
