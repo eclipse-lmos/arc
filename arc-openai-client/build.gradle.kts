@@ -8,8 +8,8 @@ dependencies {
 
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.17")
-    implementation("com.squareup.okhttp3:okhttp:5.2.1")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.2.1")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
 
     // OpenAISDK
     api("com.openai:openai-java:0.34.1")
