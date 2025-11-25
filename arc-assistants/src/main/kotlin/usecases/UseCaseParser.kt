@@ -264,19 +264,25 @@ fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean
         conditions
     }
     return isEmpty() || (
-        positiveConditionals().all { allConditions.contains(it) } && negativeConditionals().none {
-            allConditions.contains(it)
-        }
+        positiveConditionals().all { allConditions.contains(it) } &&
+            negativeConditionals().none { allConditions.contains(it) } &&
+            orConditionals().all { ors ->
+                ors.any {
+                    if (it.startsWith("!")) !allConditions.contains(it.removePrefix("!").trim()) else allConditions.contains(it.trim())
+                }
+            }
         )
 }
 
 /**
  * Returns negative Conditionals, for example "!beta", without the "!" prefix, so "beta".
  */
-private fun Set<String>.negativeConditionals() = filter { it.startsWith("!") }
+private fun Set<String>.negativeConditionals() = filter { it.startsWith("!") && !it.contains(" or ") }
     .map { it.removePrefix("!") }
 
-private fun Set<String>.positiveConditionals() = filter { !it.startsWith("!") }
+private fun Set<String>.positiveConditionals() = filter { !it.startsWith("!") && !it.contains(" or ") }
+
+private fun Set<String>.orConditionals() = filter { it.contains(" or ") }.map { it.split(" or ") }
 
 /**
  * Evaluates regex conditionals against the given input string.
