@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.assistants.support.usecases
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -64,5 +65,58 @@ class RegexConditionalsTest {
         )
         val result = useCase.regexConditionals("bar123")
         assertThat(result).containsExactly("regex:bar.*")
+    }
+
+    @Test
+    fun `test regex conditional in solution - match`(): Unit = runBlocking {
+        val input = """
+            ### UseCase: usecase1
+            #### Description
+            The description of the use case 1.
+            #### Solution 
+            <regex:.*bar.*>Bar
+            Solution
+            ----
+        """.trimIndent().toUseCases()
+        val result = input.formatToString(input = "I am foobar!").trim()
+        assertThat(result).isEqualTo(
+            """
+           |### UseCase: usecase1
+           |#### Description
+           |The description of the use case 1.
+           |
+           |#### Solution
+           |Bar
+           |Solution
+           |
+           |----
+            """.trimMargin(),
+        )
+    }
+
+    @Test
+    fun `test regex conditional in solution - no match`(): Unit = runBlocking {
+        val input = """
+            ### UseCase: usecase1
+            #### Description
+            The description of the use case 1.
+            #### Solution 
+            <regex:.*bar.*>Bar
+            Solution
+            ----
+        """.trimIndent().toUseCases()
+        val result = input.formatToString(input = "I am ok!").trim()
+        assertThat(result).isEqualTo(
+            """
+           |### UseCase: usecase1
+           |#### Description
+           |The description of the use case 1.
+           |
+           |#### Solution
+           |Solution
+           |
+           |----
+            """.trimMargin(),
+        )
     }
 }
