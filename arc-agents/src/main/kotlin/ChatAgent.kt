@@ -103,7 +103,7 @@ class ChatAgent(
         val dslContext = BasicDSLContext(compositeBeanProvider)
 
         return tracer.withAgentSpan(this, input, dslContext) { tags, _ ->
-            val agentEventHandler = beanProvider.provideOptional<EventPublisher>()
+            val agentEventHandler = compositeBeanProvider.provideOptional<EventPublisher>()
             val model = model.invoke(dslContext)
 
             agentEventHandler?.publish(AgentStartedEvent(this@ChatAgent))

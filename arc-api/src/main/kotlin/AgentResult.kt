@@ -17,7 +17,15 @@ data class AgentResult(
     val anonymizationEntities: List<AnonymizationEntity>? = null,
     val context: List<ContextEntry>? = null,
     val toolCalls: List<ToolCall>? = null,
+    val type: AgentResultType? = null,
 )
+
+enum class AgentResultType {
+    MESSAGE,
+    INTERMEDIATE_MESSAGE,
+    EVENT,
+    ERROR,
+}
 
 /**
  * Represents a tool call made by the LLM Model.
