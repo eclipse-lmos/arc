@@ -9,6 +9,7 @@ import dev.openfeature.sdk.FeatureProvider
 import features.FeatureAgentResolver
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.features.FeatureFlags
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.graphql.features.OpenFeatureFlags
@@ -66,12 +67,14 @@ open class AgentGraphQLAutoConfiguration {
         contextHandlers: List<ContextHandler>? = null,
         agentResolver: AgentResolver? = null,
         @Value("\${arc.agent.handover.limit:20}") agentHandoverRecursionLimit: Int,
+        eventPublisher: EventPublisher? = null,
     ) = AgentSubscription(
         agentProvider,
         errorHandler,
         contextHandlers ?: emptyList(),
         agentResolver,
         agentHandoverRecursionLimit,
+        eventPublisher,
     )
 
     @Bean

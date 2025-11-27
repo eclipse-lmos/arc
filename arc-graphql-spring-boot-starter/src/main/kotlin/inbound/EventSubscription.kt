@@ -6,9 +6,6 @@ package org.eclipse.lmos.arc.graphql.inbound
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Subscription
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinFeature.UseJavaDurationConversion
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
@@ -37,9 +34,6 @@ class EventSubscriptionHolder : EventHandler<Event> {
 
     private val eventFlows = ConcurrentHashMap<String, Channel<AgentEvent>>()
     private val scope = CoroutineScope(SupervisorJob())
-    private val objectMapper = jacksonMapperBuilder {
-        enable(UseJavaDurationConversion)
-    }.addModule(JavaTimeModule()).build()
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun onEvent(event: Event) {
@@ -54,7 +48,7 @@ class EventSubscriptionHolder : EventHandler<Event> {
                         channel.send(
                             AgentEvent(
                                 event::class.simpleName.toString(),
-                                objectMapper.writeValueAsString(event),
+                                event.toJson(),
                                 conversationId,
                                 MDC.get("turnId"),
                             ),
