@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":arc-mcp"))
     implementation(project(":arc-scripting"))
     implementation(project(":arc-langchain4j-client"))
-    implementation("dev.langchain4j:langchain4j-ollama:1.8.0")
+    implementation("dev.langchain4j:langchain4j-ollama:1.9.1")
 
     // Test
     testImplementation("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
