@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 dependencies {
-    implementation(project(":arc-result"))
-    implementation(project(":arc-agents"))
+    api(project(":arc-result"))
+    api(project(":arc-agents"))
     implementation("org.slf4j:slf4j-api:2.0.17")
+
+    testImplementation(project(":adl-kotlin-runner"))
 }

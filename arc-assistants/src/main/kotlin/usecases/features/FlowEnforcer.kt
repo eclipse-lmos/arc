@@ -182,7 +182,7 @@ suspend fun processFlow(
  * Converts the Use Case solution to instructions.
  * Applies the given conditionals and removes any flow options.
  */
-private fun UseCase.toInstructions(conditions: Set<String>) = StringBuilder().let {
+private suspend fun UseCase.toInstructions(conditions: Set<String>) = StringBuilder().let {
     this.solution.output(conditions, it)
     it.toString().removeFlowOptions().trim()
 }
