@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 class ConditionalSpanTest {
 
     @Test
-    fun `test parsing of conditional spans - no match`() {
+    fun `test parsing of conditional spans - no match`(): Unit = runBlocking {
         val conditionals = """<start>One
             Two
             Three</>""".split("\n").map { it.asConditional() }
@@ -24,7 +24,7 @@ class ConditionalSpanTest {
     }
 
     @Test
-    fun `test parsing of conditional spans - match`() {
+    fun `test parsing of conditional spans - match`(): Unit = runBlocking {
         val conditionals = """<start>
               One
               Two
