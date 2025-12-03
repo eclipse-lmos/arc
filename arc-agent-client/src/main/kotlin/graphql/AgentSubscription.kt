@@ -11,7 +11,12 @@ internal const val AGENT_SUBSCRIPTION = """
 subscription(${'$'}request: AgentRequestInput!, ${'$'}agentName: String) {
   agent(agentName: ${'$'}agentName, request: ${'$'}request) {
         status,
+        type,
         responseTime,
+        context {
+          key,
+          value,
+        },
         anonymizationEntities {
           type,
           value,
