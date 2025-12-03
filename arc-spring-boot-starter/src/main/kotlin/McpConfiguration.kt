@@ -80,6 +80,7 @@ class McpConfiguration {
                                     }
                                     result.set(McpSchema.CallToolResult(functionResult.getOrThrow(), false))
                                 } catch (e: Exception) {
+                                    log.error("Calling function $name failed", it)
                                     result.set(McpSchema.CallToolResult(e.message, true))
                                 }
                                 wait.release()
