@@ -30,6 +30,8 @@ import org.eclipse.lmos.arc.api.AgentResultType.EVENT
 import org.eclipse.lmos.arc.api.AgentResultType.INTERMEDIATE_MESSAGE
 import org.eclipse.lmos.arc.api.AgentResultType.MESSAGE
 import org.eclipse.lmos.arc.api.ContextEntry
+import org.eclipse.lmos.arc.api.EVENT_DATA_CONTEXT_KEY
+import org.eclipse.lmos.arc.api.EVENT_TYPE_CONTEXT_KEY
 import org.eclipse.lmos.arc.api.ToolCall
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
@@ -220,11 +222,8 @@ class AgentSubscription(
                         responseTime = responseTime,
                         messages = emptyList(),
                         context = listOf(
-                            ContextEntry("eventType", event::class.java.simpleName),
-                            ContextEntry(
-                                "eventData",
-                                event.toJson(),
-                            ),
+                            ContextEntry(EVENT_TYPE_CONTEXT_KEY, event::class.java.simpleName),
+                            ContextEntry(EVENT_DATA_CONTEXT_KEY, event.toJson()),
                         ),
                     ),
                 )

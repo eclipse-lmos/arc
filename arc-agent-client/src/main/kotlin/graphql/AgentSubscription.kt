@@ -13,6 +13,10 @@ subscription(${'$'}request: AgentRequestInput!, ${'$'}agentName: String) {
         status,
         type,
         responseTime,
+        toolCalls {
+          name,
+          arguments,
+        },
         context {
           key,
           value,
@@ -23,9 +27,9 @@ subscription(${'$'}request: AgentRequestInput!, ${'$'}agentName: String) {
           replacement,
         },
         messages {
-           content
-           format,
-           role,
+          content
+          format,
+          role,
         }
   }
 }
