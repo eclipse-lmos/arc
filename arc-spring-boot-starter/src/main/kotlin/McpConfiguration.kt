@@ -91,7 +91,7 @@ class McpConfiguration {
                                     result.set(McpSchema.CallToolResult(functionResult.getOrThrow(), false))
                                 } catch (e: Exception) {
                                     log.error("Calling function ${req.name} failed with args ${req.arguments()}", e)
-                                    result.set(McpSchema.CallToolResult(e.message, true))
+                                    result.set(McpSchema.CallToolResult(e.cause?.message ?: e.message, true))
                                 }
                                 wait.release()
                             }
