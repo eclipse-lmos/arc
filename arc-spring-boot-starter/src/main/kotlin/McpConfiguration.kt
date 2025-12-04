@@ -12,6 +12,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
+import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.dsl.beans
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
@@ -26,6 +28,7 @@ import org.springframework.context.annotation.Bean
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.collections.plus
 
 /**
  * Configuration for the MCP Client and Server resources.
@@ -43,7 +46,10 @@ class McpConfiguration {
      */
     @Bean
     @ConditionalOnProperty("arc.mcp.tools.expose", havingValue = "true")
-    fun syncToolSpecifications(functionProvider: LLMFunctionProvider): List<McpServerFeatures.SyncToolSpecification> {
+    fun syncToolSpecifications(
+        functionProvider: LLMFunctionProvider,
+        beanProvider: BeanProvider
+    ): List<McpServerFeatures.SyncToolSpecification> {
         val result = AtomicReference<List<McpServerFeatures.SyncToolSpecification>>()
         val wait = Semaphore(0)
         log.info("Exposing tools over MCP...")
@@ -64,7 +70,7 @@ class McpConfiguration {
                                 .inputSchema(mcpMapper, fn.parameters.toJsonString())
                                 .build(),
 
-                        )
+                            )
                         .callHandler { _, req ->
                             val result = AtomicReference<McpSchema.CallToolResult>()
                             val wait = Semaphore(0)
@@ -72,8 +78,12 @@ class McpConfiguration {
                                 log.warn("Calling MCP function: $req")
                                 val args = req.arguments
                                 try {
+                                    val compositeBeanProvider = CompositeBeanProvider(
+                                        setOf(ToolCallMetadata(req.meta ?: emptyMap())),
+                                        beanProvider
+                                    )
                                     val functionResult = if (fn is FunctionWithContext) {
-                                        val context = BasicDSLContext(beans(ToolCallMetadata(req.meta ?: emptyMap())))
+                                        val context = BasicDSLContext(compositeBeanProvider)
                                         fn.withContext(context).execute(args)
                                     } else {
                                         fn.execute(args)
