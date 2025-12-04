@@ -14,7 +14,6 @@ import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
-import org.eclipse.lmos.arc.agents.dsl.beans
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toJsonString
@@ -48,7 +47,7 @@ class McpConfiguration {
     @ConditionalOnProperty("arc.mcp.tools.expose", havingValue = "true")
     fun syncToolSpecifications(
         functionProvider: LLMFunctionProvider,
-        beanProvider: BeanProvider
+        beanProvider: BeanProvider,
     ): List<McpServerFeatures.SyncToolSpecification> {
         val result = AtomicReference<List<McpServerFeatures.SyncToolSpecification>>()
         val wait = Semaphore(0)
@@ -70,7 +69,7 @@ class McpConfiguration {
                                 .inputSchema(mcpMapper, fn.parameters.toJsonString())
                                 .build(),
 
-                            )
+                        )
                         .callHandler { _, req ->
                             val result = AtomicReference<McpSchema.CallToolResult>()
                             val wait = Semaphore(0)
@@ -80,7 +79,7 @@ class McpConfiguration {
                                 try {
                                     val compositeBeanProvider = CompositeBeanProvider(
                                         setOf(ToolCallMetadata(req.meta ?: emptyMap())),
-                                        beanProvider
+                                        beanProvider,
                                     )
                                     val functionResult = if (fn is FunctionWithContext) {
                                         val context = BasicDSLContext(compositeBeanProvider)
