@@ -14,7 +14,7 @@ dependencies {
     compileOnly(project(":arc-gen"))
 
     // Azure
-    compileOnly("com.azure:azure-identity:1.15.4")
+    compileOnly("com.azure:azure-identity:1.18.1")
 
     // MCP
     compileOnly(libs.spring.ai.starter.mcp.server.webflux)
