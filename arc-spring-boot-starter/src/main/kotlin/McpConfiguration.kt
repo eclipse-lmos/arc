@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Bean
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.collections.plus
 
 /**
  * Configuration for the MCP Client and Server resources.
@@ -48,6 +47,7 @@ class McpConfiguration {
     fun syncToolSpecifications(
         functionProvider: LLMFunctionProvider,
         beanProvider: BeanProvider,
+        errorHandler: McpToolErrorHandler? = null,
     ): List<McpServerFeatures.SyncToolSpecification> {
         val result = AtomicReference<List<McpServerFeatures.SyncToolSpecification>>()
         val wait = Semaphore(0)
@@ -69,7 +69,7 @@ class McpConfiguration {
                                 .inputSchema(mcpMapper, fn.parameters.toJsonString())
                                 .build(),
 
-                        )
+                            )
                         .callHandler { _, req ->
                             val result = AtomicReference<McpSchema.CallToolResult>()
                             val wait = Semaphore(0)
@@ -90,7 +90,12 @@ class McpConfiguration {
                                     result.set(McpSchema.CallToolResult(functionResult.getOrThrow(), false))
                                 } catch (e: Exception) {
                                     log.error("Calling function ${req.name} failed with args ${req.arguments()}", e)
-                                    result.set(McpSchema.CallToolResult(e.cause?.message ?: e.message, true))
+                                    val handledError = errorHandler?.handleToolError(req.name, e)
+                                    if (handledError != null) {
+                                        result.set(handledError)
+                                    } else {
+                                        result.set(McpSchema.CallToolResult(e.cause?.message ?: e.message, true))
+                                    }
                                 }
                                 wait.release()
                             }
@@ -105,4 +110,18 @@ class McpConfiguration {
         wait.tryAcquire(1, TimeUnit.MINUTES)
         return result.get()
     }
+}
+
+/**
+ * Handler for MCP tool errors.
+ */
+interface McpToolErrorHandler {
+    /**
+     * Handle an error that occurred during a tool call.
+     *
+     * @param toolName The name of the tool that caused the error.
+     * @param error The error.
+     * @return A CallToolResult representing the error, or null to use the default error handling.
+     */
+    fun handleToolError(toolName: String, error: Exception): McpSchema.CallToolResult?
 }
