@@ -44,7 +44,7 @@ class McpTools(private val url: String, private val cacheDuration: Duration?) :
             return cached.tools
         }
 
-        val result = clientBuilder.execute { client ->
+        val result = clientBuilder.execute { client, _ ->
             client.listTools().awaitSingle().tools.map { tool ->
                 log.debug("Loaded tool: ${tool.name} from $url")
                 ToolWrapper(tool, clientBuilder)
@@ -94,11 +94,10 @@ class ToolWrapper(
     override val isSensitive: Boolean = false
 
     override suspend fun execute(input: Map<String, Any?>) = result<String, LLMFunctionException> {
-        clientBuilder.execute { client ->
+        clientBuilder.execute { client, url ->
             val result = try {
-                client.callTool(
-                    CallToolRequest(tool.name, input, context?.getOptional<ToolCallMetadata>()?.data),
-                ).awaitSingle()
+                val meta = context?.getOptional<McpToolMetadataProvider>()?.provide(tool.name, url)
+                client.callTool(CallToolRequest(tool.name, input, meta?.data ?: emptyMap())).awaitSingle()
             } catch (e: Exception) {
                 failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}!", e) }
             }
@@ -112,4 +111,19 @@ class ToolWrapper(
     override fun withContext(context: DSLContext): LLMFunction {
         return ToolWrapper(tool, clientBuilder, context)
     }
+}
+
+/**
+ * Provider for MCP tool metadata.
+ */
+interface McpToolMetadataProvider {
+
+    /**
+     * Provide metadata for a tool.
+     *
+     * @param toolName The name of the tool.
+     * @param mcpServerUrl The URL of the MCP server.
+     * @return The metadata for the tool.
+     */
+    fun provide(toolName: String, mcpServerUrl: String): ToolCallMetadata?
 }

@@ -27,7 +27,7 @@ class McpPromptRetriever(private val url: String) : PromptRetriever, Closeable {
     private val clientBuilder = McpClientBuilder(url)
 
     override suspend fun fetchPromptText(name: String, args: Map<String, Any?>): Result<String, PromptException> =
-        clientBuilder.execute { client ->
+        clientBuilder.execute { client, url ->
             val prompt = client.getPrompt(GetPromptRequest(name, args)).awaitSingle()
             log.debug("Fetched prompt: $name description: ${prompt.description} from $url")
             prompt.toText()
