@@ -96,7 +96,7 @@ class ToolWrapper(
     override suspend fun execute(input: Map<String, Any?>) = result<String, LLMFunctionException> {
         clientBuilder.execute { client, url ->
             val result = try {
-                val meta = context?.getOptional<McpToolMetadataProvider>()?.provide(tool.name, url)
+                val meta = context?.getOptional<McpToolMetadataProvider>()?.provide(tool, context, url)
                 client.callTool(CallToolRequest(tool.name, input, meta?.data ?: emptyMap())).awaitSingle()
             } catch (e: Exception) {
                 failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}!", e) }
@@ -121,9 +121,10 @@ interface McpToolMetadataProvider {
     /**
      * Provide metadata for a tool.
      *
-     * @param toolName The name of the tool.
+     * @param tool The tool.
+     * @param context The DSL context.
      * @param mcpServerUrl The URL of the MCP server.
      * @return The metadata for the tool.
      */
-    fun provide(toolName: String, mcpServerUrl: String): ToolCallMetadata?
+    fun provide(tool: McpSchema.Tool, context: DSLContext?, mcpServerUrl: String): ToolCallMetadata?
 }
