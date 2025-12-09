@@ -126,5 +126,5 @@ interface McpToolMetadataProvider {
      * @param mcpServerUrl The URL of the MCP server.
      * @return The metadata for the tool.
      */
-    fun provide(tool: McpSchema.Tool, context: DSLContext?, mcpServerUrl: String): ToolCallMetadata?
+    suspend fun provide(tool: McpSchema.Tool, context: DSLContext?, mcpServerUrl: String): ToolCallMetadata?
 }
