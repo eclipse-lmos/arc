@@ -97,6 +97,7 @@ class ToolWrapper(
         clientBuilder.execute { client, url ->
             val result = try {
                 val meta = context?.getOptional<McpToolMetadataProvider>()?.provide(tool, context, url)
+                    ?: context?.getOptional<ToolCallMetadata>()
                 client.callTool(CallToolRequest(tool.name, input, meta?.data ?: emptyMap())).awaitSingle()
             } catch (e: Exception) {
                 failWith { LLMFunctionException("Failed to call MCP tool: ${tool.name}!", e) }

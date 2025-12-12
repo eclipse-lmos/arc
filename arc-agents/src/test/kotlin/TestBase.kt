@@ -58,13 +58,13 @@ open class TestBase {
         coEvery { chatCompleter.complete(capture(input), eventPublisher = any()) } answers {
             Success(
                 AssistantMessage(
-                    llmResponse
-                )
+                    llmResponse,
+                ),
             )
         }
         coEvery { chatCompleter.complete(capture(input), any(), eventPublisher = any()) } answers {
             Success(
-                AssistantMessage(llmResponse)
+                AssistantMessage(llmResponse),
             )
         }
         coEvery {
@@ -72,6 +72,7 @@ open class TestBase {
                 capture(input),
                 any(),
                 any(),
+                eventPublisher = any(),
             )
         } answers { Success(AssistantMessage(llmResponse)) }
 
