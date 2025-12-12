@@ -26,6 +26,7 @@ import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.WritableDataStream
 import org.eclipse.lmos.arc.agents.conversation.asDataStream
 import org.eclipse.lmos.arc.agents.conversation.readAllBytes
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
@@ -59,6 +60,7 @@ class OpenAIRealtimeClient(private val url: String, private val key: String) : C
         messages: List<ConversationMessage>,
         functions: List<LLMFunction>?,
         settings: ChatCompletionSettings?,
+        eventPublisher: EventPublisher?,
     ) = result<AssistantMessage, ArcException> {
         val result = AtomicReference<AssistantMessage>()
         client.webSocket(url, {
