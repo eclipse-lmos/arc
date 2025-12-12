@@ -30,7 +30,7 @@ import kotlin.time.measureTime
 class OpenAINativeClient(
     private val config: OpenAINativeClientConfig,
     private val client: OpenAIClientAsync,
-    private val eventHandler: EventPublisher? = null,
+    private val globalEventPublisher: EventPublisher? = null,
 ) : ChatCompleter,
     TextEmbedder {
 
@@ -40,8 +40,10 @@ class OpenAINativeClient(
         messages: List<ConversationMessage>,
         functions: List<LLMFunction>?,
         settings: ChatCompletionSettings?,
+        eventPublisher: EventPublisher?,
     ) =
         result<AssistantMessage, ArcException> {
+            val eventHandler = eventPublisher ?: globalEventPublisher
             val openAIMessages = toOpenAIMessages(messages)
             val openAIFunctions = if (functions != null) toOpenAIFunctions(functions) else null
             val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler)
@@ -54,7 +56,7 @@ class OpenAINativeClient(
             }
 
             var chatCompletions: ChatCompletion? = null
-            finally { publishEvent(it, messages, functions, chatCompletions, duration, functionCallHandler, settings) }
+            finally { publishEvent(it, messages, functions, chatCompletions, duration, functionCallHandler, settings, eventHandler) }
             chatCompletions = result failWith { it }
             chatCompletions.getFirstAssistantMessage(
                 sensitive = functionCallHandler.calledSensitiveFunction(),
@@ -70,8 +72,9 @@ class OpenAINativeClient(
         duration: Duration,
         functionCallHandler: FunctionCallHandler,
         settings: ChatCompletionSettings?,
+        eventPublisher: EventPublisher?,
     ) {
-        eventHandler?.publish(
+        eventPublisher?.publish(
             LLMFinishedEvent(
                 result,
                 messages,

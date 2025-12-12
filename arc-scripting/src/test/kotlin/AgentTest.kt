@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.ChatAgent
 import org.eclipse.lmos.arc.agents.User
 import org.eclipse.lmos.arc.agents.conversation.*
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -53,6 +54,7 @@ class AgentTest : TestBase() {
                             messages: List<ConversationMessage>,
                             functions: List<LLMFunction>?,
                             settings: ChatCompletionSettings?,
+                            eventPublisher: EventPublisher?,
                         ): Result<AssistantMessage, ArcException> {
                             return messages.findLast { it is SystemMessage }?.let {
                                 Success(AssistantMessage(it.content))

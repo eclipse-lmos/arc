@@ -20,6 +20,7 @@ import org.eclipse.lmos.arc.agents.dsl.boolean
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.dsl.string
 import org.eclipse.lmos.arc.agents.dsl.types
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -61,6 +62,7 @@ open class TestApplication {
                 messages: List<ConversationMessage>,
                 functions: List<LLMFunction>?,
                 settings: ChatCompletionSettings?,
+                eventPublisher: EventPublisher?,
             ) = result<AssistantMessage, ArcException> {
                 functions?.forEach { function ->
                     function.execute(mapOf("param" to "test"))
