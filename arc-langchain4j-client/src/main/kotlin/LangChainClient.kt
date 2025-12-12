@@ -55,7 +55,7 @@ import kotlin.time.measureTime
 class LangChainClient(
     private val config: AIClientConfig,
     private val clientBuilder: (AIClientConfig, ChatCompletionSettings?) -> ChatModel,
-    private val eventHandler: EventPublisher? = null,
+    private val globalEventPublisher: EventPublisher? = null,
     private val tracer: AgentTracer? = null,
 ) : ChatCompleter {
 
@@ -65,8 +65,10 @@ class LangChainClient(
         messages: List<ConversationMessage>,
         functions: List<LLMFunction>?,
         settings: ChatCompletionSettings?,
+        eventPublisher: EventPublisher?,
     ) = result<AssistantMessage, ArcException> {
         val langChainMessages = toLangChainMessages(messages)
+        val eventHandler = eventPublisher ?: globalEventPublisher
         val langChainFunctions = if (functions != null) toLangChainFunctions(functions) else null
         val functionCallHandler = FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer)
         val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)

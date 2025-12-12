@@ -56,7 +56,6 @@ import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import sh.ondr.koja.Schema
-import sh.ondr.koja.jsonSchema
 import sh.ondr.koja.toJsonElement
 import sh.ondr.koja.toSchema
 import kotlin.contracts.ExperimentalContracts
@@ -71,7 +70,7 @@ import kotlin.time.measureTime
 class AzureAIClient(
     private val config: AIClientConfig,
     private val client: OpenAIAsyncClient,
-    private val eventHandler: EventPublisher? = null,
+    private val globalEventPublisher: EventPublisher? = null,
     private val tracer: AgentTracer? = null,
 ) : ChatCompleter,
     TextEmbedder {
@@ -82,10 +81,12 @@ class AzureAIClient(
         messages: List<ConversationMessage>,
         functions: List<LLMFunction>?,
         settings: ChatCompletionSettings?,
+        eventPublisher: EventPublisher?,
     ) =
         result<AssistantMessage, ArcException> {
             val openAIMessages = toOpenAIMessages(messages)
             val openAIFunctions = if (functions != null) toOpenAIFunctions(functions) else null
+            val eventHandler = eventPublisher ?: globalEventPublisher
             val functionCallHandler =
                 FunctionCallHandler(functions ?: emptyList(), eventHandler, tracer = tracer ?: DefaultAgentTracer())
             val llmEventPublisher = LLMEventPublisher(config, functions, eventHandler, messages, settings)

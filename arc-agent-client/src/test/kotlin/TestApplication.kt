@@ -8,6 +8,7 @@ import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -41,6 +42,7 @@ open class TestApplication {
                 messages: List<ConversationMessage>,
                 functions: List<LLMFunction>?,
                 settings: ChatCompletionSettings?,
+                eventPublisher: EventPublisher?,
             ) = result<AssistantMessage, ArcException> {
                 functions?.forEach { function ->
                     function.execute(mapOf("param" to "test"))
