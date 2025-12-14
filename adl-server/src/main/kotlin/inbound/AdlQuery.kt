@@ -10,7 +10,7 @@ import com.expediagroup.graphql.server.operations.Query
 class AdlQuery : Query {
 
     @GraphQLDescription("Returns the supported version of the ALD.")
-    fun version(adlCode: AdlSource): String {
-        return "!.0.0"
+    fun version(): String {
+        return "1.0.0"
     }
 }
