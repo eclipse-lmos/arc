@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.assistants.support.usecases
 
 import kotlinx.serialization.Serializable
+import org.eclipse.lmos.arc.agents.dsl.extensions.then
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.*
 import kotlin.text.RegexOption.IGNORE_CASE
 
@@ -234,6 +235,31 @@ data class UseCase(
         alternativeSolution.forEach { addAll(it.functions) }
         fallbackSolution.forEach { addAll(it.functions) }
     }
+
+    override fun toString(): String {
+        return """
+            ### UseCase: $id${executionLimit?.let { " ($it)" } ?: ""}
+            ${category?.let { "#### Category: $it\n" } ?: ""}
+            
+            #### Description
+            $description
+          
+            ${goal.isNotEmpty() then "#### Goal"}
+            ${goal.joinToString("\n", postfix = "\n") { it.text }}
+            ${steps.isNotEmpty() then "#### Steps"}
+            ${steps.joinToString("\n", postfix = "\n") { it.text }}
+            #### Solution
+            ${solution.joinToString("\n", postfix = "\n") { it.text }}
+            ${alternativeSolution.isNotEmpty() then "#### Alternative Solution"}
+            ${alternativeSolution.joinToString("\n", postfix = "\n") { it.text }}
+            ${fallbackSolution.isNotEmpty() then "#### Fallback Solution"}
+            ${fallbackSolution.joinToString("\n", postfix = "\n") { it.text }}
+            ${examples.isNotEmpty() then "#### Examples"}
+            $examples
+           
+            ----
+        """.trimIndent()
+    }
 }
 
 @Serializable
@@ -249,6 +275,10 @@ data class Conditional(
     }
 
     fun matches(allConditions: Set<String>): Boolean = conditions.matches(allConditions)
+
+    override fun toString(): String {
+        return text
+    }
 }
 
 /**
@@ -268,7 +298,13 @@ fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean
             negativeConditionals().none { allConditions.contains(it) } &&
             orConditionals().all { ors ->
                 ors.any {
-                    if (it.startsWith("!")) !allConditions.contains(it.removePrefix("!").trim()) else allConditions.contains(it.trim())
+                    if (it.startsWith("!")) {
+                        !allConditions.contains(
+                            it.removePrefix("!").trim(),
+                        )
+                    } else {
+                        allConditions.contains(it.trim())
+                    }
                 }
             }
         )

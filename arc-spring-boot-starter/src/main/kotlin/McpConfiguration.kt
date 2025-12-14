@@ -69,7 +69,7 @@ class McpConfiguration {
                                 .inputSchema(mcpMapper, fn.parameters.toJsonString())
                                 .build(),
 
-                            )
+                        )
                         .callHandler { _, req ->
                             val result = AtomicReference<McpSchema.CallToolResult>()
                             val wait = Semaphore(0)
