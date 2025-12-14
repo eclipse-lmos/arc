@@ -23,7 +23,7 @@ class InMemorySessions : Sessions {
     /**
      * Gets an existing session or creates a new one with turn 0.
      */
-    override fun getOrCreate(sessionId: String): Session {
+    fun getOrCreate(sessionId: String): Session {
         return sessions.getOrPut(sessionId) { Session(sessionId, 0) }
     }
 
@@ -31,7 +31,7 @@ class InMemorySessions : Sessions {
      * Increments the turn number for a session.
      * @return The updated session.
      */
-    override fun incrementTurn(sessionId: String): Session {
+    fun incrementTurn(sessionId: String): Session {
         return sessions.compute(sessionId) { _, existing ->
             existing?.copy(turn = existing.turn + 1) ?: Session(sessionId, 1)
         }!!
@@ -40,7 +40,7 @@ class InMemorySessions : Sessions {
     /**
      * Gets a session by ID or returns null if not found.
      */
-    override fun get(sessionId: String): Session? = sessions[sessionId]
+    fun get(sessionId: String): Session? = sessions[sessionId]
 
     /**
      * Clears all sessions (useful for testing).
