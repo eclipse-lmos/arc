@@ -1,0 +1,20 @@
+[
+  {
+    "id": "adl-1",
+    "title": "Weather Data Collector",
+    "content": "Collects temperature and humidity from IoT sensors every 5 minutes and stores aggregated metrics.",
+    "metadata": {"domain": "weather", "created_by": "team-a"}
+  },
+  {
+    "id": "adl-2",
+    "title": "User Onboarding Assistant",
+    "content": "Guides new users through account setup, email verification, and initial preferences.",
+    "metadata": {"domain": "ux", "created_by": "team-b"}
+  },
+  {
+    "id": "adl-3",
+    "title": "Invoice Processor",
+    "content": "Parses incoming invoice PDFs, extracts line items and posts them to accounting system.",
+    "metadata": {"domain": "finance", "created_by": "team-c"}
+  }
+]
