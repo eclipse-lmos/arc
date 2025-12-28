@@ -15,6 +15,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.routing.routing
 import org.eclipse.lmos.adl.server.inbound.AdlCompilerMutation
 import org.eclipse.lmos.adl.server.inbound.AdlQuery
+import org.eclipse.lmos.adl.server.inbound.AdlValidationMutation
 
 fun startServer(
     wait: Boolean = true,
@@ -30,6 +31,7 @@ fun startServer(
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
+                    AdlValidationMutation(),
                 )
             }
         }
