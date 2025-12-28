@@ -25,6 +25,7 @@ import org.eclipse.lmos.adl.server.inbound.AdlEvalMutation
 import org.eclipse.lmos.adl.server.inbound.AdlExampleQuery
 import org.eclipse.lmos.adl.server.inbound.AdlMutation
 import org.eclipse.lmos.adl.server.inbound.AdlQuery
+import org.eclipse.lmos.adl.server.inbound.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.SystemPromptMutation
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
@@ -72,6 +73,7 @@ fun startServer(
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
+                    AdlValidationMutation(),
                     AdlMutation(useCaseStore),
                     SystemPromptMutation(sessions, templateLoader),
                     AdlEvalMutation(evalAgent),
