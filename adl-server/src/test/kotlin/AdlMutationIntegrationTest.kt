@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.search
+package org.eclipse.lmos.adl.server
 
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -13,6 +13,7 @@ import io.ktor.server.engine.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -288,7 +289,7 @@ class AdlMutationIntegrationTest {
 
         val response = client.post("$baseUrl/graphql") {
             contentType(ContentType.Application.Json)
-            setBody("""{"query": ${json.encodeToString(kotlinx.serialization.serializer<String>(), query)}}""")
+            setBody("""{"query": ${json.encodeToString(serializer<String>(), query)}}""")
         }
 
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
@@ -315,7 +316,7 @@ class AdlMutationIntegrationTest {
 
         val response = client.post("$baseUrl/graphql") {
             contentType(ContentType.Application.Json)
-            setBody("""{"query": ${json.encodeToString(kotlinx.serialization.serializer<String>(), query)}}""")
+            setBody("""{"query": ${json.encodeToString(serializer<String>(), query)}}""")
         }
 
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
@@ -341,7 +342,7 @@ class AdlMutationIntegrationTest {
 
         val response = client.post("$baseUrl/graphql") {
             contentType(ContentType.Application.Json)
-            setBody("""{"query": ${json.encodeToString(kotlinx.serialization.serializer<String>(), query)}}""")
+            setBody("""{"query": ${json.encodeToString(serializer<String>(), query)}}""")
         }
 
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)

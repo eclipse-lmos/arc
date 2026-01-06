@@ -19,6 +19,21 @@ dependencies {
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.static)
     implementation(libs.graphql.kotlin.ktor)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
+
+    // LLM Clients
+    implementation(project(":arc-azure-client"))
+    //implementation("dev.langchain4j:langchain4j-ollama:1.8.0")
+
+    // Qdrant
+    implementation("io.qdrant:client:1.15.0")
+    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("com.google.protobuf:protobuf-java:4.33.2")
+
+    // Embeddings
+    implementation("dev.langchain4j:langchain4j:1.9.1")
+    implementation("dev.langchain4j:langchain4j-embeddings:1.9.1-beta17")
+    implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.9.1-beta17")
 
     // OpenTelemetry dependencies
     implementation(platform("io.opentelemetry:opentelemetry-bom:1.55.0"))
@@ -34,4 +49,7 @@ dependencies {
     testImplementation(libs.ktor.client.core)
     testImplementation(libs.ktor.client.cio.jvm)
     testImplementation(libs.kotlinx.serialization.json)
+    testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    testImplementation("org.testcontainers:qdrant:1.20.4")
 }

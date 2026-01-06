@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.search.embeddings
+package org.eclipse.lmos.adl.server.embeddings
 
 import dev.langchain4j.model.embedding.EmbeddingModel
-import org.eclipse.lmos.adl.server.search.inbound.Message
+import org.eclipse.lmos.adl.server.inbound.Message
 
 /**
  * Creates a single embedding for an entire conversation.
