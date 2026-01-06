@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.search.embeddings
+package org.eclipse.lmos.adl.server.embeddings
 
 import dev.langchain4j.model.embedding.EmbeddingModel
 import io.qdrant.client.PointIdFactory.id
@@ -15,7 +15,7 @@ import io.qdrant.client.grpc.Collections.VectorParams
 import io.qdrant.client.grpc.Points.PointStruct
 import io.qdrant.client.grpc.Points.ScoredPoint
 import kotlinx.coroutines.guava.await
-import org.eclipse.lmos.adl.server.search.QdrantConfig
+import org.eclipse.lmos.adl.server.QdrantConfig
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.util.UUID
 import java.util.concurrent.ExecutionException
@@ -145,7 +145,7 @@ class QdrantUseCaseEmbeddingsStore(
      * @return List of matching UseCase embeddings with their scores.
      */
     suspend fun searchByConversation(
-        messages: List<org.eclipse.lmos.adl.server.search.inbound.Message>,
+        messages: List<org.eclipse.lmos.adl.server.inbound.Message>,
         limit: Int = 5,
         scoreThreshold: Float = 0.0f,
     ): List<UseCaseSearchResult> {

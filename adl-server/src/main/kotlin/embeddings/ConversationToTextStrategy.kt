@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.search.embeddings
+package org.eclipse.lmos.adl.server.embeddings
 
-import org.eclipse.lmos.adl.server.search.inbound.Message
+import org.eclipse.lmos.adl.server.inbound.Message
 
 /**
  * Strategy for converting a list of messages into text for embedding.
