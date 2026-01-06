@@ -170,6 +170,7 @@ The validation mutation returns:
 - **usedTools**: List of tools/functions used in the ADL code (extracted from `@function()` calls)
 - **references**: List of references to other use cases (extracted from `#usecase_id` patterns)
 
+### Database
 
 The ADL Server requires a Qdrant vector database to store and search for UseCase embeddings. You can start a Qdrant instance using Docker:
 

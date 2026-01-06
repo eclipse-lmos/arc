@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.adl.server.embeddings
 
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
+import org.eclipse.lmos.adl.server.inbound.Message
 
 /**
  * Strategy for converting a list of messages into text for embedding.
@@ -16,7 +16,7 @@ fun interface ConversationToTextStrategy {
      * @param messages The messages to convert.
      * @return The text representation of the messages.
      */
-    fun convert(messages: List<SimpleMessage>): String
+    fun convert(messages: List<Message>): String
 }
 
 /**
@@ -25,7 +25,7 @@ fun interface ConversationToTextStrategy {
 class ConcatenatingStrategy(
     private val separator: String = "\n",
 ) : ConversationToTextStrategy {
-    override fun convert(messages: List<SimpleMessage>): String {
+    override fun convert(messages: List<Message>): String {
         return messages.joinToString(separator) { it.content }
     }
 }
@@ -36,7 +36,7 @@ class ConcatenatingStrategy(
 class RolePrefixedStrategy(
     private val separator: String = "\n",
 ) : ConversationToTextStrategy {
-    override fun convert(messages: List<SimpleMessage>): String {
+    override fun convert(messages: List<Message>): String {
         return messages.joinToString(separator) { "${it.role}: ${it.content}" }
     }
 }
@@ -48,7 +48,7 @@ class LastNMessagesStrategy(
     private val n: Int,
     private val delegate: ConversationToTextStrategy = ConcatenatingStrategy(),
 ) : ConversationToTextStrategy {
-    override fun convert(messages: List<SimpleMessage>): String {
+    override fun convert(messages: List<Message>): String {
         return delegate.convert(messages.takeLast(n))
     }
 }
@@ -60,7 +60,7 @@ class FilterByRoleStrategy(
     private val roles: Set<String>,
     private val delegate: ConversationToTextStrategy = ConcatenatingStrategy(),
 ) : ConversationToTextStrategy {
-    override fun convert(messages: List<SimpleMessage>): String {
+    override fun convert(messages: List<Message>): String {
         return delegate.convert(messages.filter { it.role in roles })
     }
 }
