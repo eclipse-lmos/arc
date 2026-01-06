@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.search.inbound
+package org.eclipse.lmos.adl.server.inbound
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
-import org.eclipse.lmos.adl.server.search.embeddings.UseCaseEmbeddingsStore
+import org.eclipse.lmos.adl.server.embeddings.UseCaseEmbeddingsStore
 
 /**
  * GraphQL Mutation for storing UseCases in the Embeddings store.

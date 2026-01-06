@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.search.inbound
+package org.eclipse.lmos.adl.server.inbound
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import kotlinx.serialization.Serializable
