@@ -56,3 +56,4 @@ bin/
 /docs-src/node_modules/
 /docs-src/.docusaurus/
 .idea/
+/adl-server/qdrant_storage/
