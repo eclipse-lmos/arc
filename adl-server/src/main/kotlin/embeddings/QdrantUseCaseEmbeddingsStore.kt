@@ -145,7 +145,7 @@ class QdrantUseCaseEmbeddingsStore(
      * @return List of matching UseCase embeddings with their scores.
      */
     suspend fun searchByConversation(
-        messages: List<org.eclipse.lmos.adl.server.inbound.Message>,
+        messages: List<org.eclipse.lmos.adl.server.inbound.SimpleMessage>,
         limit: Int = 5,
         scoreThreshold: Float = 0.0f,
     ): List<UseCaseSearchResult> {
