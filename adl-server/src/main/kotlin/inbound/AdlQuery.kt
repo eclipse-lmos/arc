@@ -23,7 +23,7 @@ class AdlQuery(
 
     @GraphQLDescription("Returns the UseCase IDs that match the conversation provided, ordered by relevance.")
     suspend fun search(
-        conversation: List<Message>,
+        conversation: List<SimpleMessage>,
         @GraphQLDescription("Maximum number of results to return") limit: Int? = null,
         @GraphQLDescription("Minimum similarity score (0.0 to 1.0)") scoreThreshold: Double? = 0.0,
     ): List<UseCaseMatch> {

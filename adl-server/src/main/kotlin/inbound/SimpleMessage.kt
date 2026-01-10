@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
  * @param content The content of the message.
  */
 @Serializable
-data class Message(
+data class SimpleMessage(
     @param:GraphQLDescription("The role of the message sender (e.g., user, assistant, system)")
     val role: String,
     @param:GraphQLDescription("The content of the message")

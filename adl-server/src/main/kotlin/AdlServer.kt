@@ -15,16 +15,19 @@ import io.ktor.server.engine.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
+import org.eclipse.lmos.adl.server.agents.createAssistantAgent
+import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
 import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.inbound.AdlCompilerMutation
+import org.eclipse.lmos.adl.server.inbound.AdlAssistantMutation
+import org.eclipse.lmos.adl.server.inbound.AdlEvalMutation
 import org.eclipse.lmos.adl.server.inbound.AdlExampleQuery
 import org.eclipse.lmos.adl.server.inbound.AdlMutation
 import org.eclipse.lmos.adl.server.inbound.AdlQuery
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.SystemPromptMutation
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
-import org.eclipse.lmos.adl.server.sessions.Sessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 
 fun startServer(
@@ -38,7 +41,11 @@ fun startServer(
     val sessions = InMemorySessions()
     val embeddingModel = AllMiniLmL6V2EmbeddingModel()
     val useCaseStore = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
+
+    // Agents
     val exampleAgent = createExampleAgent()
+    val evalAgent = createEvalAgent()
+    val assistantAgent = createAssistantAgent()
 
     // Initialize Qdrant collection
     runBlocking {
@@ -53,15 +60,21 @@ fun startServer(
 
         install(GraphQL) {
             schema {
-                packages = listOf("org.eclipse.lmos.adl.server.inbound")
+                packages = listOf(
+                    "org.eclipse.lmos.adl.server.inbound",
+                    "org.eclipse.lmos.adl.server.agents",
+                    "org.eclipse.lmos.arc.api"
+                )
                 queries = listOf(
                     AdlQuery(useCaseStore),
-                    AdlExampleQuery(exampleAgent)
+                    AdlExampleQuery(exampleAgent),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
                     AdlMutation(useCaseStore),
                     SystemPromptMutation(sessions, templateLoader),
+                    AdlEvalMutation(evalAgent),
+                    AdlAssistantMutation(assistantAgent)
                 )
             }
             engine {
