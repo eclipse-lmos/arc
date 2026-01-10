@@ -4,6 +4,7 @@
 
 plugins {
     alias(libs.plugins.ktor)
+    id("sh.ondr.koja") version "0.4.6"
 }
 
 application {
@@ -12,6 +13,7 @@ application {
 
 dependencies {
     implementation(project(":arc-assistants"))
+    implementation(project(":arc-api"))
     implementation(project(":adl-kotlin-runner"))
 
     implementation(libs.ktor.server.core)
@@ -20,6 +22,9 @@ dependencies {
     implementation(libs.ktor.server.static)
     implementation(libs.graphql.kotlin.ktor)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
+
+    // Logback
+    implementation(libs.logback.classic)
 
     // LLM Clients
     implementation(project(":arc-azure-client"))

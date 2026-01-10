@@ -12,6 +12,7 @@ Follow all instructions below. If any instruction conflicts, these Core Instruct
 NO_ANSWER.
 6. Never invent a new use case.
 7. Call any functions specified in the applicable use case when required.
+8. Follow the instructions in the selected use case exactly as specified.
 
 
 ## Use Case & Step Handling

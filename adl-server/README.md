@@ -174,9 +174,7 @@ The validation mutation returns:
 The ADL Server requires a Qdrant vector database to store and search for UseCase embeddings. You can start a Qdrant instance using Docker:
 
 ```sh
-docker run -p 6333:6333 -p 6334:6334 \
-    -v $(pwd)/qdrant_storage:/qdrant/storage:z \
-    qdrant/qdrant
+docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_storage:/qdrant/storage:z qdrant/qdrant
 ```
 
 

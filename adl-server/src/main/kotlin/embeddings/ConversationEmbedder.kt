@@ -5,7 +5,7 @@
 package org.eclipse.lmos.adl.server.embeddings
 
 import dev.langchain4j.model.embedding.EmbeddingModel
-import org.eclipse.lmos.adl.server.inbound.Message
+import org.eclipse.lmos.adl.server.inbound.SimpleMessage
 
 /**
  * Creates a single embedding for an entire conversation.
@@ -21,7 +21,7 @@ class ConversationEmbedder(
      * @param messages The messages in the conversation.
      * @return The embedding of the conversation.
      */
-    suspend fun embed(messages: List<Message>): ConversationEmbedding {
+    suspend fun embed(messages: List<SimpleMessage>): ConversationEmbedding {
         val text = textStrategy.convert(messages)
         val response = embeddingModel.embed(text)
         return ConversationEmbedding(
@@ -36,7 +36,7 @@ class ConversationEmbedder(
      * @param conversations A list of conversations (each is a list of messages).
      * @return The embeddings of all conversations.
      */
-    suspend fun embedAll(conversations: List<List<Message>>): List<ConversationEmbedding> {
+    suspend fun embedAll(conversations: List<List<SimpleMessage>>): List<ConversationEmbedding> {
         return conversations.map { embed(it) }
     }
 }
