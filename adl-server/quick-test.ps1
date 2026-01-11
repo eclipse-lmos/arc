@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Quick test - just run unit tests
 # Usage: .\quick-test.ps1
 
@@ -18,4 +22,3 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Tests failed!" -ForegroundColor Red
     exit 1
 }
-

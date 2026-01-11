@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+#
+# SPDX-License-Identifier: Apache-2.0
 # One-command test script for Windows
 # This script builds, runs tests, starts server, and runs integration tests
 
