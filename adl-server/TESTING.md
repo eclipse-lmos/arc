@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 # Testing the ADL Validation API
 
 This guide provides multiple ways to test the validation API.

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 # ADL Server
 
 The **ADL Server** is a Ktor-based microservice that provides a GraphQL API for compiling and formatting ADL (Assistant Description Language) code. It is designed to be used as part of the ARC AI framework, enabling dynamic parsing and transformation of use case definitions written in ADL.
