@@ -12,6 +12,7 @@ SPDX-PackageDownloadLocation = "https://github.com/eclipse-lmos/arc"
 path = ["**/fonts/**",
     "**/assets/**",
     "**/flags.flagd.json",
+    "**/*.json",
     "**/org.eclipse.lmos.arc.agents.llm.CompleterLoaderService",
     "**/org.eclipse.lmos.arc.assistants.support.usecases.code.CodeBlockRunner",
     "**/org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader",
