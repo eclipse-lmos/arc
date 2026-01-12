@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+
+SPDX-License-Identifier: CC0-1.0
+-->
 # ADL Search Service
 
 This service indexes ADLs into Qdrant and returns semantically related ADLs for a conversation.
