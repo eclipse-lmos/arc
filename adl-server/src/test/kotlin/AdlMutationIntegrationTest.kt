@@ -73,7 +73,7 @@ class AdlMutationIntegrationTest {
 
     @Test
     fun `store stores a single use case with examples`() {
-        runBlocking {
+         runBlocking {
             val adl = """
                 ### UseCase: password_reset
                 #### Description
@@ -92,7 +92,6 @@ class AdlMutationIntegrationTest {
             val result = executeStoreMutation(adl)
 
             assertThat(result.message).describedAs("Storage should succeed").doesNotContain("Failed")
-            assertThat(result.success).isTrue()
             assertThat(result.storedExamplesCount).isEqualTo(3)
             assertThat(result.message).contains("successfully stored")
         }
@@ -117,7 +116,6 @@ class AdlMutationIntegrationTest {
 
             val result = executeStoreMutation(adl)
 
-            assertThat(result.success).isTrue()
             assertThat(result.storedExamplesCount).isEqualTo(2)
         }
     }
@@ -154,7 +152,6 @@ class AdlMutationIntegrationTest {
 
             val result = executeStoreMutation(adl)
 
-            assertThat(result.success).isTrue()
             assertThat(result.storedExamplesCount).isEqualTo(5)
             assertThat(result.message).contains("successfully stored")
         }
@@ -182,7 +179,6 @@ class AdlMutationIntegrationTest {
             """.trimIndent()
             val result1 = executeStoreMutation(adl1)
 
-            assertThat(result1.success).isTrue()
             assertThat(result1.storedExamplesCount).isEqualTo(3)
 
             // Store again with same ID but only 2 examples - should overwrite
@@ -201,7 +197,6 @@ class AdlMutationIntegrationTest {
             """.trimIndent()
             val result2 = executeStoreMutation(adl2)
 
-            assertThat(result2.success).isTrue()
             assertThat(result2.storedExamplesCount).isEqualTo(2)
             assertThat(result2.message).contains("successfully stored")
         }
@@ -230,7 +225,6 @@ class AdlMutationIntegrationTest {
             // Then delete it
             val result = executeDeleteMutation(useCaseId)
 
-            assertThat(result.success).isTrue()
             assertThat(result.useCaseId).isEqualTo(useCaseId)
             assertThat(result.message).contains("successfully deleted")
         }
@@ -271,7 +265,6 @@ class AdlMutationIntegrationTest {
             // Clear all
             val result = executeClearAllMutation()
 
-            assertThat(result.success).isTrue()
             assertThat(result.message).contains("successfully cleared")
         }
     }
@@ -280,7 +273,6 @@ class AdlMutationIntegrationTest {
         val query = """
             mutation {
                 store(adl: ${adl.toGraphQLString()}) {
-                    success
                     storedExamplesCount
                     message
                 }
@@ -307,7 +299,6 @@ class AdlMutationIntegrationTest {
         val query = """
             mutation {
                 delete(useCaseId: "$useCaseId") {
-                    success
                     useCaseId
                     message
                 }
@@ -334,7 +325,6 @@ class AdlMutationIntegrationTest {
         val query = """
             mutation {
                 clearAll {
-                    success
                     message
                 }
             }
@@ -374,7 +364,6 @@ class AdlMutationIntegrationTest {
 
     @Serializable
     data class StorageResultData(
-        val success: Boolean,
         val storedExamplesCount: Int,
         val message: String,
     )
@@ -392,7 +381,6 @@ class AdlMutationIntegrationTest {
 
     @Serializable
     data class DeletionResultData(
-        val success: Boolean,
         val useCaseId: String,
         val message: String,
     )
@@ -410,7 +398,6 @@ class AdlMutationIntegrationTest {
 
     @Serializable
     data class ClearResultData(
-        val success: Boolean,
         val message: String,
     )
 
