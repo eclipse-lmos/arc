@@ -1,4 +1,3 @@
-
 $$ROLE$$
 
 ## Core Instructions (Strict)
