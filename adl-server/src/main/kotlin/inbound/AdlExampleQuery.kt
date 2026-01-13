@@ -33,7 +33,7 @@ class AdlExampleQuery(
 
         return UseCaseExample(
             useCaseDescription = description,
-            examples = content.lines().filter { it.isNotBlank() }
+            examples = content.lines().filter { it.isNotBlank() },
         )
     }
 }

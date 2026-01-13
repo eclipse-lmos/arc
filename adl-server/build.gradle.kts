@@ -28,7 +28,7 @@ dependencies {
 
     // LLM Clients
     implementation(project(":arc-azure-client"))
-    //implementation("dev.langchain4j:langchain4j-ollama:1.8.0")
+    // implementation("dev.langchain4j:langchain4j-ollama:1.8.0")
 
     // Qdrant
     implementation("io.qdrant:client:1.15.0")

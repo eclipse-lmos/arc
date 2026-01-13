@@ -6,6 +6,7 @@ package org.eclipse.lmos.adl.server.inbound
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.sessions.Sessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.junit.jupiter.api.BeforeEach
@@ -19,7 +20,7 @@ class SystemPromptMutationTest {
 
     @BeforeEach
     fun setUp() {
-        sessions = Sessions()
+        sessions = InMemorySessions()
         templateLoader = TemplateLoader()
         mutation = SystemPromptMutation(sessions, templateLoader)
     }

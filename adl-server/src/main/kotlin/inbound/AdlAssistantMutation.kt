@@ -15,26 +15,24 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
-import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
-import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
-import org.eclipse.lmos.arc.api.AgentResultType.ERROR
 import org.eclipse.lmos.arc.api.AgentResultType.MESSAGE
 import org.eclipse.lmos.arc.api.ContextEntry
 import org.eclipse.lmos.arc.api.Message
 import org.eclipse.lmos.arc.api.ToolCall
+import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import java.time.Duration
 
 class AdlAssistantMutation(
-    private val assistantAgent: ConversationAgent
+    private val assistantAgent: ConversationAgent,
 ) : Mutation {
 
     @GraphQLDescription("Calls the assistant agent")
     suspend fun assistant(
-        @GraphQLDescription("The assistant input") input: AssistantInput
+        @GraphQLDescription("The assistant input") input: AssistantInput,
     ): AgentResult {
         val useCases = input.useCases.toUseCases()
         val request = input.request
@@ -54,7 +52,7 @@ class AdlAssistantMutation(
                 request,
                 useCases,
                 outputContext,
-            )
+            ),
         )
 
         val responseTime = Duration.ofNanos(System.nanoTime() - start).toMillis() / 1000.0

@@ -20,7 +20,7 @@ plugins {
     kotlin("plugin.serialization") version "2.2.21" apply false
     id("org.jetbrains.dokka") version "2.0.0"
     id("org.cyclonedx.bom") version "2.3.1"
-    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
+    // id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     id("net.researchgate.release") version "3.1.0"
     id("com.vanniktech.maven.publish") version "0.31.0"
@@ -32,7 +32,7 @@ subprojects {
     apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "kotlinx-serialization")
-    if (!ignoreKtLint.contains(project.name)) apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    //if (!ignoreKtLint.contains(project.name)) apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "org.jetbrains.kotlinx.kover")
     apply(plugin = "com.vanniktech.maven.publish")
 
@@ -41,13 +41,13 @@ subprojects {
     }
 
     // currently ktlint has issues with context parameters.
-    if (!ignoreKtLint.contains(project.name)) {
-        configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-            debug.set(true)
-        }
-    }
+    // if (!ignoreKtLint.contains(project.name)) {
+    //    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    //        debug.set(true)
+    //    }
+    // }
 
-    tasks.named<KotlinJvmCompile>("compileKotlin") {
+    tasks.withType<KotlinJvmCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.addAll(listOf("-Xcontext-parameters", "-Xjsr305=strict"))
             jvmTarget = JvmTarget.fromTarget("21")
