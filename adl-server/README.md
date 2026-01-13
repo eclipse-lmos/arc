@@ -31,8 +31,6 @@ The server can be configured using the following environment variables:
 
 ### Start the Server
 
-You can start the server using Gradle:
-
 ```sh
 ./gradlew :adl-server:run
 ```
@@ -47,7 +45,13 @@ The main endpoint is available at:
 POST http://localhost:8080/graphql
 ```
 
-#### Example: Compile Mutation
+You can explore the API using GraphiQL at:
+`http://localhost:8080/graphiql` (when running in dev mode or if enabled)
+
+#### 1. Core ADL Operations
+
+**Compile ADL (`compile`)**
+Compiles ADL code into a structured format.
 
 ```graphql
 mutation{
@@ -75,74 +79,11 @@ mutation{
 }
 ```
 
-#### Example Queries
-
-**Find use cases by description:**
-
-```graphql
-query {
-    searchByText(query: "forgot pass") {
-        useCaseId
-        score
-    }
-}
-```
-
-**Find use cases by conversation:**
+**Validate ADL (`validate`)**
+Checks ADL code for syntax errors, missing references, and extracts used tools.
 
 ```graphql
-query {
-    search(conversation: [
-        { role: "user", content: "I forgot my password" }
-    ]) {
-        useCaseId
-        score
-    }
-}
-```
-
-**Generate examples:**
-
-```graphql
-query {
-  examples(description: "password forgotten") {
-    useCaseDescription
-    examples
-  }
-}
-```
-
-#### Other Mutations
-
-**Store UseCase:**
-
-```graphql
-mutation {
-  store(adl: """
-    ### UseCase: password_forgotten
-    # ...
-  """) {
-    storedExamplesCount
-    message
-  }
-}
-```
-
-**Delete UseCase:**
-
-```graphql
-mutation {
-  delete(useCaseId: "password_forgotten") {
-    useCaseId
-    message
-  }
-}
-```
-
-### Database
-#### Example: Validate Mutation
-
-```mutation{
+mutation{
   validate(
     adl: """
     ### UseCase: password_forgotten
@@ -165,10 +106,154 @@ mutation {
 }
 ```
 
-The validation mutation returns:
-- **syntaxErrors**: List of syntax errors found in the ADL code (with line numbers and messages)
-- **usedTools**: List of tools/functions used in the ADL code (extracted from `@function()` calls)
-- **references**: List of references to other use cases (extracted from `#usecase_id` patterns)
+#### 2. Use Case Management (Knowledge Base)
+
+These operations require Qdrant to be running.
+
+**Store Use Case (`store`)**
+Embeds and stores a use case in the vector database.
+
+```graphql
+mutation {
+  store(adl: """
+    ### UseCase: password_forgotten
+    # ...
+  """) {
+    storedExamplesCount
+    message
+  }
+}
+```
+
+**Delete Use Case (`delete`)**
+Removes a use case from the database.
+
+```graphql
+mutation {
+  delete(useCaseId: "password_forgotten") {
+    useCaseId
+    message
+  }
+}
+```
+
+**Search Use Cases (`search`, `searchByText`)**
+
+```graphql
+# Find by text description
+query {
+    searchByText(query: "forgot pass") {
+        useCaseId
+        score
+    }
+}
+
+# Find by conversation context (semantic search)
+query {
+    search(conversation: [
+        { role: "user", content: "I forgot my password" }
+    ]) {
+        useCaseId
+        score
+    }
+}
+```
+
+#### 3. Assistant & Simulation
+
+Interact with the ADL assistant capabilities directly.
+
+**Chat with Assistant (`assistant`)**
+Send a message to the assistant, providing the ADL context dynamically.
+
+```graphql
+mutation {
+  assistant(
+    input: {
+       useCases: """
+         ### UseCase: hello
+         #### Solution
+         Say hello back.
+         ----
+       """
+       request: {
+          messages: [{role: "user", content: "Hello"}]
+          userContext: { userId: "user-1" }
+          conversationContext: { conversationId: "conv-1" }
+       }
+    }
+  ) {
+    messages { role content }
+    toolCalls { name arguments }
+    responseTime
+  }
+}
+```
+
+**Generate System Prompt (`systemPrompt`)**
+Get the raw system prompt that would be sent to the LLM.
+
+```graphql
+mutation {
+  systemPrompt(
+    adl: "...",
+    conditionals: ["isVip"],
+    sessionId: "session-1"
+  ) {
+    systemPrompt
+    useCaseCount
+  }
+}
+```
+
+#### 4. Development & Testing Tools
+
+**Generate Test Cases (`createTests`)**
+Create synthetic test conversations from a use case description.
+
+```graphql
+mutation {
+  createTests(useCase: "The user needs to verify their email address...") {
+    title
+    description
+    expectedConversation { role content }
+  }
+}
+```
+
+**Evaluate Conversation (`eval`)**
+Check if a conversation follows the use case rules.
+
+```graphql
+mutation {
+  eval(input: {
+    useCase: """
+      ### UseCase: verify_email
+      #### Solution
+      Ask for email.
+      ----
+    """
+    conversation: "User: verify me. Assistant: OK."
+  }) {
+    verdict
+    score
+    reasons
+    violations
+  }
+}
+```
+
+**Generate Examples (`examples`)**
+Generate example user utterances for a use case description.
+
+```graphql
+query {
+  examples(description: "password forgotten") {
+    useCaseDescription
+    examples
+  }
+}
+```
 
 ### Database
 
