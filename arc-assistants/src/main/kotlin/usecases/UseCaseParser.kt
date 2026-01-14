@@ -17,8 +17,9 @@ fun String.toUseCases(): List<UseCase> {
     var currentUseCase: UseCase? = null
     var currentSection = NONE
     val version = extractVersion(this)
+    val (meta, content) = MetaDataParser.parse(this)
 
-    forEachLine { line ->
+    content.forEachLine { line ->
         if (line.trimStart().startsWith("#")) {
             if (line.contains("# UseCase") || line.contains("# Case")) {
                 currentUseCase?.let { useCases.add(it) }
@@ -28,9 +29,10 @@ fun String.toUseCases(): List<UseCase> {
                 currentUseCase = UseCase(
                     id = id,
                     executionLimit = executionLimit,
-                    version = version,
+                    version = version ?: meta["version"],
                     conditions = conditions,
                     subUseCase = line.contains("# Case"),
+                    metaData = meta,
                 )
                 currentSection = if (currentUseCase?.subUseCase == true) SUB_START else NONE
             } else if (line.contains("# Category:")) {
@@ -219,6 +221,7 @@ data class UseCase(
     val goal: List<Conditional> = emptyList(),
     val subUseCase: Boolean = false,
     val category: String? = null,
+    val metaData: Map<String, String> = emptyMap(),
 ) {
     fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
