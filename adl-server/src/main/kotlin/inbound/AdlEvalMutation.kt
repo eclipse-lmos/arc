@@ -13,15 +13,15 @@ import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.core.getOrThrow
 
 /**
- * GraphQL Query for creating test cases for a given use case.
+ * GraphQL Query for evaluating conversations.
  */
 class AdlEvalMutation(
     private val testAgent: ConversationAgent,
 ) : Mutation {
 
-    @GraphQLDescription("Generates test cases for a given use case.")
+    @GraphQLDescription("Evaluates a conversation against a use case.")
     suspend fun eval(
-        @GraphQLDescription("The use case description") input: EvalInput,
+        @GraphQLDescription("The use case") input: EvalInput,
     ): EvalOutput {
         return testAgent.process<EvalInput, EvalOutput>(input).getOrThrow()
     }
