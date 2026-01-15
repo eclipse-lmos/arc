@@ -30,6 +30,7 @@ import org.eclipse.lmos.adl.server.inbound.AdlTestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.SystemPromptMutation
+import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 
@@ -50,6 +51,7 @@ fun startServer(
     val evalAgent = createEvalAgent()
     val assistantAgent = createAssistantAgent()
     val testCreatorAgent = createTestCreatorAgent()
+    val conversationEvaluator = ConversationEvaluator(embeddingModel)
 
     // Initialize Qdrant collection
     runBlocking {
@@ -77,7 +79,7 @@ fun startServer(
                     AdlCompilerMutation(),
                     AdlMutation(useCaseStore),
                     SystemPromptMutation(sessions, templateLoader),
-                    AdlEvalMutation(evalAgent),
+                    AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent),
                     AdlValidationMutation(),
                     AdlTestCreatorMutation(testCreatorAgent),

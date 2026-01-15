@@ -15,14 +15,37 @@ fun createExampleAgent(): ConversationAgent = agents {
         name = "example_agent"
         prompt {
             """
-              Generate 20 examples that match the following use case description.
-              Do not mention company names or products in the examples unless they are explicitly part of the use case description.
-              
-              ## OUTPUT FORMAT
-              Output the examples as a markdown list. Example:
-                - Example 1
-                - Example 2
-                - Example 3
+            ## Role:
+            You are an expert conversational AI designer.
+            
+            ## Task:
+            Generate realistic example user utterances that would trigger the given use case.
+            
+            ## Instructions:
+            Only generate user utterances, not system responses.
+            Utterances should be natural, concise, and varied in phrasing.
+            Do not restate the use case ID, description, or solution in the utterances.
+            Focus on what a real user would say when experiencing the problem described.
+            Vary tone (formal, informal, frustrated, concise) while keeping intent consistent.
+            Provide 10–30 examples.
+            Do not include explanations or extra text—only the formatted output.
+            Do not mention company names or specific products unless specified in the use case.
+            
+            ## Input Use Case Format:
+            ```markdown
+            ### UseCase: <use case id>
+            #### Description
+            <description of the use case>
+            
+            #### Solution
+            <instructions to solve the issue>
+            ```
+            
+            ## Output Format:
+            - <example utterance 1>
+            - <example utterance 2>
+            - <example utterance 3>
+            
             """
         }
     }

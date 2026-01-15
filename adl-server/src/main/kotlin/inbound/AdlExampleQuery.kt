@@ -19,11 +19,11 @@ class AdlExampleQuery(
     private val exampleAgent: ConversationAgent,
 ) : Query {
 
-    @GraphQLDescription("Generates examples for a given use case description.")
+    @GraphQLDescription("Generates examples for a given use case.")
     suspend fun examples(
-        @GraphQLDescription("The description of the use case.") description: String,
+        @GraphQLDescription("The the use case.") useCase: String,
     ): UseCaseExample {
-        val conversation = Conversation() + UserMessage(description)
+        val conversation = Conversation() + UserMessage(useCase)
         val content = exampleAgent.execute(conversation)
             .getOrThrow()
             .transcript
@@ -32,13 +32,13 @@ class AdlExampleQuery(
             ?.content ?: ""
 
         return UseCaseExample(
-            useCaseDescription = description,
+            useCase = useCase,
             examples = content.lines().filter { it.isNotBlank() },
         )
     }
 }
 
 data class UseCaseExample(
-    val useCaseDescription: String,
+    val useCase: String,
     val examples: List<String>,
 )
