@@ -14,5 +14,5 @@ dependencies {
     // Tests
     testImplementation(project(":arc-spring-boot-starter"))
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation("dev.langchain4j:langchain4j-open-ai:1.0.1")
+    testImplementation("dev.langchain4j:langchain4j-open-ai:1.9.1")
 }
