@@ -8,8 +8,8 @@ import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
 import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.embeddings.UseCaseSearchResult
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
 import org.eclipse.lmos.adl.server.model.Adl
+import org.eclipse.lmos.adl.server.model.SimpleMessage
 import org.eclipse.lmos.adl.server.storage.AdlStorage
 
 /**
@@ -39,7 +39,7 @@ class AdlQuery(
     }
 
     @GraphQLDescription("Returns a list of all stored ADLs.")
-    suspend fun adls(): List<Adl> {
+    suspend fun list(): List<Adl> {
         return adlStorage.list()
     }
 

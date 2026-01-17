@@ -6,8 +6,8 @@ package org.eclipse.lmos.adl.server.inbound.query
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
 import org.eclipse.lmos.adl.server.inbound.mutation.TestCase
+import org.eclipse.lmos.adl.server.model.SimpleMessage
 
 @GraphQLDescription("GraphQL Query for fetching test cases for a use case.")
 class TestCaseQuery : Query {

@@ -9,24 +9,32 @@ import com.expediagroup.graphql.server.operations.Mutation
 import org.eclipse.lmos.adl.server.embeddings.UseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.model.Adl
 import org.eclipse.lmos.adl.server.storage.AdlStorage
+import org.slf4j.LoggerFactory
+import java.time.Instant
+import java.time.Instant.now
 
 /**
  * GraphQL Mutation for storing UseCases in the Embeddings store.
  */
-class AdlMutation(
+class AdlStorageMutation(
     private val useCaseStore: UseCaseEmbeddingsStore,
     private val adlStorage: AdlStorage,
 ) : Mutation {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     @GraphQLDescription("Stores a UseCase in the embeddings store. Embeddings are generated from the provided examples.")
     suspend fun store(
         @GraphQLDescription("Unique identifier for the ADL") id: String,
         @GraphQLDescription("The content of the ADL") content: String,
         @GraphQLDescription("Tags associated with the ADL") tags: List<String>,
-        @GraphQLDescription("Timestamp when the ADL was created") createdAt: String
+        @GraphQLDescription("Timestamp when the ADL was created") createdAt: String? = null,
+        @GraphQLDescription("Examples") examples: List<String>,
     ): StorageResult {
-        adlStorage.store(Adl(id, content, tags, createdAt))
-        val storedCount = useCaseStore.storeUseCase(content)
+        log.info("Storing ADL with id: {}", id)
+        adlStorage.store(Adl(id, content, tags, createdAt ?: now().toString(), examples))
+        val storedCount = useCaseStore.storeUseCase(content, examples)
+        log.debug("Successfully stored ADL with id: {}. Generated {} embeddings.", id, storedCount)
         return StorageResult(
             storedExamplesCount = storedCount,
             message = "UseCase successfully stored with $storedCount embeddings",
@@ -37,6 +45,7 @@ class AdlMutation(
     suspend fun delete(
         @GraphQLDescription("The unique ID of the UseCase to delete") useCaseId: String,
     ): DeletionResult {
+        log.info("Deleting ADL with id: {}", useCaseId)
         useCaseStore.deleteByUseCaseId(useCaseId)
         return DeletionResult(
             useCaseId = useCaseId,
@@ -46,6 +55,7 @@ class AdlMutation(
 
     @GraphQLDescription("Clears all UseCases from the embeddings store.")
     suspend fun clearAll(): ClearResult {
+        log.info("Clearing all ADLs from store")
         useCaseStore.clear()
         return ClearResult(
             message = "All UseCases successfully cleared",

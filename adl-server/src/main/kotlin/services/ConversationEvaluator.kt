@@ -7,7 +7,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel
 import dev.langchain4j.store.embedding.CosineSimilarity
 import org.eclipse.lmos.adl.server.agents.EvalEvidence
 import org.eclipse.lmos.adl.server.agents.EvalOutput
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
+import org.eclipse.lmos.adl.server.model.SimpleMessage
 import kotlin.math.roundToInt
 
 class ConversationEvaluator(

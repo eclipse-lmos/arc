@@ -18,5 +18,8 @@ data class Adl(
     val tags: List<String>,
 
     @GraphQLDescription("Timestamp when the ADL was created")
-    val createdAt: String
+    val createdAt: String,
+
+    @GraphQLDescription("Examples included in the ADL")
+    val examples: List<String> = emptyList()
 )
