@@ -5,10 +5,67 @@
 plugins {
     alias(libs.plugins.ktor)
     id("sh.ondr.koja") version "0.4.6"
+    id("org.graalvm.buildtools.native") version "0.11.3"
 }
 
 application {
     mainClass = "org.eclipse.lmos.adl.server.AdlServerKt"
+}
+
+graalvmNative {
+    binaries {
+        named("main") {
+            fallback.set(false)
+            verbose.set(true)
+
+            buildArgs.add("--initialize-at-build-time=ch.qos.logback")
+            buildArgs.add("--initialize-at-build-time=io.ktor,kotlin")
+            buildArgs.add("--initialize-at-build-time=org.slf4j.LoggerFactory")
+
+            buildArgs.add("--initialize-at-build-time=org.slf4j.helpers.Reporter")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.bytestring.ByteString")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.SegmentPool")
+
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.Json")
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.JsonImpl")
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.ClassDiscriminatorMode")
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.modules.SerializersModuleKt")
+
+            buildArgs.add("-H:+InstallExitHandlers")
+            buildArgs.add("-H:+ReportUnsupportedElementsAtRuntime")
+            buildArgs.add("-H:+ReportExceptionStackTraces")
+
+            imageName.set("graalvm-server")
+        }
+
+        named("test"){
+            fallback.set(false)
+            verbose.set(true)
+
+            buildArgs.add("--initialize-at-build-time=ch.qos.logback")
+            buildArgs.add("--initialize-at-build-time=io.ktor,kotlin")
+            buildArgs.add("--initialize-at-build-time=org.slf4j.LoggerFactory")
+
+            buildArgs.add("--initialize-at-build-time=org.slf4j.helpers.Reporter")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.bytestring.ByteString")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.SegmentPool")
+
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.Json")
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.JsonImpl")
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.ClassDiscriminatorMode")
+            buildArgs.add("--initialize-at-build-time=kotlinx.serialization.modules.SerializersModuleKt")
+
+            buildArgs.add("-H:+InstallExitHandlers")
+            buildArgs.add("-H:+ReportUnsupportedElementsAtRuntime")
+            buildArgs.add("-H:+ReportExceptionStackTraces")
+
+            val path = "${projectDir}/src/test/resources/META-INF/native-image/"
+            buildArgs.add("-H:ReflectionConfigurationFiles=${path}reflect-config.json")
+            buildArgs.add("-H:ResourceConfigurationFiles=${path}resource-config.json")
+
+            imageName.set("adl-server")
+        }
+    }
 }
 
 dependencies {
@@ -20,6 +77,7 @@ dependencies {
     implementation(libs.ktor.server.cio)
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.static)
+    implementation(libs.ktor.server.cors)
     implementation(libs.graphql.kotlin.ktor)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
 

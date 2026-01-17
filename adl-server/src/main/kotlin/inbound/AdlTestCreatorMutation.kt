@@ -13,6 +13,7 @@ import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
+import java.util.UUID
 
 /**
  * GraphQL Mutation for creating test cases using the TestCreatorAgent.
