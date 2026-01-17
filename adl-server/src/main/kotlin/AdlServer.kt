@@ -27,7 +27,7 @@ import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlExampleQuery
-import org.eclipse.lmos.adl.server.inbound.mutation.AdlMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlTestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
@@ -95,7 +95,7 @@ fun startServer(
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
-                    AdlMutation(useCaseStore, adlStorage),
+                    AdlStorageMutation(useCaseStore, adlStorage),
                     SystemPromptMutation(sessions, templateLoader),
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent),

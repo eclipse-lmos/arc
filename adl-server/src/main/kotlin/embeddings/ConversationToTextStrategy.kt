@@ -4,7 +4,8 @@
 
 package org.eclipse.lmos.adl.server.embeddings
 
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
+import org.eclipse.lmos.adl.server.model.SimpleMessage
+
 
 /**
  * Strategy for converting a list of messages into text for embedding.

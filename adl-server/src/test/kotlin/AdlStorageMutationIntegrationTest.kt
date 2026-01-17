@@ -26,7 +26,7 @@ import org.testcontainers.qdrant.QdrantContainer
 import io.ktor.client.engine.cio.CIO as ClientCIO
 
 @Testcontainers
-class AdlMutationIntegrationTest {
+class AdlStorageMutationIntegrationTest {
 
     companion object {
         @Container
