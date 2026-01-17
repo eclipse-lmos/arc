@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.core.getOrThrow
+import java.util.UUID
 
 /**
  * GraphQL Mutation for creating test cases using the TestCreatorAgent.
@@ -34,14 +35,9 @@ data class TestCreatorInput(
 
 @Serializable
 data class TestCase(
-    val title: String,
+    val name: String,
     val description: String,
     @SerialName("expected_conversation")
-    val expectedConversation: List<ConversationTurn>,
-)
-
-@Serializable
-data class ConversationTurn(
-    val role: String,
-    val content: String,
+    val expectedConversation: List<SimpleMessage>,
+    val id: String = UUID.randomUUID().toString(),
 )

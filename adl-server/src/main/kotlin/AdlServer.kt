@@ -12,8 +12,11 @@ import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2Embedding
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.routing.routing
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
@@ -30,6 +33,7 @@ import org.eclipse.lmos.adl.server.inbound.AdlTestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.SystemPromptMutation
+import org.eclipse.lmos.adl.server.inbound.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
@@ -64,6 +68,16 @@ fun startServer(
             useCaseStore.close()
         }
 
+        install(CORS) {
+            allowMethod(HttpMethod.Options)
+            allowMethod(HttpMethod.Put)
+            allowMethod(HttpMethod.Delete)
+            allowMethod(HttpMethod.Patch)
+            allowHeader(HttpHeaders.Authorization)
+            allowHeader(HttpHeaders.ContentType)
+            anyHost()
+        }
+
         install(GraphQL) {
             schema {
                 packages = listOf(
@@ -74,6 +88,7 @@ fun startServer(
                 queries = listOf(
                     AdlQuery(useCaseStore),
                     AdlExampleQuery(exampleAgent),
+                    TestCaseQuery(),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
@@ -84,6 +99,9 @@ fun startServer(
                     AdlValidationMutation(),
                     AdlTestCreatorMutation(testCreatorAgent),
                 )
+            }
+            server {
+
             }
             engine {
                 exceptionHandler = GlobalExceptionHandler()

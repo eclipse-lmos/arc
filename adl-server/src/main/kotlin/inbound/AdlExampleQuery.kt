@@ -33,7 +33,10 @@ class AdlExampleQuery(
 
         return UseCaseExample(
             useCase = useCase,
-            examples = content.lines().filter { it.isNotBlank() },
+            examples = content.lines()
+                .map { it.trim() }
+                .filter { it.isNotBlank() && it.startsWith("- ") }
+                .map { it.substringAfter("-") },
         )
     }
 }
