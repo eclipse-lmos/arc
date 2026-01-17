@@ -2,18 +2,22 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.inbound
+package org.eclipse.lmos.adl.server.inbound.query
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
 import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.embeddings.UseCaseSearchResult
+import org.eclipse.lmos.adl.server.inbound.SimpleMessage
+import org.eclipse.lmos.adl.server.model.Adl
+import org.eclipse.lmos.adl.server.storage.AdlStorage
 
 /**
  * GraphQL Query for searching UseCases based on conversation embeddings.
  */
 class AdlQuery(
     private val useCaseStore: QdrantUseCaseEmbeddingsStore,
+    private val adlStorage: AdlStorage,
 ) : Query {
 
     @GraphQLDescription("Returns the supported version of the ALD.")
@@ -32,6 +36,11 @@ class AdlQuery(
         require(conversation.isNotEmpty()) { "conversation must not be empty" }
         val results = useCaseStore.searchByConversation(conversation, limit ?: 10, scoreThreshold?.toFloat() ?: 0.0f)
         return results.toMatches()
+    }
+
+    @GraphQLDescription("Returns a list of all stored ADLs.")
+    suspend fun adls(): List<Adl> {
+        return adlStorage.list()
     }
 
     @GraphQLDescription("Searches for UseCases using a text query.")

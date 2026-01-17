@@ -23,19 +23,20 @@ import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
 import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
-import org.eclipse.lmos.adl.server.inbound.AdlAssistantMutation
-import org.eclipse.lmos.adl.server.inbound.AdlCompilerMutation
-import org.eclipse.lmos.adl.server.inbound.AdlEvalMutation
-import org.eclipse.lmos.adl.server.inbound.AdlExampleQuery
-import org.eclipse.lmos.adl.server.inbound.AdlMutation
-import org.eclipse.lmos.adl.server.inbound.AdlQuery
-import org.eclipse.lmos.adl.server.inbound.AdlTestCreatorMutation
-import org.eclipse.lmos.adl.server.inbound.AdlValidationMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
+import org.eclipse.lmos.adl.server.inbound.query.AdlExampleQuery
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlMutation
+import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlTestCreatorMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
-import org.eclipse.lmos.adl.server.inbound.SystemPromptMutation
-import org.eclipse.lmos.adl.server.inbound.TestCaseQuery
+import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
+import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
+import org.eclipse.lmos.adl.server.storage.memory.InMemoryAdlStorage
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 
 fun startServer(
@@ -49,6 +50,7 @@ fun startServer(
     val sessions = InMemorySessions()
     val embeddingModel = AllMiniLmL6V2EmbeddingModel()
     val useCaseStore = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
+    val adlStorage = InMemoryAdlStorage()
 
     // Agents
     val exampleAgent = createExampleAgent()
@@ -84,15 +86,16 @@ fun startServer(
                     "org.eclipse.lmos.adl.server.inbound",
                     "org.eclipse.lmos.adl.server.agents",
                     "org.eclipse.lmos.arc.api",
+                    "org.eclipse.lmos.adl.server.model",
                 )
                 queries = listOf(
-                    AdlQuery(useCaseStore),
+                    AdlQuery(useCaseStore, adlStorage),
                     AdlExampleQuery(exampleAgent),
                     TestCaseQuery(),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
-                    AdlMutation(useCaseStore),
+                    AdlMutation(useCaseStore, adlStorage),
                     SystemPromptMutation(sessions, templateLoader),
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent),

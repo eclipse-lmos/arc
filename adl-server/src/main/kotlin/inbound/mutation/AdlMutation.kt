@@ -2,22 +2,31 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.inbound
+package org.eclipse.lmos.adl.server.inbound.mutation
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
 import org.eclipse.lmos.adl.server.embeddings.UseCaseEmbeddingsStore
+import org.eclipse.lmos.adl.server.model.Adl
+import org.eclipse.lmos.adl.server.storage.AdlStorage
 
 /**
  * GraphQL Mutation for storing UseCases in the Embeddings store.
  */
 class AdlMutation(
     private val useCaseStore: UseCaseEmbeddingsStore,
+    private val adlStorage: AdlStorage,
 ) : Mutation {
 
     @GraphQLDescription("Stores a UseCase in the embeddings store. Embeddings are generated from the provided examples.")
-    suspend fun store(adl: String): StorageResult {
-        val storedCount = useCaseStore.storeUseCase(adl)
+    suspend fun store(
+        @GraphQLDescription("Unique identifier for the ADL") id: String,
+        @GraphQLDescription("The content of the ADL") content: String,
+        @GraphQLDescription("Tags associated with the ADL") tags: List<String>,
+        @GraphQLDescription("Timestamp when the ADL was created") createdAt: String
+    ): StorageResult {
+        adlStorage.store(Adl(id, content, tags, createdAt))
+        val storedCount = useCaseStore.storeUseCase(content)
         return StorageResult(
             storedExamplesCount = storedCount,
             message = "UseCase successfully stored with $storedCount embeddings",
