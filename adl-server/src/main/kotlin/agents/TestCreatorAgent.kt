@@ -44,7 +44,7 @@ fun createTestCreatorAgent(): ConversationAgent = agents {
 
                [
                  {
-                   "title": "String",
+                   "name": "String",
                    "description": "String",
                    "expected_conversation": [
                      {"role": "user", "content": [Action] },
