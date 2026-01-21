@@ -7,6 +7,7 @@ package org.eclipse.lmos.adl.server.embeddings
  * Interface for storing UseCase embeddings.
  */
 interface UseCaseEmbeddingsStore {
+    suspend fun storeUtterances(id: String, examples: List<String>): Int
     suspend fun storeUseCase(adl: String, examples: List<String> = emptyList()): Int
     suspend fun deleteByUseCaseId(useCaseId: String)
     suspend fun clear()

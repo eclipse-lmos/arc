@@ -60,6 +60,39 @@ class QdrantUseCaseEmbeddingsStore(
     }
 
     /**
+     * Stores embeddings the given ADL utterances.
+     * Overwrites any existing embeddings for UseCases with the same ID.
+     * @param id The ADL identifier.
+     * @return The number of embeddings stored.
+     */
+    override suspend fun storeUtterances(id: String, examples: List<String>): Int {
+        val points = mutableListOf<PointStruct>()
+
+        // Delete existing embeddings for all ADL IDs that will be stored
+        deleteByUseCaseId(id)
+
+        examples.forEach { example ->
+            val embedding = embeddingModel.embed(example).content().vector()
+            val point = PointStruct.newBuilder()
+                .setId(id(UUID.randomUUID()))
+                .setVectors(vectors(embedding.toList()))
+                .putAllPayload(buildPayload(id, "", example))
+                .build()
+            points.add(point)
+        }
+
+        if (points.isNotEmpty()) {
+            try {
+                client.upsertAsync(config.collectionName, points).await()
+            } catch (e: ExecutionException) {
+                throw RuntimeException("Failed to store embeddings in Qdrant", e.cause)
+            }
+        }
+
+        return points.size
+    }
+
+    /**
      * Stores embeddings the given UseCases.
      * Overwrites any existing embeddings for UseCases with the same ID.
      * @param adl The UseCases to create embeddings from.
