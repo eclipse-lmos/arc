@@ -63,7 +63,7 @@ graalvmNative {
             buildArgs.add("-H:ReflectionConfigurationFiles=${path}reflect-config.json")
             buildArgs.add("-H:ResourceConfigurationFiles=${path}resource-config.json")
 
-            imageName.set("adl-server")
+            imageName.set("adl-server-test")
         }
     }
 }

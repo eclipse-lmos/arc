@@ -23,4 +23,8 @@ class InMemoryAdlStorage : AdlStorage {
     override suspend fun list(): List<Adl> {
         return storage.values.toList()
     }
+
+    override suspend fun deleteById(id: String) {
+        storage.remove(id)
+    }
 }

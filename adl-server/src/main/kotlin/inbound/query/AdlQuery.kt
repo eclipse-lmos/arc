@@ -43,6 +43,11 @@ class AdlQuery(
         return adlStorage.list()
     }
 
+    @GraphQLDescription("Returns a single ADL by ID.")
+    suspend fun searchById(@GraphQLDescription("The ID of the ADL") id: String): Adl? {
+        return adlStorage.get(id)
+    }
+
     @GraphQLDescription("Searches for UseCases using a text query.")
     suspend fun searchByText(
         query: String,

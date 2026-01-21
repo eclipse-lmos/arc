@@ -31,7 +31,7 @@ class AdlStorageMutation(
         @GraphQLDescription("Timestamp when the ADL was created") createdAt: String? = null,
         @GraphQLDescription("Examples") examples: List<String>,
     ): StorageResult {
-        log.info("Storing ADL with id: {}", id)
+        log.info("Storing ADL with id: {} with {} examples", id, examples.size)
         adlStorage.store(Adl(id, content, tags, createdAt ?: now().toString(), examples))
         val storedCount = useCaseStore.storeUseCase(content, examples)
         log.debug("Successfully stored ADL with id: {}. Generated {} embeddings.", id, storedCount)
@@ -43,12 +43,13 @@ class AdlStorageMutation(
 
     @GraphQLDescription("Deletes a UseCase from the embeddings store.")
     suspend fun delete(
-        @GraphQLDescription("The unique ID of the UseCase to delete") useCaseId: String,
+        @GraphQLDescription("The unique ID of the UseCase to delete") id: String,
     ): DeletionResult {
-        log.info("Deleting ADL with id: {}", useCaseId)
-        useCaseStore.deleteByUseCaseId(useCaseId)
+        log.info("Deleting ADL with id: {}", id)
+        adlStorage.deleteById(id)
+        useCaseStore.deleteByUseCaseId(id)
         return DeletionResult(
-            useCaseId = useCaseId,
+            useCaseId = id,
             message = "UseCase successfully deleted",
         )
     }
