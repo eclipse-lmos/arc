@@ -30,6 +30,7 @@ import org.eclipse.lmos.adl.server.inbound.query.AdlExampleQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlTestCreatorMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.UseCaseImprovementMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
@@ -38,6 +39,8 @@ import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.storage.memory.InMemoryAdlStorage
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
+import org.eclipse.lmos.adl.server.agents.createImprovementAgent
+import java.security.Security
 
 fun startServer(
     wait: Boolean = true,
@@ -58,6 +61,7 @@ fun startServer(
     val assistantAgent = createAssistantAgent()
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
+    val improvementAgent = createImprovementAgent()
 
     // Initialize Qdrant collection
     runBlocking {
@@ -101,6 +105,7 @@ fun startServer(
                     AdlAssistantMutation(assistantAgent),
                     AdlValidationMutation(),
                     AdlTestCreatorMutation(testCreatorAgent),
+                    UseCaseImprovementMutation(improvementAgent),
                 )
             }
             server {

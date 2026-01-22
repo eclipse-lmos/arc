@@ -21,5 +21,11 @@ data class Adl(
     val createdAt: String,
 
     @GraphQLDescription("Examples included in the ADL")
-    val examples: List<String> = emptyList()
+    val examples: List<String> = emptyList(),
+
+    @GraphQLDescription("Relevance score")
+    val relevance: Double? = null,
+
+    @GraphQLDescription("Version of the ADL")
+    val version: String = "1.0.0",
 )

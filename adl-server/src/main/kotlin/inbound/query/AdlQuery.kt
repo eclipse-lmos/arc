@@ -39,8 +39,19 @@ class AdlQuery(
     }
 
     @GraphQLDescription("Returns a list of all stored ADLs.")
-    suspend fun list(): List<Adl> {
-        return adlStorage.list()
+    suspend fun list(
+        @GraphQLDescription("Optional search criteria to filter ADLs by relevance") searchTerm: SearchCriteria? = null,
+    ): List<Adl> {
+        val allAdls = adlStorage.list()
+        if (searchTerm == null || searchTerm.term.isBlank()) {
+            return allAdls
+        }
+        val matches = useCaseStore.search(searchTerm.term, searchTerm.limit, searchTerm.threshold.toFloat())
+        val scores = matches.groupBy { it.useCaseId }.mapValues { it.value.maxOf { match -> match.score } }
+
+        return allAdls.filter { it.id in scores.keys }
+            .map { it.copy(relevance = scores[it.id]?.toDouble()) }
+            .sortedByDescending { it.relevance }
     }
 
     @GraphQLDescription("Returns a single ADL by ID.")
@@ -96,4 +107,14 @@ data class Example(
     val score: Float,
     @param:GraphQLDescription("The examples that matched the query")
     val example: String,
+)
+
+@GraphQLDescription("Search criteria for ADLs")
+data class SearchCriteria(
+    @param:GraphQLDescription("The search term")
+    val term: String,
+    @param:GraphQLDescription("Maximum number of results to return")
+    val limit: Int = 50,
+    @param:GraphQLDescription("Minimum similarity score (0.0 to 1.0)")
+    val threshold: Double = 0.5,
 )
