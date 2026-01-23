@@ -17,6 +17,7 @@ import com.azure.ai.openai.models.ChatRequestMessage
 import com.azure.ai.openai.models.ChatRequestSystemMessage
 import com.azure.ai.openai.models.ChatRequestUserMessage
 import com.azure.ai.openai.models.EmbeddingsOptions
+import com.azure.ai.openai.models.ReasoningEffortValue
 import com.azure.core.exception.ClientAuthenticationException
 import com.azure.core.util.BinaryData.fromObject
 import com.azure.core.util.BinaryData.fromString
@@ -41,6 +42,10 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.agents.llm.OutputSchema
+import org.eclipse.lmos.arc.agents.llm.ReasoningEffort
+import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.HIGH
+import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.LOW
+import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.MEDIUM
 import org.eclipse.lmos.arc.agents.llm.TextEmbedder
 import org.eclipse.lmos.arc.agents.llm.TextEmbedding
 import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
@@ -245,6 +250,13 @@ class AzureAIClient(
             settings?.seed?.let { seed = it }
             settings?.n?.let { n = it }
             settings?.model?.let { model = it }
+            settings?.reasoningEffort?.let {
+                reasoningEffort = when (it) {
+                    LOW -> ReasoningEffortValue.LOW
+                    MEDIUM -> ReasoningEffortValue.MEDIUM
+                    HIGH -> ReasoningEffortValue.HIGH
+                }
+            }
             settings?.maxTokens?.let { maxTokens = it }
             settings?.format?.takeIf { JSON == it }?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
             if (openAIFunctions != null) tools = openAIFunctions

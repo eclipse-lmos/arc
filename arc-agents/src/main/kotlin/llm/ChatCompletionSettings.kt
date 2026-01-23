@@ -17,6 +17,7 @@ data class ChatCompletionSettings(
     val model: String? = null,
     val deploymentName: String? = null,
     val outputSchema: OutputSchema? = null,
+    val reasoningEffort: ReasoningEffort? = null,
 ) {
     fun deploymentNameOrModel(): String? {
         return deploymentName ?: model
@@ -45,4 +46,13 @@ fun ChatCompletionSettings?.assignDeploymentNameOrModel(deploymentOrModelName: S
     if (this == null) return ChatCompletionSettings(deploymentName = deploymentOrModelName)
     if (this.deploymentName == null) return copy(deploymentName = deploymentOrModelName)
     return this
+}
+
+/**
+ * Represents the reasoning effort levels for LLM tasks.
+ */
+enum class ReasoningEffort {
+    LOW,
+    MEDIUM,
+    HIGH,
 }
