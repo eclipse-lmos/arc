@@ -8,13 +8,11 @@ import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.eclipse.lmos.adl.server.model.SimpleMessage
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
-import java.util.UUID
 
 /**
  * GraphQL Mutation for creating test cases using the TestCreatorAgent.
@@ -77,7 +75,7 @@ data class TestCase(
     @GraphQLDescription("The ID of the use case this test belongs to")
     val useCaseId: String? = null,
     @GraphQLDescription("The title of the test case")
-    val title: String,
+    val name: String,
     @GraphQLDescription("The description of the test case")
     val description: String,
     @SerialName("expected_conversation")

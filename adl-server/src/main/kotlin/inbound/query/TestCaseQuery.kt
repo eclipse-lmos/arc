@@ -8,25 +8,17 @@ import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
 import org.eclipse.lmos.adl.server.inbound.mutation.TestCase
 import org.eclipse.lmos.adl.server.model.SimpleMessage
+import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 
 @GraphQLDescription("GraphQL Query for fetching test cases for a use case.")
-class TestCaseQuery : Query {
+class TestCaseQuery(
+    private val testCaseRepository: TestCaseRepository,
+)  : Query {
 
     @GraphQLDescription("Fetches test cases for a given use case ID.")
-    fun testCases(
+   suspend fun testCases(
         @GraphQLDescription("The ID of the use case.") useCaseId: String
     ): List<TestCase> {
-        // Mock data for now
-        return listOf(
-            TestCase(
-                id = "1",
-                name = "Basic Greeting",
-                description = "A simple conversation to test the AI's greeting capabilities.",
-                expectedConversation = listOf(
-                    SimpleMessage(role = "user", content = "Hello!"),
-                    SimpleMessage(role = "assistant", content = "Hi there! How can I help you today?")
-                )
-            )
-        )
+        return testCaseRepository.findByUseCaseId(useCaseId)
     }
 }
