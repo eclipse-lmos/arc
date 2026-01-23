@@ -7,6 +7,12 @@ package org.eclipse.lmos.arc.api
 import kotlinx.serialization.Serializable
 
 /**
+ * Context keys
+ */
+const val EVENT_TYPE_CONTEXT_KEY = "eventType"
+const val EVENT_DATA_CONTEXT_KEY = "eventData"
+
+/**
  * AgentResult
  */
 @Serializable
@@ -19,6 +25,10 @@ data class AgentResult(
     val toolCalls: List<ToolCall>? = null,
     val type: AgentResultType? = null,
 )
+
+fun AgentResult.eventData(): String? {
+    return context?.find { it.key == EVENT_DATA_CONTEXT_KEY }?.value
+}
 
 enum class AgentResultType {
     MESSAGE,

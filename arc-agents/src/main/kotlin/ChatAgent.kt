@@ -215,7 +215,12 @@ class ChatAgent(
                 tags.input(filteredInput.latest<UserMessage>()?.content ?: "")
                 tags.userId(conversation.user?.id ?: "")
                 val completionSettings = settings.invoke(dslContext).assignDeploymentNameOrModel(model)
-                val outputMessage = chatCompleter.complete(fullConversation, functions, completionSettings)
+                val outputMessage = chatCompleter.complete(
+                    fullConversation,
+                    functions,
+                    completionSettings,
+                    dslContext.getOptional<EventPublisher>(),
+                )
                     .getOrThrow().also { tags.outputWithUseCase(it.content, context = dslContext) }
                 outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
                 dslContext.getOptional<GenerateResponseTagger>()?.tag(tags, outputMessage, dslContext)

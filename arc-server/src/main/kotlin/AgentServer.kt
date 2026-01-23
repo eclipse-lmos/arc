@@ -29,7 +29,6 @@ import org.eclipse.lmos.arc.graphql.inbound.AgentSubscription
 import org.eclipse.lmos.arc.graphql.inbound.EventSubscription
 import org.eclipse.lmos.arc.graphql.inbound.EventSubscriptionHolder
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 /**
  * Starts a Ktor server that exposes the agents and their functionality through a GraphQL API.
@@ -86,11 +85,11 @@ fun ArcAgents.serve(
         }
 
         install(WebSockets) {
-            pingPeriod = 10.seconds.toJavaDuration()
+            pingPeriod = 10.seconds
             contentConverter = JacksonWebsocketContentConverter()
         }
 
-        install(Routing) {
+        routing {
             if (devMode ?: EnvConfig.isDevMode) staticResources("/chat", "/chat")
             graphQLPostRoute()
             graphQLSubscriptionsRoute()

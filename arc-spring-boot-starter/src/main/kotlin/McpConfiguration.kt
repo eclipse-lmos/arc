@@ -12,7 +12,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
-import org.eclipse.lmos.arc.agents.dsl.beans
+import org.eclipse.lmos.arc.agents.dsl.BeanProvider
+import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toJsonString
@@ -43,7 +44,11 @@ class McpConfiguration {
      */
     @Bean
     @ConditionalOnProperty("arc.mcp.tools.expose", havingValue = "true")
-    fun syncToolSpecifications(functionProvider: LLMFunctionProvider): List<McpServerFeatures.SyncToolSpecification> {
+    fun syncToolSpecifications(
+        functionProvider: LLMFunctionProvider,
+        beanProvider: BeanProvider,
+        errorHandler: McpToolErrorHandler? = null,
+    ): List<McpServerFeatures.SyncToolSpecification> {
         val result = AtomicReference<List<McpServerFeatures.SyncToolSpecification>>()
         val wait = Semaphore(0)
         log.info("Exposing tools over MCP...")
@@ -72,15 +77,25 @@ class McpConfiguration {
                                 log.warn("Calling MCP function: $req")
                                 val args = req.arguments
                                 try {
+                                    val compositeBeanProvider = CompositeBeanProvider(
+                                        setOf(ToolCallMetadata(req.meta ?: emptyMap())),
+                                        beanProvider,
+                                    )
                                     val functionResult = if (fn is FunctionWithContext) {
-                                        val context = BasicDSLContext(beans(ToolCallMetadata(req.meta ?: emptyMap())))
+                                        val context = BasicDSLContext(compositeBeanProvider)
                                         fn.withContext(context).execute(args)
                                     } else {
                                         fn.execute(args)
                                     }
                                     result.set(McpSchema.CallToolResult(functionResult.getOrThrow(), false))
                                 } catch (e: Exception) {
-                                    result.set(McpSchema.CallToolResult(e.message, true))
+                                    log.error("Calling function ${req.name} failed with args ${req.arguments()}", e)
+                                    val handledError = errorHandler?.handleToolError(req.name, e)
+                                    if (handledError != null) {
+                                        result.set(handledError)
+                                    } else {
+                                        result.set(McpSchema.CallToolResult(e.cause?.message ?: e.message, true))
+                                    }
                                 }
                                 wait.release()
                             }
@@ -95,4 +110,18 @@ class McpConfiguration {
         wait.tryAcquire(1, TimeUnit.MINUTES)
         return result.get()
     }
+}
+
+/**
+ * Handler for MCP tool errors.
+ */
+interface McpToolErrorHandler {
+    /**
+     * Handle an error that occurred during a tool call.
+     *
+     * @param toolName The name of the tool that caused the error.
+     * @param error The error.
+     * @return A CallToolResult representing the error, or null to use the default error handling.
+     */
+    fun handleToolError(toolName: String, error: Exception): McpSchema.CallToolResult?
 }

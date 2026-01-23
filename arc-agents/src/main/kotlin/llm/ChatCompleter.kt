@@ -8,6 +8,7 @@ import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.core.Result
 
@@ -20,6 +21,7 @@ interface ChatCompleter {
         messages: List<ConversationMessage>,
         functions: List<LLMFunction>? = null,
         settings: ChatCompletionSettings? = null,
+        eventPublisher: EventPublisher? = null,
     ): Result<AssistantMessage, ArcException>
 }
 

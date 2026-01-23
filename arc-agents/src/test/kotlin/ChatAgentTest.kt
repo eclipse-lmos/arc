@@ -11,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.conversation.*
 import org.eclipse.lmos.arc.agents.dsl.AllTools
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
+import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -121,6 +122,7 @@ class ChatAgentTest : TestBase() {
             messages: List<ConversationMessage>,
             functions: List<LLMFunction>?,
             settings: ChatCompletionSettings?,
+            eventPublisher: EventPublisher?,
         ): Result<AssistantMessage, ArcException> {
             return messages.findLast { it is SystemMessage }?.let {
                 Success(AssistantMessage(it.content))

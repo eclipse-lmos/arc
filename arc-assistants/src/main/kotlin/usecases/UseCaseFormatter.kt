@@ -4,6 +4,8 @@
 
 package org.eclipse.lmos.arc.assistants.support.usecases
 
+import org.eclipse.lmos.arc.assistants.support.usecases.code.CodeBlockProcessor
+
 /**
  * Formats the given use cases to a string.
  *
@@ -29,6 +31,7 @@ suspend fun List<UseCase>.formatToString(
         val allConditions =
             conditions + "step_${usedUseCases.count { useCase.id == it } + 1}" + useCase.regexConditionals(input)
         val temp = StringBuilder()
+        val codeBlockProcessor = CodeBlockProcessor()
 
         temp.append(
             """
@@ -48,15 +51,15 @@ suspend fun List<UseCase>.formatToString(
         }
         if (!useAlternative && !useFallback && outputOptions.outputSolution != false) {
             temp.append("#### Solution\n")
-            useCase.solution.output(allConditions, temp)
+            useCase.solution.output(allConditions, temp, codeBlockProcessor)
         }
         if (useAlternative && !useFallback && outputOptions.outputSolution != false) {
             temp.append("#### Solution\n")
-            useCase.alternativeSolution.output(allConditions, temp)
+            useCase.alternativeSolution.output(allConditions, temp, codeBlockProcessor)
         }
         if (useFallback && outputOptions.outputSolution != false) {
             temp.append("#### Solution\n")
-            useCase.fallbackSolution.output(allConditions, temp)
+            useCase.fallbackSolution.output(allConditions, temp, codeBlockProcessor)
         }
         if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
             temp.append("#### Examples\n")
@@ -101,15 +104,21 @@ suspend fun UseCase.formatToString(
  * @receiver List of Conditional objects to be processed.
  * @param conditions Set of conditions to match against.
  * @param output StringBuilder to which the matched text will be appended.
+ * @param codeBlockProcessor Optional CodeBlockProcessor to process code blocks within the conditionals.
  */
-fun List<Conditional>.output(conditions: Set<String>, output: StringBuilder) {
+suspend fun List<Conditional>.output(
+    conditions: Set<String>,
+    output: StringBuilder,
+    codeBlockProcessor: CodeBlockProcessor? = null,
+) {
     var currentConditionals = emptySet<String>()
     var temp = StringBuilder()
-    val conditionsWithElse = if (flatMap { it.conditions }.filter { it != "else" }.any { setOf(it).matches(conditions) }) {
-        conditions
-    } else {
-        conditions + "else"
-    }
+    val conditionsWithElse =
+        if (flatMap { it.conditions }.filter { it != "else" }.any { setOf(it).matches(conditions) }) {
+            conditions
+        } else {
+            conditions + "else"
+        }
 
     forEach {
         if (it.conditions.isEmpty() && it.endConditional) {
@@ -128,7 +137,8 @@ fun List<Conditional>.output(conditions: Set<String>, output: StringBuilder) {
             if (it.matches(conditionsWithElse)) temp.append("${it.text}\n")
         }
     }
-    output.append(temp.toString())
+    val out = temp.toString()
+    output.append(codeBlockProcessor?.process(out) ?: out)
 }
 
 /**

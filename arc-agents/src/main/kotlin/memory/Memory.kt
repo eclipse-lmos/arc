@@ -62,11 +62,11 @@ class InMemoryMemory : Memory {
     override suspend fun storeLongTerm(owner: String, key: String, value: Any?) {
         validate(owner, key)
         if (value == null) {
-            log.debug("Removing $key for $owner from LONG_TERM memory.")
+            log.trace("Removing $key for $owner from LONG_TERM memory.")
             longTermMemory.remove("$owner $key")
             return
         }
-        log.debug("Storing $value with $key for $owner in LONG_TERM memory.")
+        log.trace("Storing $value with $key for $owner in LONG_TERM memory.")
         longTermMemory["$owner $key"] = value
         cleanShortTermMemory()
     }
@@ -74,11 +74,11 @@ class InMemoryMemory : Memory {
     override suspend fun storeShortTerm(owner: String, key: String, value: Any?, sessionId: String) {
         validate(owner, key)
         if (value == null) {
-            log.debug("Removing $key for $owner from SHORT_TERM memory.")
+            log.trace("Removing $key for $owner from SHORT_TERM memory.")
             shortTermMemory.remove("$sessionId $owner $key")
             return
         }
-        log.debug("Storing $value with $key for $owner in SHORT_TERM memory with session id $sessionId.")
+        log.trace("Storing $value with $key for $owner in SHORT_TERM memory with session id $sessionId.")
         shortTermMemory["$sessionId $owner $key"] = MemoryShortTermEntry(value)
         cleanShortTermMemory()
     }

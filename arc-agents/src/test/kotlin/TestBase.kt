@@ -12,7 +12,12 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.toConversation
-import org.eclipse.lmos.arc.agents.dsl.*
+import org.eclipse.lmos.arc.agents.dsl.AgentDefinition
+import org.eclipse.lmos.arc.agents.dsl.BasicAgentDefinitionContext
+import org.eclipse.lmos.arc.agents.dsl.ChatAgentFactory
+import org.eclipse.lmos.arc.agents.dsl.CoroutineBeanProvider
+import org.eclipse.lmos.arc.agents.dsl.DateFilter
+import org.eclipse.lmos.arc.agents.dsl.NumberFilter
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionException
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
@@ -50,13 +55,24 @@ open class TestBase {
         context: Set<Any>? = null,
     ): Pair<List<ConversationMessage>, Conversation> {
         val input = slot<List<ConversationMessage>>()
-        coEvery { chatCompleter.complete(capture(input)) } answers { Success(AssistantMessage(llmResponse)) }
-        coEvery { chatCompleter.complete(capture(input), any()) } answers { Success(AssistantMessage(llmResponse)) }
+        coEvery { chatCompleter.complete(capture(input), eventPublisher = any()) } answers {
+            Success(
+                AssistantMessage(
+                    llmResponse,
+                ),
+            )
+        }
+        coEvery { chatCompleter.complete(capture(input), any(), eventPublisher = any()) } answers {
+            Success(
+                AssistantMessage(llmResponse),
+            )
+        }
         coEvery {
             chatCompleter.complete(
                 capture(input),
                 any(),
                 any(),
+                eventPublisher = any(),
             )
         } answers { Success(AssistantMessage(llmResponse)) }
 

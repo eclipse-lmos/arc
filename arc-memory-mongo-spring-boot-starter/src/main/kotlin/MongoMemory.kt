@@ -17,17 +17,17 @@ class MongoMemory(
 
     override suspend fun storeLongTerm(owner: String, key: String, value: Any?) {
         if (value != null) {
-            log.debug("Storing $key for $owner in LONG_TERM memory.")
+            log.trace("Storing $key for $owner in LONG_TERM memory.")
             memoryRepository.save(MemoryEntry(owner, key, value))
         } else {
-            log.debug("Deleting $key for $owner in LONG_TERM memory.")
+            log.trace("Deleting $key for $owner in LONG_TERM memory.")
             memoryRepository.deleteById(MemoryKey(owner, key))
         }
     }
 
     override suspend fun storeShortTerm(owner: String, key: String, value: Any?, sessionId: String) {
         if (value != null) {
-            log.debug("Storing $key for $owner in SHORT_TERM memory.")
+            log.trace("Storing $key for $owner in SHORT_TERM memory.")
             memoryRepository.save(
                 MemoryEntry(
                     owner,
