@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.adl.server.repositories
 
-import org.eclipse.lmos.adl.server.inbound.TestCase
+import org.eclipse.lmos.adl.server.inbound.query.TestCase
 import java.util.concurrent.ConcurrentHashMap
 
 /**

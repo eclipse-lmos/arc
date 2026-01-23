@@ -31,6 +31,16 @@ graalvmNative {
             buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.ClassDiscriminatorMode")
             buildArgs.add("--initialize-at-build-time=kotlinx.serialization.modules.SerializersModuleKt")
 
+            buildArgs.add("--initialize-at-build-time=io.grpc.netty.shaded.io.netty")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.ssl.BouncyCastleAlpnSslUtils")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.AbstractReferenceCountedByteBuf")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.PooledByteBuf")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.UnpooledHeapByteBuf")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.ByteBuf")
+            buildArgs.add("--initialize-at-build-time=org.bouncycastle")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.files.PathsJvmKt")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.files.FileSystemJvmKt")
+
             buildArgs.add("-H:+InstallExitHandlers")
             buildArgs.add("-H:+ReportUnsupportedElementsAtRuntime")
             buildArgs.add("-H:+ReportExceptionStackTraces")
@@ -54,6 +64,16 @@ graalvmNative {
             buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.JsonImpl")
             buildArgs.add("--initialize-at-build-time=kotlinx.serialization.json.ClassDiscriminatorMode")
             buildArgs.add("--initialize-at-build-time=kotlinx.serialization.modules.SerializersModuleKt")
+
+            buildArgs.add("--initialize-at-build-time=io.grpc.netty.shaded.io.netty")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.ssl.BouncyCastleAlpnSslUtils")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.AbstractReferenceCountedByteBuf")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.PooledByteBuf")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.UnpooledHeapByteBuf")
+            buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.buffer.ByteBuf")
+            buildArgs.add("--initialize-at-build-time=org.bouncycastle")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.files.PathsJvmKt")
+            buildArgs.add("--initialize-at-build-time=kotlinx.io.files.FileSystemJvmKt")
 
             buildArgs.add("-H:+InstallExitHandlers")
             buildArgs.add("-H:+ReportUnsupportedElementsAtRuntime")
@@ -107,6 +127,11 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-exporter-otlp")
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
+
+    // Bouncy Castle
+    implementation("org.bouncycastle:bctls-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
 
     // Test dependencies
     testImplementation(libs.ktor.client.core)

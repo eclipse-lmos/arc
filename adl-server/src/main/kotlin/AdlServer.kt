@@ -40,6 +40,7 @@ import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.storage.memory.InMemoryAdlStorage
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
+import org.eclipse.lmos.adl.server.repositories.InMemoryTestCaseRepository
 import java.security.Security
 
 fun startServer(
@@ -62,6 +63,7 @@ fun startServer(
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()
+    val testCaseRepository = InMemoryTestCaseRepository()
 
     // Initialize Qdrant collection
     runBlocking {
@@ -95,7 +97,7 @@ fun startServer(
                 queries = listOf(
                     AdlQuery(useCaseStore, adlStorage),
                     AdlExampleQuery(exampleAgent),
-                    TestCaseQuery(),
+                    TestCaseQuery(testCaseRepository),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
@@ -104,7 +106,7 @@ fun startServer(
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent),
                     AdlValidationMutation(),
-                    AdlTestCreatorMutation(testCreatorAgent),
+                    AdlTestCreatorMutation(testCreatorAgent, testCaseRepository),
                     UseCaseImprovementMutation(improvementAgent),
                 )
             }
