@@ -44,7 +44,7 @@ class RedisMemory(
     override suspend fun storeLongTerm(owner: String, key: String, value: Any?): Unit = withClient { commands, keys ->
         val compositeKey = json.writeValueAsString(MemoryKey(owner, key))
         if (value != null) {
-            log.debug("Storing $key for $owner in LONG_TERM memory.")
+            log.trace("Storing $key for $owner in LONG_TERM memory.")
             val valueJson = json.writeValueAsString(MemoryEntry(value))
             val setArgs = SetArgs().ex(longTermTTL.toSeconds())
             commands.set(compositeKey, valueJson, setArgs).awaitSingle().also {
@@ -53,7 +53,7 @@ class RedisMemory(
                 }
             }
         } else {
-            log.debug("Deleting $key for $owner in LONG_TERM memory.")
+            log.trace("Deleting $key for $owner in LONG_TERM memory.")
             keys.del(compositeKey).awaitSingle()
         }
     }
@@ -62,11 +62,11 @@ class RedisMemory(
         withClient { commands, keys ->
             val compositeKey = json.writeValueAsString(MemoryKey(owner, key, sessionId))
             if (value != null) {
-                log.debug("Storing $key for $owner in SHORT_TERM memory.")
+                log.trace("Storing $key for $owner in SHORT_TERM memory.")
                 val setArgs = SetArgs().ex(shortTermTTL.toSeconds())
                 commands.set(compositeKey, json.writeValueAsString(MemoryEntry(value)), setArgs).awaitSingle()
             } else {
-                log.debug("Deleting $key for $owner in SHORT_TERM memory.")
+                log.trace("Deleting $key for $owner in SHORT_TERM memory.")
                 keys.del(compositeKey).awaitSingle()
             }
         }
