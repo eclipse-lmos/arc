@@ -27,9 +27,11 @@ import org.eclipse.lmos.adl.server.inbound.AdlExampleQuery
 import org.eclipse.lmos.adl.server.inbound.AdlMutation
 import org.eclipse.lmos.adl.server.inbound.AdlQuery
 import org.eclipse.lmos.adl.server.inbound.AdlTestCreatorMutation
+import org.eclipse.lmos.adl.server.inbound.AdlTestQuery
 import org.eclipse.lmos.adl.server.inbound.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.SystemPromptMutation
+import org.eclipse.lmos.adl.server.repositories.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
@@ -45,6 +47,7 @@ fun startServer(
     val sessions = InMemorySessions()
     val embeddingModel = AllMiniLmL6V2EmbeddingModel()
     val useCaseStore = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
+    val testCaseRepository = InMemoryTestCaseRepository()
 
     // Agents
     val exampleAgent = createExampleAgent()
@@ -74,6 +77,7 @@ fun startServer(
                 queries = listOf(
                     AdlQuery(useCaseStore),
                     AdlExampleQuery(exampleAgent),
+                    AdlTestQuery(testCaseRepository),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
@@ -82,7 +86,7 @@ fun startServer(
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent),
                     AdlValidationMutation(),
-                    AdlTestCreatorMutation(testCreatorAgent),
+                    AdlTestCreatorMutation(testCreatorAgent, testCaseRepository),
                 )
             }
             engine {
