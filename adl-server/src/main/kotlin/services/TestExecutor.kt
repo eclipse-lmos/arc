@@ -57,6 +57,13 @@ class TestExecutor(
     }
 
     private suspend fun executeTestCase(testCase: TestCase, useCases: Any): TestExecutionResult {
+        val results = (1..5).map {
+            runSingleTestCase(testCase, useCases)
+        }
+        return results.minByOrNull { it.score } ?: results.first()
+    }
+
+    private suspend fun runSingleTestCase(testCase: TestCase, useCases: Any): TestExecutionResult {
         val transcript = mutableListOf<ConversationMessage>()
         val actualConversation = mutableListOf<SimpleMessage>()
         var failureReason: String? = null
