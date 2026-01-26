@@ -29,19 +29,19 @@ import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlExampleQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
-import org.eclipse.lmos.adl.server.inbound.mutation.AdlTestCreatorMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.TestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.UseCaseImprovementMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
 import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
+import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.storage.memory.InMemoryAdlStorage
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.repositories.InMemoryTestCaseRepository
-import java.security.Security
 
 fun startServer(
     wait: Boolean = true,
@@ -64,6 +64,7 @@ fun startServer(
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()
     val testCaseRepository = InMemoryTestCaseRepository()
+    val testExecutor = TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
 
     // Initialize Qdrant collection
     runBlocking {
@@ -106,7 +107,7 @@ fun startServer(
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent),
                     AdlValidationMutation(),
-                    AdlTestCreatorMutation(testCreatorAgent, testCaseRepository),
+                    TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor),
                     UseCaseImprovementMutation(improvementAgent),
                 )
             }

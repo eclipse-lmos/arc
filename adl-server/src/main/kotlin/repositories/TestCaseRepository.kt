@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.adl.server.repositories
 
-import org.eclipse.lmos.adl.server.inbound.TestCase
+import org.eclipse.lmos.adl.server.models.TestCase
 
 /**
  * Repository for managing [TestCase] entities.
@@ -36,4 +36,11 @@ interface TestCaseRepository {
      * @return A list of matching test cases.
      */
     suspend fun findByUseCaseId(useCaseId: String): List<TestCase>
+
+    /**
+     * Deletes a [TestCase] by its ID.
+     * @param id The ID of the test case to delete.
+     * @return True if the test case was deleted, false otherwise.
+     */
+    suspend fun delete(id: String): Boolean
 }

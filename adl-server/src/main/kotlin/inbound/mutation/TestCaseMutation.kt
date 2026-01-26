@@ -6,20 +6,24 @@ package org.eclipse.lmos.adl.server.inbound.mutation
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.eclipse.lmos.adl.server.models.TestCase
+import org.eclipse.lmos.adl.server.models.TestRunResult
+import org.eclipse.lmos.adl.server.models.ConversationTurn
+import org.eclipse.lmos.adl.server.services.TestExecutor
+import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.getOrThrow
-import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 
 /**
  * GraphQL Mutation for creating test cases using the TestCreatorAgent.
  */
-class AdlTestCreatorMutation(
+class TestCreatorMutation(
     private val testCreatorAgent: ConversationAgent,
     private val testCaseRepository: TestCaseRepository,
+    private val testExecutor: TestExecutor,
 ) : Mutation {
 
     @GraphQLDescription("Generates test cases for a provided Use Case.")
@@ -44,6 +48,37 @@ class AdlTestCreatorMutation(
         testCases.forEach { testCaseRepository.save(it) }
         return NewTestsResponse(testCases.size, useCaseId)
     }
+
+    @GraphQLDescription("Executes tests for a given Use Case.")
+    suspend fun executeTests(
+        @GraphQLDescription("The Use Case ID") useCaseId: String,
+        @GraphQLDescription("The Test Case ID") testCaseId: String? = null,
+    ): TestRunResult {
+        return testExecutor.executeTests(useCaseId, testCaseId)
+    }
+
+    @GraphQLDescription("Deletes a test case by its ID.")
+    suspend fun deleteTest(
+        @GraphQLDescription("The ID of the test case to delete") id: String,
+    ): Boolean {
+        return testCaseRepository.delete(id)
+    }
+
+    @GraphQLDescription("Updates a single Test Case.")
+    suspend fun updateTest(
+        @GraphQLDescription("The updated Test Case data") input: UpdateTestCaseInput,
+    ): TestCase {
+        val existing = testCaseRepository.findById(input.id)
+            ?: throw IllegalArgumentException("Test Case with ID ${input.id} not found")
+
+        val updated = existing.copy(
+            name = input.name ?: existing.name,
+            description = input.description ?: existing.description,
+            expectedConversation = input.expectedConversation ?: existing.expectedConversation
+        )
+
+        return testCaseRepository.save(updated)
+    }
 }
 
 /**
@@ -66,30 +101,16 @@ data class TestCreatorInput(
 )
 
 /**
- * Represents a generated test case.
+ * Input for updating test cases.
  */
 @Serializable
-data class TestCase(
-    @GraphQLDescription("The unique identifier of the test case")
-    val id: String = java.util.UUID.randomUUID().toString(),
-    @GraphQLDescription("The ID of the use case this test belongs to")
-    val useCaseId: String? = null,
-    @GraphQLDescription("The title of the test case")
-    val name: String,
-    @GraphQLDescription("The description of the test case")
-    val description: String,
-    @SerialName("expected_conversation")
-    @GraphQLDescription("The expected conversation flow")
-    val expectedConversation: List<ConversationTurn>,
-)
-
-/**
- * Represents a turn in a conversation.
- */
-@Serializable
-data class ConversationTurn(
-    @GraphQLDescription("The role of the speaker (e.g., user, assistant)")
-    val role: String,
-    @GraphQLDescription("The content of the message")
-    val content: String,
+data class UpdateTestCaseInput(
+    @GraphQLDescription("The ID of the test case to update")
+    val id: String,
+    @GraphQLDescription("The new name of the test case")
+    val name: String? = null,
+    @GraphQLDescription("The new description of the test case")
+    val description: String? = null,
+    @GraphQLDescription("The new expected conversation")
+    val expectedConversation: List<ConversationTurn>? = null,
 )
