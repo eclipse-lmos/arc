@@ -20,6 +20,7 @@ import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
+import java.util.UUID
 
 /**
  * Service for executing tests.
@@ -59,6 +60,7 @@ class TestExecutor(
         val transcript = mutableListOf<ConversationMessage>()
         val actualConversation = mutableListOf<SimpleMessage>()
         var failureReason: String? = null
+        val conversationId = "test-${testCase.id}-${UUID.randomUUID()}"
 
         try {
             for (turn in testCase.expectedConversation) {
@@ -67,7 +69,7 @@ class TestExecutor(
                     transcript.add(userMsg)
                     actualConversation.add(SimpleMessage("user", turn.content))
 
-                    val conv = Conversation(transcript = transcript)
+                    val conv = Conversation(transcript = transcript, conversationId = conversationId)
                     val result = assistantAgent.execute(conv, setOf(useCases))
 
                     when (result) {

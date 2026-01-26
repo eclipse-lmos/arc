@@ -79,6 +79,19 @@ class TestCreatorMutation(
 
         return testCaseRepository.save(updated)
     }
+
+    @GraphQLDescription("Adds a new Test Case manually.")
+    suspend fun addTest(
+        @GraphQLDescription("The new Test Case data") input: AddTestCaseInput,
+    ): TestCase {
+        val testCase = TestCase(
+            useCaseId = input.useCaseId,
+            name = input.name,
+            description = input.description,
+            expectedConversation = input.expectedConversation
+        )
+        return testCaseRepository.save(testCase)
+    }
 }
 
 /**
@@ -113,4 +126,19 @@ data class UpdateTestCaseInput(
     val description: String? = null,
     @GraphQLDescription("The new expected conversation")
     val expectedConversation: List<ConversationTurn>? = null,
+)
+
+/**
+ * Input for adding test cases manually.
+ */
+@Serializable
+data class AddTestCaseInput(
+    @GraphQLDescription("The Use Case ID associated with this test")
+    val useCaseId: String,
+    @GraphQLDescription("The name of the test case")
+    val name: String,
+    @GraphQLDescription("The description of the test case")
+    val description: String,
+    @GraphQLDescription("The expected conversation")
+    val expectedConversation: List<ConversationTurn>,
 )
