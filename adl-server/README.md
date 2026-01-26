@@ -37,6 +37,24 @@ The server can be configured using the following environment variables:
 
 By default, the server listens on port `8080`. You can override the port by setting the environment variable `ADL_SERVER_PORT`.
 
+### Docker
+
+You can also run the server using Docker.
+
+#### Build the Docker Image
+
+Run the following command from the root of the repository:
+
+```sh
+docker build -f adl-server/Dockerfile -t adl-server .
+```
+
+#### Run the Docker Container
+
+```sh
+docker run -p 8080:8080 -e OPENAI_API_KEY=your-api-key adl-server
+```
+
 ### GraphQL Endpoint
 
 The main endpoint is available at:

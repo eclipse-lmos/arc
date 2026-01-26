@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.repositories
+package org.eclipse.lmos.adl.server.repositories.impl
 
+import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 import org.eclipse.lmos.adl.server.models.TestCase
 import java.util.concurrent.ConcurrentHashMap
 

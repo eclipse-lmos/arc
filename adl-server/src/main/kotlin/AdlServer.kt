@@ -9,6 +9,7 @@ import com.expediagroup.graphql.server.ktor.defaultGraphQLStatusPages
 import com.expediagroup.graphql.server.ktor.graphQLPostRoute
 import com.expediagroup.graphql.server.ktor.graphiQLRoute
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel
+import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
@@ -17,12 +18,15 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.routing.routing
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.contentType
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
-import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
@@ -37,11 +41,15 @@ import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
-import org.eclipse.lmos.adl.server.storage.memory.InMemoryAdlStorage
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
-import org.eclipse.lmos.adl.server.repositories.InMemoryTestCaseRepository
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
+import java.io.File
 
 fun startServer(
     wait: Boolean = true,
@@ -53,8 +61,9 @@ fun startServer(
     val templateLoader = TemplateLoader()
     val sessions = InMemorySessions()
     val embeddingModel = AllMiniLmL6V2EmbeddingModel()
-    val useCaseStore = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
-    val adlStorage = InMemoryAdlStorage()
+    // val useCaseStore: UseCaseEmbeddingsRepository = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
+    val useCaseStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
+    val adlStorage: AdlRepository = InMemoryAdlRepository()
 
     // Agents
     val exampleAgent = createExampleAgent()
@@ -109,7 +118,7 @@ fun startServer(
                     TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor),
                     UseCaseImprovementMutation(improvementAgent),
                     AdlExampleMutation(exampleAgent),
-                    )
+                )
             }
             server {
 
@@ -126,6 +135,16 @@ fun startServer(
         routing {
             graphiQLRoute()
             graphQLPostRoute()
+
+            staticResources("/", "static") {
+                fallback { requestedPath, call ->
+                    // read from classpath
+                    if (requestedPath.startsWith("prompts")) call.respondText(
+                        text = this::class.java.classLoader.getResource("static/prompts.html")!!.readText(),
+                        contentType = ContentType.Text.Html,
+                    )
+                }
+            }
         }
 
         module()

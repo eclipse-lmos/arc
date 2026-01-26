@@ -6,18 +6,18 @@ package org.eclipse.lmos.adl.server.inbound.query
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
-import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
-import org.eclipse.lmos.adl.server.embeddings.UseCaseSearchResult
 import org.eclipse.lmos.adl.server.model.Adl
 import org.eclipse.lmos.adl.server.model.SimpleMessage
-import org.eclipse.lmos.adl.server.storage.AdlStorage
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
 
 /**
  * GraphQL Query for searching UseCases based on conversation embeddings.
  */
 class AdlQuery(
-    private val useCaseStore: QdrantUseCaseEmbeddingsStore,
-    private val adlStorage: AdlStorage,
+    private val useCaseStore: UseCaseEmbeddingsRepository,
+    private val adlStorage: AdlRepository,
 ) : Query {
 
     @GraphQLDescription("Returns the supported version of the ALD.")
