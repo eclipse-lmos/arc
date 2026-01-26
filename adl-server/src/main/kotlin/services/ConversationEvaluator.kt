@@ -19,6 +19,7 @@ class ConversationEvaluator(
         failureThreshold: Double = 0.8,
     ): EvalOutput {
         val n = minOf(conversation.size, expectedConversation.size)
+        var compared = 0
 
         var totalSimilarity = 0.0
         val reasons = mutableListOf<String>()
@@ -43,6 +44,8 @@ class ConversationEvaluator(
                 continue
             }
 
+            compared++
+
             val actualEmb = embeddingModel.embed(actual.content).content()
             val expectedEmb = embeddingModel.embed(expected.content).content()
             val similarity = CosineSimilarity.between(actualEmb, expectedEmb)
@@ -61,7 +64,7 @@ class ConversationEvaluator(
         }
 
         // If one is empty
-        val finalScore = if (n > 0) (totalSimilarity / n) * 100 else 0.0
+        val finalScore = if (compared > 0) (totalSimilarity / compared) * 100 else 0.0
         val verdict = if (finalScore >= 90) "pass" else if (finalScore >= 60) "partial" else "fail"
 
         return EvalOutput(
