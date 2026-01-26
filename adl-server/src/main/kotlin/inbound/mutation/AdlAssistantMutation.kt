@@ -30,10 +30,13 @@ class AdlAssistantMutation(
     private val assistantAgent: ConversationAgent,
 ) : Mutation {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(this.javaClass)
+
     @GraphQLDescription("Calls the assistant agent")
     suspend fun assistant(
         @GraphQLDescription("The assistant input") input: AssistantInput,
     ): AgentResult {
+        log.info("Received assistant request with useCases: ${input.request.conversationContext.conversationId}")
         val useCases = input.useCases.toUseCases()
         val request = input.request
         val outputContext = OutputContext()
