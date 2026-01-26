@@ -32,7 +32,7 @@ class AdlStorageMutation(
         @GraphQLDescription("Examples") examples: List<String>,
     ): StorageResult {
         log.info("Storing ADL with id: {} with {} examples", id, examples.size)
-        adlStorage.store(Adl(id, content, tags, createdAt ?: now().toString(), examples))
+        adlStorage.store(Adl(id, content.trim(), tags, createdAt ?: now().toString(), examples))
         val storedCount = useCaseStore.storeUtterances(id, examples)
         log.debug("Successfully stored ADL with id: {}. Generated {} embeddings.", id, storedCount)
         return StorageResult(

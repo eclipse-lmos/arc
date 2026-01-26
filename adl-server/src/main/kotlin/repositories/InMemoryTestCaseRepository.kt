@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.adl.server.repositories
 
-import org.eclipse.lmos.adl.server.inbound.query.TestCase
+import org.eclipse.lmos.adl.server.models.TestCase
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -28,5 +28,9 @@ class InMemoryTestCaseRepository : TestCaseRepository {
 
     override suspend fun findByUseCaseId(useCaseId: String): List<TestCase> {
         return store.values.filter { it.useCaseId == useCaseId }
+    }
+
+    override suspend fun delete(id: String): Boolean {
+        return store.remove(id) != null
     }
 }
