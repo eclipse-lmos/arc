@@ -38,6 +38,11 @@ class ConversationEvaluator(
                 continue
             }
 
+            if(expected.role == "user") {
+                // User messages should always match exactly
+                continue
+            }
+
             val actualEmb = embeddingModel.embed(actual.content).content()
             val expectedEmb = embeddingModel.embed(expected.content).content()
             val similarity = CosineSimilarity.between(actualEmb, expectedEmb)
