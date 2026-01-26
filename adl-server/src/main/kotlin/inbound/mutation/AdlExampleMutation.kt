@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.inbound.query
+package org.eclipse.lmos.adl.server.inbound.mutation
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
-import com.expediagroup.graphql.server.operations.Query
+import com.expediagroup.graphql.server.operations.Mutation
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
@@ -15,9 +15,9 @@ import org.eclipse.lmos.arc.core.getOrThrow
 /**
  * GraphQL Query for creating examples for ADL UseCases.
  */
-class AdlExampleQuery(
+class AdlExampleMutation(
     private val exampleAgent: ConversationAgent,
-) : Query {
+) : Mutation {
 
     @GraphQLDescription("Generates examples for a given use case.")
     suspend fun examples(

@@ -26,7 +26,6 @@ import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
-import org.eclipse.lmos.adl.server.inbound.query.AdlExampleQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.TestCreatorMutation
@@ -41,6 +40,7 @@ import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.storage.memory.InMemoryAdlStorage
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
 import org.eclipse.lmos.adl.server.repositories.InMemoryTestCaseRepository
 
 fun startServer(
@@ -97,7 +97,6 @@ fun startServer(
                 )
                 queries = listOf(
                     AdlQuery(useCaseStore, adlStorage),
-                    AdlExampleQuery(exampleAgent),
                     TestCaseQuery(testCaseRepository),
                 )
                 mutations = listOf(
@@ -109,7 +108,8 @@ fun startServer(
                     AdlValidationMutation(),
                     TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor),
                     UseCaseImprovementMutation(improvementAgent),
-                )
+                    AdlExampleMutation(exampleAgent),
+                    )
             }
             server {
 
