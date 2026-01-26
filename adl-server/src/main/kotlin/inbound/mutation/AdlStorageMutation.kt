@@ -6,19 +6,18 @@ package org.eclipse.lmos.adl.server.inbound.mutation
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
-import org.eclipse.lmos.adl.server.embeddings.UseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.model.Adl
-import org.eclipse.lmos.adl.server.storage.AdlStorage
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.slf4j.LoggerFactory
-import java.time.Instant
 import java.time.Instant.now
 
 /**
  * GraphQL Mutation for storing UseCases in the Embeddings store.
  */
 class AdlStorageMutation(
-    private val useCaseStore: UseCaseEmbeddingsStore,
-    private val adlStorage: AdlStorage,
+    private val useCaseStore: UseCaseEmbeddingsRepository,
+    private val adlStorage: AdlRepository,
 ) : Mutation {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -38,6 +37,23 @@ class AdlStorageMutation(
         return StorageResult(
             storedExamplesCount = storedCount,
             message = "UseCase successfully stored with $storedCount embeddings",
+        )
+    }
+
+    @GraphQLDescription("Updates the tags of an existing ADL.")
+    suspend fun updateTags(
+        @GraphQLDescription("The unique ID of the ADL") id: String,
+        @GraphQLDescription("The new list of tags") tags: List<String>,
+    ): StorageResult {
+        log.info("Updating tags for ADL with id: {}", id)
+        val existingAdl = adlStorage.get(id) ?: throw IllegalArgumentException("ADL with id $id not found")
+
+        val updatedAdl = existingAdl.copy(tags = tags)
+        adlStorage.store(updatedAdl)
+
+        return StorageResult(
+            storedExamplesCount = existingAdl.examples.size,
+            message = "Tags successfully updated",
         )
     }
 

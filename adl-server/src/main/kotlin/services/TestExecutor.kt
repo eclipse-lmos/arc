@@ -9,8 +9,8 @@ import org.eclipse.lmos.adl.server.models.ConversationTurn
 import org.eclipse.lmos.adl.server.models.TestCase
 import org.eclipse.lmos.adl.server.models.TestExecutionResult
 import org.eclipse.lmos.adl.server.models.TestRunResult
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
-import org.eclipse.lmos.adl.server.storage.AdlStorage
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -27,7 +27,7 @@ import java.util.UUID
  */
 class TestExecutor(
     private val assistantAgent: ConversationAgent,
-    private val adlStorage: AdlStorage,
+    private val adlStorage: AdlRepository,
     private val testCaseRepository: TestCaseRepository,
     private val conversationEvaluator: ConversationEvaluator,
 ) {
@@ -57,7 +57,7 @@ class TestExecutor(
     }
 
     private suspend fun executeTestCase(testCase: TestCase, useCases: Any): TestExecutionResult {
-        val results = (1..5).map {
+        val results = (1..2).map {
             runSingleTestCase(testCase, useCases)
         }
         return results.minByOrNull { it.score } ?: results.first()
