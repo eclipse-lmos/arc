@@ -92,6 +92,7 @@ class ToolWrapper(
     override val description: String = tool.description
     override val group: String = "MCP"
     override val isSensitive: Boolean = false
+    override val metadata: Map<String, Any> get() = tool.meta()
 
     override suspend fun execute(input: Map<String, Any?>) = result<String, LLMFunctionException> {
         clientBuilder.execute { client, url ->
