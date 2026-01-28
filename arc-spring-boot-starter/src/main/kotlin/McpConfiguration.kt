@@ -64,6 +64,7 @@ class McpConfiguration {
                                 .meta(
                                     buildMap {
                                         fn.version?.let { put("version", it) }
+                                        putAll(fn.metadata)
                                     },
                                 )
                                 .inputSchema(mcpMapper, fn.parameters.toJsonString())
