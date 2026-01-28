@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.adl.server.embeddings
 
-import org.eclipse.lmos.adl.server.model.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 
 
 /**

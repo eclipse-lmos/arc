@@ -4,7 +4,7 @@
 
 package org.eclipse.lmos.adl.server.services
 
-import org.eclipse.lmos.adl.server.model.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 import org.eclipse.lmos.adl.server.models.ConversationTurn
 import org.eclipse.lmos.adl.server.models.TestCase
 import org.eclipse.lmos.adl.server.models.TestExecutionResult
