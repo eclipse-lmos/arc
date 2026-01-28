@@ -22,6 +22,7 @@ data class LambdaLLMFunction(
     override val group: String?,
     override val isSensitive: Boolean,
     override val parameters: ParametersSchema,
+    override val metadata: Map<String, Any> = emptyMap(),
     private val context: DSLContext,
     private val function: suspend DSLContext.(List<Any?>) -> String,
 ) : LLMFunction, FunctionWithContext {
