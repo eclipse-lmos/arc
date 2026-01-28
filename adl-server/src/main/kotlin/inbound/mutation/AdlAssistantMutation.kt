@@ -15,6 +15,7 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
+import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
 import org.eclipse.lmos.arc.api.AgentResultType.MESSAGE
