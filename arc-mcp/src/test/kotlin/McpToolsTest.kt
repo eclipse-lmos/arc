@@ -23,6 +23,13 @@ class McpToolsTest : TestBase() {
     }
 
     @Test
+    fun `test tool metadata`(): Unit = runBlocking {
+        val tools = McpTools("http://localhost:$port", null).load(null)
+        val getBooksTool = tools.first { it.name == "getBooks" }
+        assertThat(getBooksTool.metadata["category"]).isEqualTo(listOf("books"))
+    }
+
+    @Test
     fun `test execute tool`(): Unit = runBlocking {
         val tools = McpTools("http://localhost:$port", null).load(null)
         val result = tools.first { it.name == "getBooks" }.execute(mapOf("id" to "Kotlin"))
