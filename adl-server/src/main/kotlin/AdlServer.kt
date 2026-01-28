@@ -45,6 +45,7 @@ import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
+import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
@@ -133,6 +134,7 @@ fun startServer(
         }
 
         routing {
+            openAICompletions(assistantAgent)
             graphiQLRoute()
             graphQLPostRoute()
 

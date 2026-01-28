@@ -22,6 +22,7 @@ class ConversationEvaluator(
         var compared = 0
 
         var totalSimilarity = 0.0
+        var lowestSimilarity = 1.0
         val reasons = mutableListOf<String>()
         val evidence = mutableListOf<EvalEvidence>()
 
@@ -51,6 +52,7 @@ class ConversationEvaluator(
             val similarity = CosineSimilarity.between(actualEmb, expectedEmb)
 
             totalSimilarity += similarity
+            lowestSimilarity = minOf(lowestSimilarity, similarity)
 
             if (similarity < failureThreshold) {
                 reasons.add("Message $i: Content similarity is low (${(similarity * 100).roundToInt()}%).")
@@ -64,7 +66,8 @@ class ConversationEvaluator(
         }
 
         // If one is empty
-        val finalScore = if (compared > 0) (totalSimilarity / compared) * 100 else 0.0
+        // val finalScore = if (compared > 0) (totalSimilarity / compared) * 100 else 0.0
+        val finalScore = lowestSimilarity * 100
         val verdict = if (finalScore >= 90) "pass" else if (finalScore >= 60) "partial" else "fail"
 
         return EvalOutput(
