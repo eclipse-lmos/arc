@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.adl.server.repositories
 
-import org.eclipse.lmos.adl.server.model.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 
 /**
  * Interface for storing UseCase embeddings.

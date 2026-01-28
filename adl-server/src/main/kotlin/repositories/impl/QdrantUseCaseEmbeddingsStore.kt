@@ -16,7 +16,7 @@ import io.qdrant.client.grpc.Points.PointStruct
 import io.qdrant.client.grpc.Points.ScoredPoint
 import kotlinx.coroutines.guava.await
 import org.eclipse.lmos.adl.server.QdrantConfig
-import org.eclipse.lmos.adl.server.model.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases

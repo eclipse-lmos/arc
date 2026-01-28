@@ -5,7 +5,7 @@
 package org.eclipse.lmos.adl.server.embeddings
 
 import dev.langchain4j.model.embedding.EmbeddingModel
-import org.eclipse.lmos.adl.server.model.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 
 /**
  * Creates a single embedding for an entire conversation.

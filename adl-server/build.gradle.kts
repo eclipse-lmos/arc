@@ -12,6 +12,10 @@ application {
     mainClass = "org.eclipse.lmos.adl.server.AdlServerKt"
 }
 
+tasks.shadowJar {
+    isZip64 = true
+}
+
 graalvmNative {
     binaries {
         named("main") {
