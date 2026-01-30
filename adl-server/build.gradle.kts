@@ -96,6 +96,7 @@ dependencies {
     implementation(project(":arc-assistants"))
     implementation(project(":arc-api"))
     implementation(project(":adl-kotlin-runner"))
+    implementation(project(":arc-mcp"))
 
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)

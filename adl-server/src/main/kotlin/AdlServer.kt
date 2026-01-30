@@ -19,9 +19,7 @@ import io.ktor.server.routing.routing
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.http.content.staticResources
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.contentType
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
@@ -39,18 +37,20 @@ import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
 import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
+import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.McpMutation
+import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
 import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
-import java.io.File
 
 fun startServer(
     wait: Boolean = true,
@@ -65,6 +65,7 @@ fun startServer(
     // val useCaseStore: UseCaseEmbeddingsRepository = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
     val useCaseStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
     val adlStorage: AdlRepository = InMemoryAdlRepository()
+    val mcpService = McpService()
 
     // Agents
     val exampleAgent = createExampleAgent()
@@ -108,6 +109,7 @@ fun startServer(
                 queries = listOf(
                     AdlQuery(useCaseStore, adlStorage),
                     TestCaseQuery(testCaseRepository),
+                    McpToolsQuery(mcpService),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
@@ -119,6 +121,7 @@ fun startServer(
                     TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor),
                     UseCaseImprovementMutation(improvementAgent),
                     AdlExampleMutation(exampleAgent),
+                    McpMutation(mcpService),
                 )
             }
             server {
