@@ -2,23 +2,21 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.inbound
+package org.eclipse.lmos.adl.server.inbound.query
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
 import org.eclipse.lmos.adl.server.models.TestCase
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 
-/**
- * GraphQL Query for retrieving Test Cases.
- */
-class AdlTestQuery(
+@GraphQLDescription("GraphQL Query for fetching test cases for a use case.")
+class TestCaseQuery(
     private val testCaseRepository: TestCaseRepository,
-) : Query {
+)  : Query {
 
-    @GraphQLDescription("Retrieves test cases associated with a specific Use Case ID.")
-    suspend fun getTests(
-        @GraphQLDescription("The ID of the Use Case") useCaseId: String,
+    @GraphQLDescription("Fetches test cases for a given use case ID.")
+   suspend fun testCases(
+        @GraphQLDescription("The ID of the use case.") useCaseId: String
     ): List<TestCase> {
         return testCaseRepository.findByUseCaseId(useCaseId)
     }

@@ -39,7 +39,7 @@ val agentInputJson = Json { encodeDefaults = true; ignoreUnknownKeys = true }
  * @return A Result containing the processed output of type R or an AgentFailedException.
  */
 suspend inline fun <reified T, reified R> ConversationAgent.process(input: T) = result<R, AgentFailedException> {
-    val inputString = agentInputJson.encodeToString<T>(input)
+    val inputString = if (input is String) input else agentInputJson.encodeToString<T>(input)
     val result = ask(inputString) failWith { it }
     agentInputJson.decodeFromString(result)
 }

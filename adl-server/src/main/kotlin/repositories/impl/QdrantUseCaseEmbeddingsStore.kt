@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.embeddings
+package org.eclipse.lmos.adl.server.repositories.impl
 
 import dev.langchain4j.model.embedding.EmbeddingModel
 import io.qdrant.client.PointIdFactory.id
@@ -16,6 +16,9 @@ import io.qdrant.client.grpc.Points.PointStruct
 import io.qdrant.client.grpc.Points.ScoredPoint
 import kotlinx.coroutines.guava.await
 import org.eclipse.lmos.adl.server.QdrantConfig
+import org.eclipse.lmos.adl.server.models.SimpleMessage
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.util.UUID
 import java.util.concurrent.ExecutionException
@@ -30,7 +33,7 @@ import java.util.concurrent.ExecutionException
 class QdrantUseCaseEmbeddingsStore(
     private val embeddingModel: EmbeddingModel,
     private val config: QdrantConfig = QdrantConfig(),
-) : AutoCloseable, UseCaseEmbeddingsStore {
+) : AutoCloseable, UseCaseEmbeddingsRepository {
 
     private val client: QdrantClient by lazy {
         QdrantClient(
@@ -41,7 +44,7 @@ class QdrantUseCaseEmbeddingsStore(
     /**
      * Initializes the Qdrant collection if it doesn't exist.
      */
-    suspend fun initialize() {
+    override suspend fun initialize() {
         try {
             val collections = client.listCollectionsAsync().await()
             if (!collections.contains(config.collectionName)) {
@@ -59,12 +62,45 @@ class QdrantUseCaseEmbeddingsStore(
     }
 
     /**
+     * Stores embeddings the given ADL utterances.
+     * Overwrites any existing embeddings for UseCases with the same ID.
+     * @param id The ADL identifier.
+     * @return The number of embeddings stored.
+     */
+    override suspend fun storeUtterances(id: String, examples: List<String>): Int {
+        val points = mutableListOf<PointStruct>()
+
+        // Delete existing embeddings for all ADL IDs that will be stored
+        deleteByUseCaseId(id)
+
+        examples.forEach { example ->
+            val embedding = embeddingModel.embed(example).content().vector()
+            val point = PointStruct.newBuilder()
+                .setId(id(UUID.randomUUID()))
+                .setVectors(vectors(embedding.toList()))
+                .putAllPayload(buildPayload(id, "", example))
+                .build()
+            points.add(point)
+        }
+
+        if (points.isNotEmpty()) {
+            try {
+                client.upsertAsync(config.collectionName, points).await()
+            } catch (e: ExecutionException) {
+                throw RuntimeException("Failed to store embeddings in Qdrant", e.cause)
+            }
+        }
+
+        return points.size
+    }
+
+    /**
      * Stores embeddings the given UseCases.
      * Overwrites any existing embeddings for UseCases with the same ID.
      * @param adl The UseCases to create embeddings from.
      * @return The number of embeddings stored.
      */
-    override suspend fun storeUseCase(adl: String): Int {
+    override suspend fun storeUseCase(adl: String, examples: List<String>): Int {
         val points = mutableListOf<PointStruct>()
         val parsedUseCases = adl.toUseCases()
 
@@ -72,7 +108,7 @@ class QdrantUseCaseEmbeddingsStore(
         parsedUseCases.forEach { useCase -> deleteByUseCaseId(useCase.id) }
 
         parsedUseCases.forEach { useCase ->
-            val examples = parseExamples(useCase.examples)
+            val examples = (parseExamples(useCase.examples) + examples).distinct()
             examples.forEach { example ->
                 val embedding = embeddingModel.embed(example).content().vector()
                 val point = PointStruct.newBuilder()
@@ -102,7 +138,7 @@ class QdrantUseCaseEmbeddingsStore(
      * @param scoreThreshold The minimum similarity score (0.0 to 1.0).
      * @return List of matching UseCase embeddings with their scores.
      */
-    suspend fun search(query: String, limit: Int = 5, scoreThreshold: Float = 0.0f): List<UseCaseSearchResult> {
+    override suspend fun search(query: String, limit: Int, scoreThreshold: Float): List<UseCaseSearchResult> {
         val queryEmbedding = embeddingModel.embed(query).content().vector()
         return searchByVector(queryEmbedding.toList(), limit, scoreThreshold)
     }
@@ -144,10 +180,10 @@ class QdrantUseCaseEmbeddingsStore(
      * @param scoreThreshold The minimum similarity score (0.0 to 1.0).
      * @return List of matching UseCase embeddings with their scores.
      */
-    suspend fun searchByConversation(
-        messages: List<org.eclipse.lmos.adl.server.inbound.SimpleMessage>,
-        limit: Int = 5,
-        scoreThreshold: Float = 0.0f,
+    override suspend fun searchByConversation(
+        messages: List<SimpleMessage>,
+        limit: Int,
+        scoreThreshold: Float,
     ): List<UseCaseSearchResult> {
         val combinedQuery = messages.filter { it.role == "user" && it.content.length > 5 }.takeLast(5).flatMap {
             search(it.content, limit, scoreThreshold)
@@ -197,7 +233,7 @@ class QdrantUseCaseEmbeddingsStore(
     /**
      * Gets the total number of embeddings stored.
      */
-    suspend fun count(): Long {
+    override suspend fun count(): Long {
         return try {
             client.countAsync(config.collectionName).await()
         } catch (e: ExecutionException) {
@@ -246,12 +282,3 @@ class QdrantUseCaseEmbeddingsStore(
     }
 }
 
-/**
- * Result of a UseCase similarity search.
- */
-data class UseCaseSearchResult(
-    val useCaseId: String,
-    val example: String,
-    val score: Float,
-    val content: String,
-)

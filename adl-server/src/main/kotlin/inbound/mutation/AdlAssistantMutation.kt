@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.inbound
+package org.eclipse.lmos.adl.server.inbound.mutation
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
@@ -15,6 +15,7 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
+import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
 import org.eclipse.lmos.arc.api.AgentResultType.MESSAGE
@@ -30,10 +31,13 @@ class AdlAssistantMutation(
     private val assistantAgent: ConversationAgent,
 ) : Mutation {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(this.javaClass)
+
     @GraphQLDescription("Calls the assistant agent")
     suspend fun assistant(
         @GraphQLDescription("The assistant input") input: AssistantInput,
     ): AgentResult {
+        log.info("Received assistant request with useCases: ${input.request.conversationContext.conversationId}")
         val useCases = input.useCases.toUseCases()
         val request = input.request
         val outputContext = OutputContext()

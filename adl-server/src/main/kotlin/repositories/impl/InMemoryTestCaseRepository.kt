@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.repositories
+package org.eclipse.lmos.adl.server.repositories.impl
 
-import org.eclipse.lmos.adl.server.inbound.TestCase
+import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
+import org.eclipse.lmos.adl.server.models.TestCase
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -28,5 +29,9 @@ class InMemoryTestCaseRepository : TestCaseRepository {
 
     override suspend fun findByUseCaseId(useCaseId: String): List<TestCase> {
         return store.values.filter { it.useCaseId == useCaseId }
+    }
+
+    override suspend fun delete(id: String): Boolean {
+        return store.remove(id) != null
     }
 }

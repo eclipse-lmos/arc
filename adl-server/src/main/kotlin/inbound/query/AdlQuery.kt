@@ -2,18 +2,22 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package org.eclipse.lmos.adl.server.inbound
+package org.eclipse.lmos.adl.server.inbound.query
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
-import org.eclipse.lmos.adl.server.embeddings.QdrantUseCaseEmbeddingsStore
-import org.eclipse.lmos.adl.server.embeddings.UseCaseSearchResult
+import org.eclipse.lmos.adl.server.model.Adl
+import org.eclipse.lmos.adl.server.models.SimpleMessage
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
 
 /**
  * GraphQL Query for searching UseCases based on conversation embeddings.
  */
 class AdlQuery(
-    private val useCaseStore: QdrantUseCaseEmbeddingsStore,
+    private val useCaseStore: UseCaseEmbeddingsRepository,
+    private val adlStorage: AdlRepository,
 ) : Query {
 
     @GraphQLDescription("Returns the supported version of the ALD.")
@@ -32,6 +36,27 @@ class AdlQuery(
         require(conversation.isNotEmpty()) { "conversation must not be empty" }
         val results = useCaseStore.searchByConversation(conversation, limit ?: 10, scoreThreshold?.toFloat() ?: 0.0f)
         return results.toMatches()
+    }
+
+    @GraphQLDescription("Returns a list of all stored ADLs.")
+    suspend fun list(
+        @GraphQLDescription("Optional search criteria to filter ADLs by relevance") searchTerm: SearchCriteria? = null,
+    ): List<Adl> {
+        val allAdls = adlStorage.list()
+        if (searchTerm == null || searchTerm.term.isBlank()) {
+            return allAdls
+        }
+        val matches = useCaseStore.search(searchTerm.term, searchTerm.limit, searchTerm.threshold.toFloat())
+        val scores = matches.groupBy { it.useCaseId }.mapValues { it.value.maxOf { match -> match.score } }
+
+        return allAdls.filter { it.id in scores.keys }
+            .map { it.copy(relevance = scores[it.id]?.toDouble()) }
+            .sortedByDescending { it.relevance }
+    }
+
+    @GraphQLDescription("Returns a single ADL by ID.")
+    suspend fun searchById(@GraphQLDescription("The ID of the ADL") id: String): Adl? {
+        return adlStorage.get(id)
     }
 
     @GraphQLDescription("Searches for UseCases using a text query.")
@@ -82,4 +107,14 @@ data class Example(
     val score: Float,
     @param:GraphQLDescription("The examples that matched the query")
     val example: String,
+)
+
+@GraphQLDescription("Search criteria for ADLs")
+data class SearchCriteria(
+    @param:GraphQLDescription("The search term")
+    val term: String,
+    @param:GraphQLDescription("Maximum number of results to return")
+    val limit: Int = 50,
+    @param:GraphQLDescription("Minimum similarity score (0.0 to 1.0)")
+    val threshold: Double = 0.5,
 )
