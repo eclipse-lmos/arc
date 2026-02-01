@@ -18,6 +18,13 @@ interface TestCaseRepository {
     suspend fun save(testCase: TestCase): TestCase
 
     /**
+     * Saves a list of [TestCase]s.
+     * @param testCases The test cases to save.
+     * @return The saved test cases.
+     */
+    suspend fun saveAll(testCases: List<TestCase>): List<TestCase>
+
+    /**
      * Finds a [TestCase] by its ID.
      * @param id The ID of the test case.
      * @return The test case if found, null otherwise.
@@ -36,6 +43,13 @@ interface TestCaseRepository {
      * @return A list of matching test cases.
      */
     suspend fun findByUseCaseId(useCaseId: String): List<TestCase>
+
+    /**
+     * Finds [TestCase]s associated with a specific ADL ID.
+     * @param adlId The ID of the ADL.
+     * @return A list of matching test cases.
+     */
+    suspend fun findByADLId(adlId: String): List<TestCase>
 
     /**
      * Deletes a [TestCase] by its ID.

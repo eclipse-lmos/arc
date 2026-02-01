@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 data class TestCase(
     val id: String = java.util.UUID.randomUUID().toString(),
     val useCaseId: String? = null,
+    val adlId : String? = null,
     val name: String,
     val description: String,
     @SerialName("expected_conversation")

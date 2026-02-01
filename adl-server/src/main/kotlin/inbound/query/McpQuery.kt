@@ -4,6 +4,7 @@
 package org.eclipse.lmos.adl.server.inbound.query
 
 import com.expediagroup.graphql.server.operations.Query
+import org.eclipse.lmos.adl.server.models.McpServerDetails
 import org.eclipse.lmos.adl.server.services.McpService
 
 class McpToolsQuery(private val mcpService: McpService) : Query {
@@ -18,7 +19,7 @@ class McpToolsQuery(private val mcpService: McpService) : Query {
         }
     }
 
-    fun mcpServerUrls(): List<String> {
+    suspend fun mcpServerUrls(): List<McpServerDetails> {
         return mcpService.getMcpServerUrls()
     }
 }

@@ -32,8 +32,8 @@ class TestExecutor(
     private val conversationEvaluator: ConversationEvaluator,
 ) {
 
-    suspend fun executeTests(useCaseId: String, testCaseId: String? = null): TestRunResult {
-        val adl = adlStorage.get(useCaseId) ?: throw IllegalArgumentException("Use Case not found: $useCaseId")
+    suspend fun executeTests(adlId: String, testCaseId: String? = null): TestRunResult {
+        val adl = adlStorage.get(adlId) ?: throw IllegalArgumentException("ADL not found: $adlId")
         val useCases = adl.content.toUseCases()
 
         val testCases = if (testCaseId != null) {
@@ -41,7 +41,7 @@ class TestExecutor(
                 ?: throw IllegalArgumentException("Test Case not found: $testCaseId")
             listOf(testCase)
         } else {
-            testCaseRepository.findByUseCaseId(useCaseId)
+            testCaseRepository.findByADLId(adlId)
         }
 
         val results = testCases.map { testCase ->
@@ -57,7 +57,7 @@ class TestExecutor(
     }
 
     private suspend fun executeTestCase(testCase: TestCase, useCases: Any): TestExecutionResult {
-        val results = (1..2).map {
+        val results = (1..5).map {
             runSingleTestCase(testCase, useCases)
         }
         return results.minByOrNull { it.score } ?: results.first()

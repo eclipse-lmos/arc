@@ -47,10 +47,12 @@ import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.McpMutation
 import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
 import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
+import org.eclipse.lmos.adl.server.model.Adl
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
+import java.time.Instant.now
 
 fun startServer(
     wait: Boolean = true,
@@ -66,20 +68,30 @@ fun startServer(
     val useCaseStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
     val adlStorage: AdlRepository = InMemoryAdlRepository()
     val mcpService = McpService()
+    val testCaseRepository = InMemoryTestCaseRepository()
 
     // Agents
     val exampleAgent = createExampleAgent()
     val evalAgent = createEvalAgent()
-    val assistantAgent = createAssistantAgent()
+    val assistantAgent = createAssistantAgent(mcpService, testCaseRepository)
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()
-    val testCaseRepository = InMemoryTestCaseRepository()
     val testExecutor = TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
 
     // Initialize Qdrant collection
     runBlocking {
         useCaseStore.initialize()
+    }
+
+    // Add example data
+    runBlocking {
+        // log.info("Loading examples", id, examples.size)
+        listOf("buy_a_car.md").forEach { example ->
+            val id = example.substringBeforeLast(".")
+            val content = this::class.java.classLoader.getResource("examples/$example")!!.readText()
+            adlStorage.store(Adl(id, content.trim(), listOf(), now().toString(), emptyList()))
+        }
     }
 
     return embeddedServer(CIO, port = port ?: EnvConfig.serverPort) {
@@ -116,9 +128,9 @@ fun startServer(
                     AdlStorageMutation(useCaseStore, adlStorage),
                     SystemPromptMutation(sessions, templateLoader),
                     AdlEvalMutation(evalAgent, conversationEvaluator),
-                    AdlAssistantMutation(assistantAgent),
+                    AdlAssistantMutation(assistantAgent, adlStorage),
                     AdlValidationMutation(),
-                    TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor),
+                    TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor, adlStorage),
                     UseCaseImprovementMutation(improvementAgent),
                     AdlExampleMutation(exampleAgent),
                     McpMutation(mcpService),

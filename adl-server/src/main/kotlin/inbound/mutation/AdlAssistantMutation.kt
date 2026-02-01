@@ -7,6 +7,7 @@ package org.eclipse.lmos.adl.server.inbound.mutation
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
 import kotlinx.serialization.Serializable
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.User
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -29,6 +30,7 @@ import java.time.Duration
 
 class AdlAssistantMutation(
     private val assistantAgent: ConversationAgent,
+    private val adlStorage: AdlRepository
 ) : Mutation {
 
     private val log = org.slf4j.LoggerFactory.getLogger(this.javaClass)
@@ -38,7 +40,8 @@ class AdlAssistantMutation(
         @GraphQLDescription("The assistant input") input: AssistantInput,
     ): AgentResult {
         log.info("Received assistant request with useCases: ${input.request.conversationContext.conversationId}")
-        val useCases = input.useCases.toUseCases()
+        if(input.useCases == null && input.useCasesId == null) error("Either useCases or useCase Id must be defined!")
+        val useCases = input.useCasesId?.let{ adlStorage.get(it) } ?: input.useCases!!.toUseCases()
         val request = input.request
         val outputContext = OutputContext()
         val start = System.nanoTime()
@@ -79,7 +82,7 @@ class AdlAssistantMutation(
 }
 
 @Serializable
-data class AssistantInput(val useCases: String, val request: AgentRequest)
+data class AssistantInput(val useCases: String? = null, val useCasesId: String? = null, val request: AgentRequest)
 
 fun List<Message>.convert(): List<ConversationMessage> = map {
     when (it.role) {

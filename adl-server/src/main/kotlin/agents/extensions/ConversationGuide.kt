@@ -17,6 +17,7 @@ import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentAgent
+import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -26,19 +27,6 @@ import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
-
-/**
- * Agent definition plugin to improve responses by checking if
- * the questions asked by the Agent can be answered from the conversation history.
- */
-fun AgentDefinition.conversationGuide() {
-    filterInput {
-        +InputHintProvider()
-    }
-    filterOutput {
-        +ConversationGuider()
-    }
-}
 
 /**
  * Key for storing retry reason in the RetrySignal.
@@ -80,6 +68,7 @@ class ConversationGuider(private val retryMax: Int = 4, private val model: Strin
 
     override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage? {
         if (!message.content.contains("?")) return message
+        if (context.getCurrentUseCases()?.currentUseCase()?.steps?.isEmpty() == true) return message
 
         log.debug("Checking Agent response: ${message.content}")
         val conversation = context.get<Conversation>()

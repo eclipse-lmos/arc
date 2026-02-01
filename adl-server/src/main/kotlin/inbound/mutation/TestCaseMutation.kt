@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.lmos.adl.server.models.TestCase
 import org.eclipse.lmos.adl.server.models.TestRunResult
 import org.eclipse.lmos.adl.server.models.ConversationTurn
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 import org.eclipse.lmos.arc.agents.ConversationAgent
@@ -24,6 +25,7 @@ class TestCreatorMutation(
     private val testCreatorAgent: ConversationAgent,
     private val testCaseRepository: TestCaseRepository,
     private val testExecutor: TestExecutor,
+    private val adlRepository: AdlRepository,
 ) : Mutation {
 
     @GraphQLDescription("Generates test cases for a provided Use Case.")
@@ -38,23 +40,25 @@ class TestCreatorMutation(
 
     @GraphQLDescription("Generates test cases for a provided Use Case and stores them in the repository.")
     suspend fun newTests(
-        @GraphQLDescription("The Use Case description.") useCase: String,
+        @GraphQLDescription("The ADL identifier") id: String,
     ): NewTestsResponse {
-        val useCaseId = useCase.toUseCases().firstOrNull()?.id ?: "unknown"
-        val testCases =
-            testCreatorAgent.process<TestCreatorInput, List<TestCase>>(TestCreatorInput(useCase)).getOrThrow().map {
-                it.copy(useCaseId = useCaseId)
-            }
-        testCases.forEach { testCaseRepository.save(it) }
-        return NewTestsResponse(testCases.size, useCaseId)
+        val useCases = adlRepository.get(id)?.content?.toUseCases() ?: error("No adl found with id: $id")
+        val testCases = useCases.flatMap { useCase ->
+            testCreatorAgent.process<TestCreatorInput, List<TestCase>>(TestCreatorInput(useCase.toString()))
+                .getOrThrow().map {
+                    it.copy(useCaseId = useCase.id, adlId = id)
+                }
+        }
+        testCaseRepository.saveAll(testCases)
+        return NewTestsResponse(testCases.size)
     }
 
     @GraphQLDescription("Executes tests for a given Use Case.")
     suspend fun executeTests(
-        @GraphQLDescription("The Use Case ID") useCaseId: String,
+        @GraphQLDescription("The ADL identifier") adlId: String,
         @GraphQLDescription("The Test Case ID") testCaseId: String? = null,
     ): TestRunResult {
-        return testExecutor.executeTests(useCaseId, testCaseId)
+        return testExecutor.executeTests(adlId, testCaseId)
     }
 
     @GraphQLDescription("Deletes a test case by its ID.")
@@ -101,8 +105,6 @@ class TestCreatorMutation(
 data class NewTestsResponse(
     @GraphQLDescription("The number of test cases created")
     val count: Int,
-    @GraphQLDescription("The ID of the use case associated with these tests")
-    val useCaseId: String,
 )
 
 /**

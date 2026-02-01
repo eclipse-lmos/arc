@@ -4,12 +4,15 @@
 package org.eclipse.lmos.adl.server.inbound.mutation
 
 import com.expediagroup.graphql.server.operations.Mutation
+import org.eclipse.lmos.adl.server.models.McpServerDetails
 import org.eclipse.lmos.adl.server.services.McpService
 
+/**
+ * GraphQL mutation for setting MCP server URLs.
+ */
 class McpMutation(private val mcpService: McpService) : Mutation {
 
-    fun setMcpServerUrls(urls: List<String>): Boolean {
-        mcpService.setMcpServerUrls(urls)
-        return true
+    suspend fun setMcpServerUrls(urls: List<String>): List<McpServerDetails> {
+        return mcpService.setMcpServerUrls(urls)
     }
 }

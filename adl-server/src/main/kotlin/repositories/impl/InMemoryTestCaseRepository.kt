@@ -19,6 +19,11 @@ class InMemoryTestCaseRepository : TestCaseRepository {
         return testCase
     }
 
+    override suspend fun saveAll(testCases: List<TestCase>): List<TestCase> {
+        testCases.forEach { store[it.id] = it }
+        return testCases
+    }
+
     override suspend fun findById(id: String): TestCase? {
         return store[id]
     }
@@ -29,6 +34,10 @@ class InMemoryTestCaseRepository : TestCaseRepository {
 
     override suspend fun findByUseCaseId(useCaseId: String): List<TestCase> {
         return store.values.filter { it.useCaseId == useCaseId }
+    }
+
+    override suspend fun findByADLId(adlId: String): List<TestCase> {
+        return store.values.filter { it.adlId == adlId }
     }
 
     override suspend fun delete(id: String): Boolean {
