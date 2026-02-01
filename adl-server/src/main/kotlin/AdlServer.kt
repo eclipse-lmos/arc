@@ -27,6 +27,7 @@ import org.eclipse.lmos.adl.server.agents.createExampleAgent
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.agents.createSpellingAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
+import org.eclipse.lmos.adl.server.agents.createTestVariantCreatorAgent
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
@@ -76,12 +77,15 @@ fun startServer(
     // Agents
     val exampleAgent = createExampleAgent()
     val evalAgent = createEvalAgent()
-    val assistantAgent = createAssistantAgent(mcpService, testCaseRepository, embeddingStore, adlStorage)
+    val assistantAgent =
+        createAssistantAgent(mcpService, testCaseRepository, embeddingStore, adlStorage, embeddingModel)
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()
     val spellingAgent = createSpellingAgent()
-    val testExecutor = TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
+    val testVariantAgent = createTestVariantCreatorAgent()
+    val testExecutor =
+        TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
 
     // Initialize Qdrant collection
     runBlocking {
@@ -136,7 +140,13 @@ fun startServer(
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent, adlStorage),
                     AdlValidationMutation(),
-                    TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor, adlStorage),
+                    TestCreatorMutation(
+                        testCreatorAgent,
+                        testCaseRepository,
+                        testExecutor,
+                        adlStorage,
+                        testVariantAgent
+                    ),
                     UseCaseImprovementMutation(improvementAgent),
                     AdlExampleMutation(exampleAgent),
                     McpMutation(mcpService),

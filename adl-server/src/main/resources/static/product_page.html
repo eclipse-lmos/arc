@@ -196,13 +196,83 @@
     </div>
 </section>
 
+
+<!-- ADL UseCases Section -->
+<section id="usecases" class="py-16 bg-nature-page border-t border-nature-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
+            <div class="lg:col-span-7">
+                <h2 class="text-base text-nature-primary font-semibold tracking-wide uppercase">The Paradigm Shift</h2>
+                <h3 class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-nature-dark sm:text-4xl">
+                    ADL UseCases
+                </h3>
+                <div class="mt-6 text-lg text-stone-600 space-y-6">
+                    <p>
+                        The idea behind ADL UseCases is a fundamental shift: instead of "prompting" the Agent and creating a black box,
+                        you define your requirements in the form of clear, structured UseCases.
+                    </p>
+                    <p>
+                        The ADL Engine processes these UseCases and ensures that the Agent behaves according to your specifications.
+                    </p>
+                    <p>
+                     Behind the scenes, the ADL Engine translates UseCases into optimized prompts or tools,
+                        manages conversation state, and enforces your business rules.
+                    </p>
+                </div>
+            </div>
+            <!-- Visual Representation -->
+            <div class="mt-10 lg:mt-0 lg:col-span-12 xl:col-span-5">
+                <div class="bg-white rounded-2xl shadow-xl border border-nature-border overflow-hidden">
+                    <div class="p-4 bg-nature-dark border-b border-stone-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <span class="text-stone-500 font-mono text-xs">requirements.md</span>
+                    </div>
+                    <div class="p-6 bg-stone-50">
+                        <div class="space-y-4">
+                            <div class="bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
+                                <h4 class="text-sm font-bold text-nature-primary mb-2 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Requirements
+                                </h4>
+                                <p class="text-xs text-stone-600"> <span class="text-nature-accent">UseCase:</span> refund_customer</p>
+                                <p class="text-xs text-stone-600"> <span class="text-nature-accent">UseCase:</span> upgrade_customer</p>
+                            </div>
+                            <div class="flex justify-center text-nature-accent">
+                                <svg class="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-nature-dark text-stone-300 p-3 rounded-lg shadow-md font-mono text-xs text-center border border-stone-700">
+                                   SystemPrompt
+                                </div>
+                                <div class="bg-nature-primary text-white p-3 rounded-lg shadow-md font-mono text-xs text-center border border-nature-light">
+                                   Tools
+                                </div>
+                                <div class="bg-nature-sky text-white p-3 rounded-lg shadow-md font-mono text-xs text-center border border-cyan-800">
+                                   Evals
+                                </div>
+                                <div class="bg-nature-accent text-white p-3 rounded-lg shadow-md font-mono text-xs text-center border border-orange-200/20">
+                                   Guardrails
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ADL Technical Specification -->
 <section id="technical-spec" class="py-16 bg-nature-page border-t border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
             <h2 class="text-base text-nature-primary font-semibold tracking-wide uppercase">Technical Specification</h2>
             <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-nature-dark sm:text-4xl">
-                Format & Capabilities
+                ADL UseCase Format & Capabilities
             </p>
             <p class="mt-4 max-w-2xl text-xl text-stone-600 lg:mx-auto">
                 ADL separates agent behavior definition from LLM prompting, providing a structured format backed by rules and conventions.
@@ -233,7 +303,7 @@
                         </li>
                         <li class="flex gap-3">
                             <span class="font-bold text-nature-primary min-w-[7rem]">Steps</span>
-                            <span>The Steps block lists a set of instructions that is fed to the LLM one at the time with the ADL skipping steps that do not apply.</span>
+                            <span>The Steps block lists a set of instructions that is fed to the Agent one at the time with the ADL skipping steps that do not apply.</span>
                         </li>
                         <li class="flex gap-3">
                             <span class="font-bold text-nature-primary min-w-[7rem]">Solution</span>
@@ -265,7 +335,8 @@
                 <div class="space-y-8">
                     <div>
                         <h4 class="font-bold text-nature-dark mb-2">Conditionals</h4>
-                        <p class="text-sm text-stone-600 mb-2">Filter content based on context matches. Custom Conditionals can be added when calling the ADL engine.</p>
+                        <p class="text-sm text-stone-600 mb-2">Conditionals are like "if statements" where any lines noted inside the conditional block are only active if the condition is met.</p>
+                        <p class="text-sm text-stone-600 mb-2">ADL defines several built-in conditionals. Custom conditionals can be defined and passed to the ADL engine at runtime.</p>
                         <ul class="text-sm text-stone-600 space-y-1 ml-4 list-disc marker:text-nature-primary">
                             <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;c1, c2&gt;</code> Multiple conditions (AND).</li>
                             <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;c1 or c2&gt;</code> Multiple conditions (OR).</li>
@@ -284,7 +355,19 @@
                             </div>
                         </div>
                         <br>
-                        <p class="text-sm text-stone-600 mb-2">Custom conditionals can be defined and passed to the ADL engine at runtime.</p>
+                        <p  class="text-sm text-stone-600 mb-2">Multi-line conditionals are also supported:</p>
+                        <div class="mt-4 bg-nature-dark p-3 rounded-lg text-xs border border-stone-800">
+                            <div class="text-nature-accent font-bold mb-1">### UseCase: password_reset</div>
+                            <div class="text-nature-light font-bold mb-1">#### Solution</div>
+                            <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
+                                <span class="text-nature-accent">
+                                    &lt;isBusinessCustomer&gt;</span><br>A multi line<br> conditional<span class="text-nature-accent"><br>&lt;/&gt;
+                                <br></span>
+                                <span class="text-nature-accent">
+                                    &lt;esle&gt;</span><br>A multi line<br> conditional<span class="text-nature-accent"><br>&lt;/&gt;
+                                <br></span>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <h4 class="font-bold text-nature-dark mb-2">Executable Code</h4>
@@ -323,7 +406,7 @@
                                 Provide the link and guide the customer through the process.
                             </div>
                         </div>
-
+                        <p class="text-sm text-stone-600 mb-3">By explicitly declaring the tools that are required, the ADL Engine can:</p>
                         <ul class="text-sm text-stone-600 space-y-1 list-disc list-inside marker:text-nature-primary">
                             <li>Dynamically loads tools.</li>
                             <li>Validates availability.</li>
@@ -346,212 +429,12 @@
                         </div>
                         <p class="text-sm text-stone-600">In this example, the Agent will always return the text within the brackets.</p>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-nature-dark mb-2">Flow Options</h4>
-                        <p class="text-sm text-stone-600 mb-2">Guide the conversation flow based on user intent.</p>
-                        <div class="space-y-1 text-xs font-mono text-stone-500 bg-nature-page p-3 rounded-lg border border-nature-border">
-                             <div><span class="text-nature-primary font-bold">[buy]</span> go to #product_selection</div>
-                             <div><span class="text-nature-primary font-bold">[support]</span> go to #customer_service</div>
-                             <div><span class="text-nature-accent font-bold">[other]</span> reply "How can I help you?"</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- GraphQL API Section -->
-<section id="graphql-api" class="py-16 bg-white border-t border-nature-border">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">GraphQL API</h2>
-            <p class="mt-4 text-xl text-stone-600 lg:mx-auto">
-                Comprehensive API for managing, compiling, testing, and evaluating agents.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <!-- Queries -->
-            <div>
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="p-2 bg-nature-primary/10 rounded-full text-nature-primary">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-nature-dark">Queries</h3>
-                </div>
-                <div class="space-y-4">
-                    <!-- AdlQuery -->
-                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
-                        <h4 class="font-bold text-nature-dark mb-2">Core ADL</h4>
-                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
-                            <li>
-                                <span class="text-nature-primary font-bold">version</span>(): String
-                                <p class="text-xs text-stone-500 font-sans mt-1">Returns the supported API version.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-primary font-bold">list</span>(searchTerm: SearchCriteria?): [Adl]
-                                <p class="text-xs text-stone-500 font-sans mt-1">List stored ADLs, optionally filtered.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-primary font-bold">searchById</span>(id: String): Adl
-                                <p class="text-xs text-stone-500 font-sans mt-1">Retrieve a single ADL by ID.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-primary font-bold">search</span>(conversation: [Message], ...): [UseCaseMatch]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Find UseCases matching a conversation context.</p>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Tools & Tests -->
-                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
-                        <h4 class="font-bold text-nature-dark mb-2">Tools & Tests</h4>
-                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
-                            <li>
-                                <span class="text-nature-primary font-bold">getMcpTools</span>(): [AdlTool]
-                                <p class="text-xs text-stone-500 font-sans mt-1">List available MCP tools.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-primary font-bold">testCases</span>(useCaseId: String): [TestCase]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases for a specific UseCase.</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mutations -->
-            <div>
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="p-2 bg-nature-accent/10 rounded-full text-nature-accent">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-nature-dark">Mutations</h3>
-                </div>
-                <div class="space-y-4">
-                    <!-- Compiler & Validation -->
-                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
-                        <h4 class="font-bold text-nature-dark mb-2">Build & Validate</h4>
-                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
-                            <li>
-                                <span class="text-nature-accent font-bold">compile</span>(adl: String, conditionals: [String]): CompileResult
-                                <p class="text-xs text-stone-500 font-sans mt-1">Compiles ADL to agent-ready format.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">validate</span>(adl: String): ValidationResult
-                                <p class="text-xs text-stone-500 font-sans mt-1">Check syntax and tool references.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">systemPrompt</span>(adl: String, ...): SystemPromptResult
-                                <p class="text-xs text-stone-500 font-sans mt-1">Generate the full system prompt.</p>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Evaluation & Storage -->
-                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
-                        <h4 class="font-bold text-nature-dark mb-2">Eval & Storage</h4>
-                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
-                            <li>
-                                <span class="text-nature-accent font-bold">eval</span>(input: EvalInput): EvalOutput
-                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against inputs.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">improveUseCase</span>(useCase: String): ImprovementResponse
-                                <p class="text-xs text-stone-500 font-sans mt-1">Get AI-suggested improvements.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String, ...): StorageResult
-                                <p class="text-xs text-stone-500 font-sans mt-1">Save ADL definitions to storage.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String): [TestCase]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Auto-generate test cases.</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-12 text-center">
-             <div class="inline-flex bg-nature-page p-1 rounded-lg border border-nature-border">
-                 <div class="px-4 py-2 flex items-center gap-2">
-                     <span class="text-sm font-medium text-nature-dark">Ready to explore?</span>
-                     <code class="text-xs bg-stone-900 text-stone-300 px-2 py-1 rounded">POST /graphql</code>
-                 </div>
-                 <a href="/graphiql" target="_blank" class="px-4 py-2 bg-white rounded shadow-sm text-sm font-medium text-nature-primary hover:text-nature-dark flex items-center gap-1 transition-colors">
-                     Open GraphiQL <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                 </a>
-             </div>
-        </div>
-    </div>
-</section>
-
-<!-- Technical Features -->
-<section id="features" class="py-16 bg-gradient-to-b from-white to-nature-page border-t border-nature-border">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="md:grid md:grid-cols-2 md:gap-16 items-center">
-            <div>
-                <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">OpenAI Compatible Endpoint</h2>
-                <p class="mt-4 text-lg text-stone-600">
-                    Integration is effortless. ADL Server exposes a standard <code class="text-nature-primary">/v1/chat/completions</code> endpoint.
-                </p>
-                <p class="mt-4 text-lg text-stone-600">
-                    This allows you to swap out your existing OpenAI API calls for ADL Server calls, instantly upgrading your application with ADL's structured capabilities without rewriting your client code.
-                </p>
-                <ul class="mt-8 space-y-3">
-                    <li class="flex items-start">
-                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span class="ml-3 text-stone-800">Drop-in replacement for OpenAI SDKs</span>
-                    </li>
-                    <li class="flex items-start">
-                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span class="ml-3 text-stone-800">Streaming support for real-time UIs</span>
-                    </li>
-                    <li class="flex items-start">
-                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span class="ml-3 text-stone-800">Model agnostic - Connect to any LLM backend</span>
-                    </li>
-                </ul>
-            </div>
-            <div class="mt-10 md:mt-0">
-                <div class="rounded-lg shadow-2xl overflow-hidden border border-stone-200">
-                    <div class="bg-stone-900 px-4 py-2 flex items-center justify-between border-b border-stone-800">
-                        <span class="text-xs text-stone-400">cURL Request</span>
-                        <div class="flex space-x-1">
-                            <div class="w-2 h-2 rounded-full bg-stone-600"></div>
-                            <div class="w-2 h-2 rounded-full bg-stone-600"></div>
-                        </div>
-                    </div>
-                    <div class="bg-stone-900 p-6 overflow-x-auto">
-<pre class="text-sm font-mono text-stone-300">
-<span class="text-nature-accent">curl</span> https://adl-server/v1/chat/completions \
-  -H <span class="text-nature-light">"Content-Type: application/json"</span> \
-  -H <span class="text-nature-light">"Authorization: Bearer $KEY"</span> \
-  -d '{
-    <span class="text-nature-sky">"model"</span>: <span class="text-nature-light">"finance-agent"</span>,
-    <span class="text-nature-sky">"messages"</span>: [
-      {
-        <span class="text-nature-sky">"role"</span>: <span class="text-nature-light">"user"</span>,
-        <span class="text-nature-sky">"content"</span>: <span class="text-nature-light">"Analyze the Q3 report attached."</span>
-      }
-    ]
-  }'
-</pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- Architecture / Integration Section -->
 <section id="architecture" class="py-20 bg-white border-t border-nature-border">
@@ -673,34 +556,228 @@
     </div>
 </section>
 
-<!-- Footer -->
-<footer class="bg-nature-dark text-stone-400 py-12 border-t border-stone-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div class="col-span-1 md:col-span-2">
-            <span class="font-bold text-2xl text-white tracking-tight">ADL <span class="text-nature-primary">Server</span></span>
-            <p class="mt-4 text-sm max-w-xs text-stone-500">
-                Empowering developers to build reliable, scalable AI agents with the Agent Definition Language.
-            </p>
-        </div>
-        <div>
-            <h4 class="text-sm font-semibold uppercase tracking-wider text-nature-accent">Product</h4>
-            <ul class="mt-4 space-y-2 text-sm">
-                <li><a href="#" class="hover:text-nature-light transition">Features</a></li>
-                <li><a href="#" class="hover:text-nature-light transition">MCP Integration</a></li>
-                <li><a href="#" class="hover:text-nature-light transition">Changelog</a></li>
-            </ul>
-        </div>
-        <div>
-            <h4 class="text-sm font-semibold uppercase tracking-wider text-nature-accent">Community</h4>
-            <ul class="mt-4 space-y-2 text-sm">
-                <li><a href="https://github.com/eclipse-lmos/arc" class="hover:text-nature-light transition">GitHub</a></li>
-                <li><a href="#" class="hover:text-nature-light transition">Discord</a></li>
-                <li><a href="#" class="hover:text-nature-light transition">Docs</a></li>
-            </ul>
+<!-- Technical Features -->
+<section id="features" class="py-16 bg-gradient-to-b from-white to-nature-page border-t border-nature-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="md:grid md:grid-cols-2 md:gap-16 items-center">
+            <div>
+                <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">OpenAI Compatible Endpoint</h2>
+                <p class="mt-4 text-lg text-stone-600">
+                    Integration is effortless. ADL Server exposes a standard <code class="text-nature-primary">/v1/chat/completions</code> endpoint.
+                </p>
+                <p class="mt-4 text-lg text-stone-600">
+                    This allows you to swap out your existing OpenAI API calls for ADL Server calls, instantly upgrading your application with ADL's structured capabilities without rewriting your client code.
+                </p>
+                <ul class="mt-8 space-y-3">
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-stone-800">Drop-in replacement for OpenAI SDKs</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-stone-800">Streaming support for real-time UIs</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-stone-800">Model agnostic - Connect to any LLM backend</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="mt-10 md:mt-0">
+                <div class="rounded-lg shadow-2xl overflow-hidden border border-stone-200">
+                    <div class="bg-stone-900 px-4 py-2 flex items-center justify-between border-b border-stone-800">
+                        <span class="text-xs text-stone-400">cURL Request</span>
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 rounded-full bg-stone-600"></div>
+                            <div class="w-2 h-2 rounded-full bg-stone-600"></div>
+                        </div>
+                    </div>
+                    <div class="bg-stone-900 p-6 overflow-x-auto">
+<pre class="text-sm font-mono text-stone-300">
+<span class="text-nature-accent">curl</span> https://adl-server/v1/chat/completions \
+  -H <span class="text-nature-light">"Content-Type: application/json"</span> \
+  -H <span class="text-nature-light">"Authorization: Bearer $KEY"</span> \
+  -d '{
+    <span class="text-nature-sky">"model"</span>: <span class="text-nature-light">"finance-agent"</span>,
+    <span class="text-nature-sky">"messages"</span>: [
+      {
+        <span class="text-nature-sky">"role"</span>: <span class="text-nature-light">"user"</span>,
+        <span class="text-nature-sky">"content"</span>: <span class="text-nature-light">"Analyze the Q3 report attached."</span>
+      }
+    ]
+  }'
+</pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-stone-800 text-sm text-center text-stone-600">
-        &copy; 2025 Deutsche Telekom AG and others. All rights reserved.
+</section>
+
+
+<!-- GraphQL API Section -->
+<section id="graphql-api" class="py-16 bg-white border-t border-nature-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">GraphQL API</h2>
+            <p class="mt-4 text-xl text-stone-600 lg:mx-auto">
+                Comprehensive API for managing, compiling, testing, and evaluating agents.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Queries -->
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-nature-primary/10 rounded-full text-nature-primary">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-nature-dark">Queries</h3>
+                </div>
+                <div class="space-y-4">
+                    <!-- AdlQuery -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Core ADL</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-primary font-bold">version</span>(): String
+                                <p class="text-xs text-stone-500 font-sans mt-1">Returns the supported API version.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">list</span>(searchTerm: SearchCriteria?): [Adl]
+                                <p class="text-xs text-stone-500 font-sans mt-1">List stored ADLs, optionally filtered.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">searchById</span>(id: String): Adl
+                                <p class="text-xs text-stone-500 font-sans mt-1">Retrieve a single ADL by ID.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">search</span>(conversation: [Message], ...): [UseCaseMatch]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Find UseCases matching a conversation context.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tools & Tests -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Tools & Tests</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-primary font-bold">getMcpTools</span>(): [AdlTool]
+                                <p class="text-xs text-stone-500 font-sans mt-1">List available MCP tools.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">testCases</span>(useCaseId: String): [TestCase]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases for a specific UseCase.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mutations -->
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-nature-accent/10 rounded-full text-nature-accent">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-nature-dark">Mutations</h3>
+                </div>
+                <div class="space-y-4">
+                    <!-- Compiler & Validation -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Build & Validate</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-accent font-bold">compile</span>(adl: String, conditionals: [String]): CompileResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Compiles ADL to agent-ready format.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">validate</span>(adl: String): ValidationResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Check syntax and tool references.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">systemPrompt</span>(adl: String, ...): SystemPromptResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Generate the full system prompt.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Evaluation & Storage -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Eval & Storage</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-accent font-bold">eval</span>(input: EvalInput): EvalOutput
+                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against inputs.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">improveUseCase</span>(useCase: String): ImprovementResponse
+                                <p class="text-xs text-stone-500 font-sans mt-1">Get AI-suggested improvements.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String, ...): StorageResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Save ADL definitions to storage.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String): [TestCase]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Auto-generate test cases.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center">
+            <div class="inline-flex bg-nature-page p-1 rounded-lg border border-nature-border">
+                <div class="px-4 py-2 flex items-center gap-2">
+                    <span class="text-sm font-medium text-nature-dark">Ready to explore?</span>
+                    <code class="text-xs bg-stone-900 text-stone-300 px-2 py-1 rounded">POST /graphql</code>
+                </div>
+                <a href="/graphiql" target="_blank" class="px-4 py-2 bg-white rounded shadow-sm text-sm font-medium text-nature-primary hover:text-nature-dark flex items-center gap-1 transition-colors">
+                    Open GraphiQL <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-nature-dark text-stone-400 py-12 border-t border-stone-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div class="col-span-1 md:col-span-2">
+                <span class="font-bold text-2xl text-white tracking-tight">ADL <span class="text-nature-primary">Server</span></span>
+                <p class="mt-4 text-sm max-w-xs text-stone-500">
+                    Empowering developers to build reliable, scalable AI agents with the Agent Definition Language.
+                </p>
+            </div>
+
+            <div class="col-span-1 md:col-span-2 md:flex md:justify-end">
+                <div>
+                     <h3 class="text-sm font-semibold text-stone-200 tracking-wider uppercase mb-4">Eclipse Foundation</h3>
+                     <ul class="space-y-2">
+                        <li><a href="https://www.eclipse.org" target="_blank" class="text-sm hover:text-nature-primary transition">Eclipse Foundation Website</a></li>
+                        <li><a href="https://www.eclipse.org/legal/privacy/" target="_blank" class="text-sm hover:text-nature-primary transition">Privacy Policy</a></li>
+                        <li><a href="https://www.eclipse.org/legal/terms-of-use/" target="_blank" class="text-sm hover:text-nature-primary transition">Website Terms of Use</a></li>
+                        <li><a href="https://www.eclipse.org/legal/compliance/" target="_blank" class="text-sm hover:text-nature-primary transition">Compliance</a></li>
+                        <li><a href="https://www.eclipse.org/legal/" target="_blank" class="text-sm hover:text-nature-primary transition">Legal</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-8 border-t border-stone-800 flex flex-col md:flex-row justify-between items-center gap-4">
+             <p class="text-xs text-stone-600">Copyright © Eclipse Foundation AISBL. All Rights Reserved.</p>
+             <img src="https://eclipse.dev/lmos/img/incubation_darkbg.png" alt="Eclipse Incubation" class="h-10 opacity-70 hover:opacity-100 transition"/>
+        </div>
     </div>
 </footer>
 

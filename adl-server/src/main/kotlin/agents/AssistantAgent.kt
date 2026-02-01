@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.adl.server.agents
 
+import dev.langchain4j.model.embedding.EmbeddingModel
+import dev.langchain4j.store.embedding.CosineSimilarity
 import org.eclipse.lmos.adl.server.agents.extensions.ConversationGuider
 import org.eclipse.lmos.adl.server.agents.extensions.InputHintProvider
 import org.eclipse.lmos.adl.server.agents.extensions.currentDate
@@ -28,7 +30,9 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
 import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
+import org.eclipse.lmos.arc.assistants.support.usecases.features.processFlow
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
+import kotlin.compareTo
 
 /**
  * Creates and configures the main Assistant Agent for the ADL server.
@@ -46,7 +50,8 @@ fun createAssistantAgent(
     mcpService: McpService,
     testRepository: TestCaseRepository,
     embeddingsRepository: UseCaseEmbeddingsRepository,
-    adlRepository: AdlRepository
+    adlRepository: AdlRepository,
+    embeddingModel: EmbeddingModel,
 ): ConversationAgent = agents(
     handlers = listOf(LoggingEventHandler()),
     functionLoaders = listOf(mcpService)
@@ -76,7 +81,8 @@ fun createAssistantAgent(
             // Load Use Cases
             val currentUseCases = get<List<UseCase>>()
             val message = get<Conversation>().latest<UserMessage>()?.content
-            val otherUseCases = embeddingsRepository.search(message!!, limit = 5)
+            val otherUseCases = embeddingsRepository.search(message!!, limit = 40, scoreThreshold = 0.7f)
+                .distinctBy { it.adlId }
                 .flatMap { adlRepository.get(it.adlId)?.content?.toUseCases() ?: emptyList() }
             info("Loaded ${otherUseCases.size} additional use cases from embeddings store.")
             val baseUseCases = local("base_use_cases.md")?.toUseCases() ?: emptyList()
@@ -100,29 +106,6 @@ fun createAssistantAgent(
                     } else uc
                 }
 
-            // Add examples from the test repository
-            val examples = buildString {
-                append("## Examples:\n")
-                useCases.forEach { uc ->
-                    testRepository.findByUseCaseId(uc.id).forEach { tc ->
-                        append(
-                            """
-                        ### Example for Use Case: ${uc.id}
-                        **Conversation**
-                        ${
-                                tc.expectedConversation.joinToString("\n") {
-                                    val prefix = if (it.role == "assistant") "<ID:${uc.id}>" else ""
-                                    "${it.role}: $prefix ${it.content}"
-                                }
-                            }
-                            
-                            
-                        """.trimIndent()
-                        )
-                    }
-                }
-            }
-
             // Add tools
             useCases.forEach { useCase ->
                 useCase.extractTools().forEach {
@@ -135,13 +118,71 @@ fun createAssistantAgent(
                 isWeekend()?.let { add("is_weekend") }
                 add(currentDate())
             }
+            val userMessageEmbedding = embeddingModel.embed(message)
             val useCasesPrompt =
-                processUseCases(useCases = useCases, fallbackLimit = 3, conditions = conditions, exampleLimit = 5)
+                processUseCases(
+                    useCases = useCases, fallbackLimit = 3, conditions = conditions, exampleLimit = 5,
+                    formatter = { content, useCase, useCases, usedUseCases ->
+
+                        var addExamples = false
+                        val examples = buildString {
+                            append("## Example Conversations:\n")
+                            testRepository.findByUseCaseId(useCase.id).filter { it.contract }.forEach { tc ->
+                                addExamples = true
+                                append(
+                                    """
+                        Example Conversation: ${tc.name}
+                        ${
+                                        tc.expectedConversation.joinToString("\n") {
+                                            val prefix = if (it.role == "assistant") "<ID:${useCase.id}>" else ""
+                                            "${it.role}: $prefix ${it.content}"
+                                        }
+                                    }
+                          
+                        """.trimIndent()
+                                )
+                            }
+                            append("----\n")
+                        }
+
+                        processFlow(
+                            content = content,
+                            useCase = useCase,
+                            allUseCases = useCases,
+                            usedUseCases = usedUseCases,
+                            conditions = conditions,
+                            context = this,
+                            optionsAnalyser = { userMessage, options ->
+
+                                // Try exact match first
+                                options.options.firstOrNull {
+                                    it.option.equals(userMessage.trim(), ignoreCase = true)
+                                }?.let { return@processFlow it }
+
+                                // Try cosine similarity match
+                                // Try cosine similarity match to find the highest match
+                                options.options.map {
+                                    it to CosineSimilarity.between(
+                                        userMessageEmbedding.content(),
+                                        embeddingModel.embed(it.option).content()
+                                    )
+                                }.filter { it.second > 0.8 }
+                                    .maxByOrNull { it.second }
+                                    ?.first
+                                    ?.let { return@processFlow it }
+                                null
+                            }
+                        ).let {
+                            if (addExamples) {
+                                it.replace("----", "") + "\n\n$examples"
+                            } else it
+                        }
+                    },
+                )
 
             // Output the final prompt
             val prompt = local("assistant.md")!!
                 .replace("\$\$ROLE\$\$", role)
-                .replace("\$\$EXAMPLES\$\$", examples)
                 .replace("\$\$USE_CASES\$\$", useCasesPrompt)
                 .replace("\$\$TIME\$\$", time())
             prompt

@@ -24,6 +24,8 @@ data class TestExecutionResult(
     val score: Int,
     @GraphQLDescription("The actual conversation that took place")
     val actualConversation: List<ConversationTurn>,
+    @GraphQLDescription("The use cases involved in the test execution")
+    val useCases: List<String>,
     @GraphQLDescription("Detailed evaluation output")
     val details: EvalOutput,
 )

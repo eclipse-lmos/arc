@@ -19,4 +19,6 @@ data class TestCase(
     val description: String,
     @SerialName("expected_conversation")
     val expectedConversation: List<ConversationTurn>,
+    val variants : List<List<ConversationTurn>> = emptyList(),
+    val contract: Boolean = false
 )

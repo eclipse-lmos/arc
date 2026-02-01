@@ -17,9 +17,12 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
+import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
+import org.eclipse.lmos.arc.agents.dsl.extensions.getUseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 /**
@@ -31,6 +34,8 @@ class TestExecutor(
     private val testCaseRepository: TestCaseRepository,
     private val conversationEvaluator: ConversationEvaluator,
 ) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     suspend fun executeTests(adlId: String, testCaseId: String? = null): TestRunResult {
         val adl = adlStorage.get(adlId) ?: throw IllegalArgumentException("ADL not found: $adlId")
@@ -57,27 +62,30 @@ class TestExecutor(
     }
 
     private suspend fun executeTestCase(testCase: TestCase, useCases: Any): TestExecutionResult {
-        val results = (1..5).map {
-            runSingleTestCase(testCase, useCases)
+        val results = testCase.variants.map {
+            runSingleTestCase(it, testCase, useCases)
         }
         return results.minByOrNull { it.score } ?: results.first()
     }
 
-    private suspend fun runSingleTestCase(testCase: TestCase, useCases: Any): TestExecutionResult {
+    private suspend fun runSingleTestCase(input: List<ConversationTurn>, testCase: TestCase, useCases: Any): TestExecutionResult {
         val transcript = mutableListOf<ConversationMessage>()
         val actualConversation = mutableListOf<SimpleMessage>()
         var failureReason: String? = null
         val conversationId = "test-${testCase.id}-${UUID.randomUUID()}"
+        val useCasesHistory = mutableListOf<String>()
 
         try {
-            for (turn in testCase.expectedConversation) {
+            for (turn in input) {
                 if (turn.role == "user") {
                     val userMsg = UserMessage(turn.content)
                     transcript.add(userMsg)
                     actualConversation.add(SimpleMessage("user", turn.content))
 
                     val conv = Conversation(transcript = transcript, conversationId = conversationId)
-                    val result = assistantAgent.execute(conv, setOf(useCases))
+                    val outputContext = OutputContext()
+                    val result = assistantAgent.execute(conv, setOf(useCases, outputContext))
+                    outputContext.getUseCase()?.let { useCasesHistory.add(it) }
 
                     when (result) {
                         is Success -> {
@@ -85,6 +93,7 @@ class TestExecutor(
                             transcript.add(assistantMsg)
                             actualConversation.add(SimpleMessage("assistant", assistantMsg.content))
                         }
+
                         is Failure -> {
                             failureReason = "Agent execution failed: ${result.reason.message}"
                             break
@@ -111,6 +120,7 @@ class TestExecutor(
             score = evalOutput.score,
             actualConversation = actualConversation.map { ConversationTurn(it.role, it.content) },
             details = evalOutput.copy(verdict = finalVerdict, reasons = finalReasons as MutableList<String>),
+            useCases = useCasesHistory
         )
     }
 }

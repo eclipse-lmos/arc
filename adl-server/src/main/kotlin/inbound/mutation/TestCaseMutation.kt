@@ -7,6 +7,7 @@ package org.eclipse.lmos.adl.server.inbound.mutation
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
 import kotlinx.serialization.Serializable
+import org.eclipse.lmos.adl.server.agents.TestVariant
 import org.eclipse.lmos.adl.server.models.TestCase
 import org.eclipse.lmos.adl.server.models.TestRunResult
 import org.eclipse.lmos.adl.server.models.ConversationTurn
@@ -17,6 +18,7 @@ import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.getOrThrow
+import org.slf4j.LoggerFactory
 
 /**
  * GraphQL Mutation for creating test cases using the TestCreatorAgent.
@@ -26,7 +28,10 @@ class TestCreatorMutation(
     private val testCaseRepository: TestCaseRepository,
     private val testExecutor: TestExecutor,
     private val adlRepository: AdlRepository,
+    private val testVariantAgent: ConversationAgent,
 ) : Mutation {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     @GraphQLDescription("Generates test cases for a provided Use Case.")
     suspend fun createTests(
@@ -48,7 +53,26 @@ class TestCreatorMutation(
                 .getOrThrow().map {
                     it.copy(useCaseId = useCase.id, adlId = id)
                 }
+        }.map { testCase ->
+            val variants =
+                testVariantAgent.process<String, TestVariant>(testCase.expectedConversation.filter { it.role == "user" }
+                    .joinToString { "- ${it.content}" }).getOrThrow()
+            log.info("Generated variants for test case ${testCase.id}: $variants")
+
+            val newVariants = mutableListOf<List<ConversationTurn>>()
+            repeat(8) { i ->
+                newVariants += testCase.expectedConversation.map { turn ->
+                    if (turn.role == "user") {
+                        val variantContent = variants.variants[turn.content]?.getOrNull(i) ?: turn.content
+                        turn.copy(content = variantContent)
+                    } else {
+                        turn
+                    }
+                }
+            }
+            testCase.copy(variants = newVariants)
         }
+
         testCaseRepository.saveAll(testCases)
         return NewTestsResponse(testCases.size)
     }
@@ -78,7 +102,8 @@ class TestCreatorMutation(
         val updated = existing.copy(
             name = input.name ?: existing.name,
             description = input.description ?: existing.description,
-            expectedConversation = input.expectedConversation ?: existing.expectedConversation
+            expectedConversation = input.expectedConversation ?: existing.expectedConversation,
+            contract = input.contract ?: false
         )
 
         return testCaseRepository.save(updated)
@@ -92,7 +117,8 @@ class TestCreatorMutation(
             useCaseId = input.useCaseId,
             name = input.name,
             description = input.description,
-            expectedConversation = input.expectedConversation
+            expectedConversation = input.expectedConversation,
+            contract = input.contract ?: false,
         )
         return testCaseRepository.save(testCase)
     }
@@ -128,6 +154,8 @@ data class UpdateTestCaseInput(
     val description: String? = null,
     @GraphQLDescription("The new expected conversation")
     val expectedConversation: List<ConversationTurn>? = null,
+    @GraphQLDescription("The contract flag")
+    val contract: Boolean? = null,
 )
 
 /**
@@ -143,4 +171,6 @@ data class AddTestCaseInput(
     val description: String,
     @GraphQLDescription("The expected conversation")
     val expectedConversation: List<ConversationTurn>,
+    @GraphQLDescription("The contract flag")
+    val contract: Boolean? = null,
 )

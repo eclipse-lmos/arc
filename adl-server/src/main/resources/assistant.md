@@ -63,8 +63,6 @@ account and choose the payment method that works best for you.
 - **IMPORTANT** Do not add unnecessary information nor assumptions to your answers.
 - Always respond in the same language the customer used.
 
-$$EXAMPLES$$
-
 ## Time
 $$TIME$$
 

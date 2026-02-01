@@ -47,10 +47,17 @@ class OutputContext {
         values[key] = value
     }
 
+    fun get(key: String): String? = values[key]
+
     fun map(): Map<String, String> {
         return values
     }
 }
+
+/**
+ * Extensions to get and set values in OutputContext.
+ */
+fun OutputContext.getUseCase(): String? = get("useCase")
 
 /**
  * Providers. Implement these interfaces to provide the system context and user profile.
