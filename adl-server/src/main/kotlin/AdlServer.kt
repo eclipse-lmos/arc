@@ -24,34 +24,36 @@ import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
+import org.eclipse.lmos.adl.server.agents.createImprovementAgent
+import org.eclipse.lmos.adl.server.agents.createSpellingAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.McpMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.SpellingMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.TestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.UseCaseImprovementMutation
-import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
-import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
 import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
-import org.eclipse.lmos.adl.server.templates.TemplateLoader
-import org.eclipse.lmos.adl.server.agents.createImprovementAgent
-import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
-import org.eclipse.lmos.adl.server.inbound.mutation.McpMutation
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
 import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
 import org.eclipse.lmos.adl.server.model.Adl
-import org.eclipse.lmos.adl.server.repositories.AdlRepository
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
-import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
+import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.time.Instant.now
 
@@ -78,6 +80,7 @@ fun startServer(
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()
+    val spellingAgent = createSpellingAgent()
     val testExecutor = TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
 
     // Initialize Qdrant collection
@@ -88,7 +91,7 @@ fun startServer(
     // Add example data
     runBlocking {
         // log.info("Loading examples", id, examples.size)
-        listOf("buy_a_car.md", "greeting.md").forEach { name ->
+        listOf("buy_a_car.md", "greeting.md", "unsure_customer.md").forEach { name ->
             val content = this::class.java.classLoader.getResource("examples/$name")!!.readText()
             val id = name.substringBeforeLast(".")
             val examples = content.toUseCases().flatMap { it.examples.split("\n") }.filter { it.isNotBlank() }
@@ -137,6 +140,7 @@ fun startServer(
                     UseCaseImprovementMutation(improvementAgent),
                     AdlExampleMutation(exampleAgent),
                     McpMutation(mcpService),
+                    SpellingMutation(spellingAgent),
                 )
             }
             server {
