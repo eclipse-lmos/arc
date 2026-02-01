@@ -10,7 +10,7 @@ import org.eclipse.lmos.adl.server.model.Adl
 import org.eclipse.lmos.adl.server.models.SimpleMessage
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
-import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
+import org.eclipse.lmos.adl.server.repositories.SearchResult
 
 /**
  * GraphQL Query for searching UseCases based on conversation embeddings.
@@ -47,7 +47,7 @@ class AdlQuery(
             return allAdls
         }
         val matches = useCaseStore.search(searchTerm.term, searchTerm.limit, searchTerm.threshold.toFloat())
-        val scores = matches.groupBy { it.useCaseId }.mapValues { it.value.maxOf { match -> match.score } }
+        val scores = matches.groupBy { it.adlId }.mapValues { it.value.maxOf { match -> match.score } }
 
         return allAdls.filter { it.id in scores.keys }
             .map { it.copy(relevance = scores[it.id]?.toDouble()) }
@@ -72,8 +72,8 @@ class AdlQuery(
         return results.toMatches()
     }
 
-    private fun List<UseCaseSearchResult>.toMatches(): List<UseCaseMatch> {
-        return groupBy { it.useCaseId }
+    private fun List<SearchResult>.toMatches(): List<UseCaseMatch> {
+        return groupBy { it.adlId }
             .map { (useCaseId, matches) ->
                 UseCaseMatch(
                     maxScore = matches.maxOf { it.score },

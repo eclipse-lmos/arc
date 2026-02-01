@@ -73,7 +73,7 @@ fun startServer(
     // Agents
     val exampleAgent = createExampleAgent()
     val evalAgent = createEvalAgent()
-    val assistantAgent = createAssistantAgent(mcpService, testCaseRepository)
+    val assistantAgent = createAssistantAgent(mcpService, testCaseRepository, useCaseStore, adlStorage)
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()

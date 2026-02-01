@@ -8,10 +8,17 @@ import org.eclipse.lmos.adl.server.agents.extensions.ConversationGuider
 import org.eclipse.lmos.adl.server.agents.extensions.InputHintProvider
 import org.eclipse.lmos.adl.server.agents.extensions.currentDate
 import org.eclipse.lmos.adl.server.agents.extensions.isWeekend
+import org.eclipse.lmos.adl.server.inbound.mutation.StorageResult
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
+import org.eclipse.lmos.arc.agents.conversation.Conversation
+import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
+import org.eclipse.lmos.arc.agents.conversation.UserMessage
+import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.addTool
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.local
@@ -37,7 +44,12 @@ import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
  * @param mcpService The service responsible for loading and managing MCP tools.
  * @return A configured [ConversationAgent] ready to handle requests.
  */
-fun createAssistantAgent(mcpService: McpService, testRepository: TestCaseRepository): ConversationAgent = agents(
+fun createAssistantAgent(
+    mcpService: McpService,
+    testRepository: TestCaseRepository,
+    embeddingsRepository: UseCaseEmbeddingsRepository,
+    adlRepository: AdlRepository
+): ConversationAgent = agents(
     handlers = listOf(LoggingEventHandler()),
     functionLoaders = listOf(mcpService)
 ) {
@@ -63,8 +75,15 @@ fun createAssistantAgent(mcpService: McpService, testRepository: TestCaseReposit
         prompt {
             val role = local("role.md")!!
 
+            // Load Use Cases
+            val currentUseCases = get<List<UseCase>>()
+            val message = get<Conversation>().latest<UserMessage>()?.content
+            val otherUseCases = embeddingsRepository.search(message!!, limit = 5).filter {
+                currentUseCases.none { cu -> cu.id == it.adlId }
+            }.flatMap { adlRepository.get(it.adlId)?.content?.toUseCases() ?: emptyList() }
+
             // Convert steps to conditionals in use cases
-            val useCases = get<List<UseCase>>().map { uc ->
+            val useCases = (currentUseCases + otherUseCases).map { uc ->
                 if (uc.steps.isNotEmpty()) {
                     val convertedSteps = uc.steps.filter { it.text.isNotEmpty() }.mapIndexed { i, step ->
                         step.copy(conditions = step.conditions + "step_${i + 1}")

@@ -11,7 +11,7 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore
 import org.eclipse.lmos.adl.server.models.SimpleMessage
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
-import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
+import org.eclipse.lmos.adl.server.repositories.SearchResult
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.util.concurrent.ConcurrentHashMap
 
@@ -62,7 +62,7 @@ class InMemoryUseCaseEmbeddingsStore(
         return ids.size
     }
 
-    override suspend fun search(query: String, limit: Int, scoreThreshold: Float): List<UseCaseSearchResult> {
+    override suspend fun search(query: String, limit: Int, scoreThreshold: Float): List<SearchResult> {
         val embedding = embeddingModel.embed(query).content()
         val request = EmbeddingSearchRequest.builder()
             .queryEmbedding(embedding)
@@ -72,8 +72,8 @@ class InMemoryUseCaseEmbeddingsStore(
         val results = store.search(request).matches()
 
         return results.map { match ->
-            UseCaseSearchResult(
-                useCaseId = match.embedded().metadata().getString(PAYLOAD_USECASE_ID) ?: "",
+            SearchResult(
+                adlId = match.embedded().metadata().getString(PAYLOAD_USECASE_ID) ?: "",
                 example = match.embedded().metadata().getString(PAYLOAD_EXAMPLE) ?: "",
                 score = match.score().toFloat(),
                 content = match.embedded().metadata().getString(PAYLOAD_CONTENT) ?: ""
@@ -85,7 +85,7 @@ class InMemoryUseCaseEmbeddingsStore(
         messages: List<SimpleMessage>,
         limit: Int,
         scoreThreshold: Float
-    ): List<UseCaseSearchResult> {
+    ): List<SearchResult> {
          // Filter last user messages
          return messages.filter { it.role == "user" && it.content.length > 5 }
             .takeLast(5)

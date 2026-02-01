@@ -18,7 +18,7 @@ import kotlinx.coroutines.guava.await
 import org.eclipse.lmos.adl.server.QdrantConfig
 import org.eclipse.lmos.adl.server.models.SimpleMessage
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
-import org.eclipse.lmos.adl.server.repositories.UseCaseSearchResult
+import org.eclipse.lmos.adl.server.repositories.SearchResult
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.util.UUID
 import java.util.concurrent.ExecutionException
@@ -138,7 +138,7 @@ class QdrantUseCaseEmbeddingsStore(
      * @param scoreThreshold The minimum similarity score (0.0 to 1.0).
      * @return List of matching UseCase embeddings with their scores.
      */
-    override suspend fun search(query: String, limit: Int, scoreThreshold: Float): List<UseCaseSearchResult> {
+    override suspend fun search(query: String, limit: Int, scoreThreshold: Float): List<SearchResult> {
         val queryEmbedding = embeddingModel.embed(query).content().vector()
         return searchByVector(queryEmbedding.toList(), limit, scoreThreshold)
     }
@@ -154,7 +154,7 @@ class QdrantUseCaseEmbeddingsStore(
         embedding: List<Float>,
         limit: Int = 5,
         scoreThreshold: Float = 0.0f,
-    ): List<UseCaseSearchResult> {
+    ): List<SearchResult> {
         return try {
             val searchRequest = io.qdrant.client.grpc.Points.SearchPoints.newBuilder()
                 .setCollectionName(config.collectionName)
@@ -184,7 +184,7 @@ class QdrantUseCaseEmbeddingsStore(
         messages: List<SimpleMessage>,
         limit: Int,
         scoreThreshold: Float,
-    ): List<UseCaseSearchResult> {
+    ): List<SearchResult> {
         val combinedQuery = messages.filter { it.role == "user" && it.content.length > 5 }.takeLast(5).flatMap {
             search(it.content, limit, scoreThreshold)
         }
@@ -265,9 +265,9 @@ class QdrantUseCaseEmbeddingsStore(
         }
     }
 
-    private fun ScoredPoint.toSearchResult(): UseCaseSearchResult {
+    private fun ScoredPoint.toSearchResult(): SearchResult {
         val payload = this.payloadMap
-        return UseCaseSearchResult(
+        return SearchResult(
             useCaseId = payload[PAYLOAD_USECASE_ID]?.stringValue ?: "",
             example = payload[PAYLOAD_EXAMPLE]?.stringValue ?: "",
             score = this.score,
