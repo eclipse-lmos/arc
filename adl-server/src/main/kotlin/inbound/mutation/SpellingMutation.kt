@@ -7,6 +7,7 @@ package org.eclipse.lmos.adl.server.inbound.mutation
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
 import org.eclipse.lmos.arc.agents.ConversationAgent
+import org.eclipse.lmos.arc.agents.agent.ask
 import org.eclipse.lmos.arc.agents.agent.process
 import org.eclipse.lmos.arc.core.getOrThrow
 
@@ -21,6 +22,6 @@ class SpellingMutation(
     suspend fun correctSpelling(
         @GraphQLDescription("The text to correct") text: String,
     ): String {
-        return spellingAgent.process<String, String>(text).getOrThrow()
+        return spellingAgent.ask(text).getOrThrow()
     }
 }

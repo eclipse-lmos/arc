@@ -135,7 +135,8 @@ fun createAssistantAgent(
                 isWeekend()?.let { add("is_weekend") }
                 add(currentDate())
             }
-            val useCasesPrompt = processUseCases(useCases = useCases, fallbackLimit = 3, conditions = conditions)
+            val useCasesPrompt =
+                processUseCases(useCases = useCases, fallbackLimit = 3, conditions = conditions, exampleLimit = 5)
 
             // Output the final prompt
             val prompt = local("assistant.md")!!

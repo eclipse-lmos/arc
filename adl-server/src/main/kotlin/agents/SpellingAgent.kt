@@ -37,6 +37,7 @@ fun createSpellingAgent(): ConversationAgent = agents() {
         filterOutput {
             -"```json"
             -"```"
+            "UseCase" replaces "Use Case"
         }
         prompt {
            """
