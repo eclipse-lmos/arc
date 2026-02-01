@@ -9,6 +9,7 @@ import com.expediagroup.graphql.server.operations.Mutation
 import org.eclipse.lmos.adl.server.model.Adl
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.slf4j.LoggerFactory
 import java.time.Instant.now
 
@@ -31,8 +32,9 @@ class AdlStorageMutation(
         @GraphQLDescription("Examples") examples: List<String>,
     ): StorageResult {
         log.info("Storing ADL with id: {} with {} examples", id, examples.size)
-        adlStorage.store(Adl(id, content.trim(), tags, createdAt ?: now().toString(), examples))
-        val storedCount = useCaseStore.storeUtterances(id, examples)
+        val allExamples = content.toUseCases().flatMap { it.examples.split("\n") }.filter { it.isNotBlank() } + examples
+        adlStorage.store(Adl(id, content.trim(), tags, createdAt ?: now().toString(), allExamples))
+        val storedCount = useCaseStore.storeUtterances(id, allExamples)
         log.debug("Successfully stored ADL with id: {}. Generated {} embeddings.", id, storedCount)
         return StorageResult(
             storedExamplesCount = storedCount,

@@ -3,12 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.adl.server.agents
 
-import ai.djl.repository.Repository
 import org.eclipse.lmos.adl.server.agents.extensions.ConversationGuider
 import org.eclipse.lmos.adl.server.agents.extensions.InputHintProvider
 import org.eclipse.lmos.adl.server.agents.extensions.currentDate
 import org.eclipse.lmos.adl.server.agents.extensions.isWeekend
-import org.eclipse.lmos.adl.server.inbound.mutation.StorageResult
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
@@ -16,11 +14,11 @@ import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
 import org.eclipse.lmos.arc.agents.conversation.Conversation
-import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.addTool
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
+import org.eclipse.lmos.arc.agents.dsl.extensions.info
 import org.eclipse.lmos.arc.agents.dsl.extensions.local
 import org.eclipse.lmos.arc.agents.dsl.extensions.processUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.time
@@ -78,21 +76,29 @@ fun createAssistantAgent(
             // Load Use Cases
             val currentUseCases = get<List<UseCase>>()
             val message = get<Conversation>().latest<UserMessage>()?.content
-            val otherUseCases = embeddingsRepository.search(message!!, limit = 5).filter {
-                currentUseCases.none { cu -> cu.id == it.adlId }
-            }.flatMap { adlRepository.get(it.adlId)?.content?.toUseCases() ?: emptyList() }
+            val otherUseCases = embeddingsRepository.search(message!!, limit = 5)
+                .flatMap { adlRepository.get(it.adlId)?.content?.toUseCases() ?: emptyList() }
+            info("Loaded ${otherUseCases.size} additional use cases from embeddings store.")
+            val baseUseCases = local("base_use_cases.md")?.toUseCases() ?: emptyList()
 
             // Convert steps to conditionals in use cases
-            val useCases = (currentUseCases + otherUseCases).map { uc ->
-                if (uc.steps.isNotEmpty()) {
-                    val convertedSteps = uc.steps.filter { it.text.isNotEmpty() }.mapIndexed { i, step ->
-                        step.copy(conditions = step.conditions + "step_${i + 1}")
-                    }
-                    uc.copy(solution = convertedSteps + uc.solution.map { s ->
-                        s.copy(conditions = s.conditions + "else")
-                    }, steps = emptyList())
-                } else uc
-            }
+            val useCases = (
+                    baseUseCases.filter {
+                        currentUseCases.none { bc -> bc.id == it.id }
+                        otherUseCases.none { bc -> bc.id == it.id }
+                    } + otherUseCases.filter {
+                        currentUseCases.none { bc -> bc.id == it.id }
+                    } + currentUseCases
+                    ).map { uc ->
+                    if (uc.steps.isNotEmpty()) {
+                        val convertedSteps = uc.steps.filter { it.text.isNotEmpty() }.mapIndexed { i, step ->
+                            step.copy(conditions = step.conditions + "step_${i + 1}")
+                        }
+                        uc.copy(solution = convertedSteps + uc.solution.map { s ->
+                            s.copy(conditions = s.conditions + "else")
+                        }, steps = emptyList())
+                    } else uc
+                }
 
             // Add examples from the test repository
             val examples = buildString {

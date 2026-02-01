@@ -14,15 +14,15 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        iron: {
-                            red: '#8B0000',      // Deep Red
-                            redlight: '#A52A2A', // Lighter Red
-                            gold: '#D4AF37',     // Metallic Gold
-                            goldlight: '#F4D03F', // Lighter Gold
-                            reactor: '#00BFFF',  // Arc Reactor Blue
-                            dark: '#0f1012',     // Almost Black
-                            panel: '#1a1c22',    // Dark Grey Panel
-                            border: '#2d3340'    // Borders
+                        nature: {
+                            primary: '#3a5a40',  // Hunter Green
+                            light: '#588157',    // Sage
+                            accent: '#d4a373',   // Tan/Brown
+                            sky: '#5F9EA0',      // Soft Blue-Green
+                            dark: '#1c1917',     // Stone 900
+                            panel: '#ffffff',    // White
+                            border: '#e7e5e4',   // Stone 200
+                            page: '#fafaf9'      // Stone 50
                         }
                     }
                 }
@@ -31,41 +31,41 @@
     </script>
     <style>
         .hero-gradient {
-            background: radial-gradient(circle at top right, #3a0d11, #0f1012 50%);
+            background: linear-gradient(135deg, #e6f0e6 0%, #fafaf9 100%);
         }
         .code-preview {
-            background-color: #000000;
-            color: #e2e8f0;
-            border: 1px solid #2d3340;
+            background-color: #0c0a09; /* Dark stone/black */
+            color: #e7e5e4; /* Light stone */
+            border: 1px solid #44403c; /* Dark border */
         }
-        .reactor-shadow {
-            box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+        .nature-shadow {
+            box-shadow: 0 4px 20px rgba(58, 90, 64, 0.15);
         }
-        .gold-glow {
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        .accent-glow {
+            text-shadow: 0 0 20px rgba(212, 163, 115, 0.2);
         }
     </style>
 </head>
-<body class="font-sans text-slate-300 antialiased selection:bg-iron-red selection:text-white bg-iron-dark">
+<body class="font-sans text-stone-600 antialiased selection:bg-nature-light selection:text-white bg-nature-page">
 
 <!-- Navbar -->
-<nav class="sticky top-0 z-50 w-full backdrop-blur-md bg-iron-dark/90 border-b border-iron-border">
+<nav class="sticky top-0 z-50 w-full backdrop-blur-md bg-nature-page/90 border-b border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
             <div class="flex items-center gap-2">
-                <svg class="h-8 w-8 text-iron-reactor reactor-shadow rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-8 w-8 text-nature-primary nature-shadow rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
-                <span class="font-bold text-xl tracking-tight text-white">ADL <span class="text-iron-gold">Server</span></span>
+                <span class="font-bold text-xl tracking-tight text-nature-dark">ADL <span class="text-nature-primary">Server</span></span>
             </div>
             <div class="hidden md:flex space-x-8">
-                <a href="#philosophy" class="text-sm font-medium text-slate-400 hover:text-iron-gold transition">Philosophy</a>
-                <a href="#features" class="text-sm font-medium text-slate-400 hover:text-iron-gold transition">Features</a>
-                <a href="#api" class="text-sm font-medium text-slate-400 hover:text-iron-gold transition">Integration</a>
-                <a href="/graphql" target="_blank" class="text-sm font-medium text-slate-400 hover:text-iron-reactor transition">GraphQL</a>
+                <a href="#philosophy" class="text-sm font-medium text-stone-500 hover:text-nature-primary transition">Philosophy</a>
+                <a href="#features" class="text-sm font-medium text-stone-500 hover:text-nature-primary transition">Features</a>
+                <a href="#architecture" class="text-sm font-medium text-stone-500 hover:text-nature-primary transition">Integration</a>
+                <a href="#graphql-api" class="text-sm font-medium text-stone-500 hover:text-nature-sky transition">GraphQL</a>
             </div>
             <div>
-                <a href="https://github.com/eclipse-lmos/arc" target="_blank" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-iron-red hover:bg-iron-redlight focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-iron-red transition">
+                <a href="https://github.com/eclipse-lmos/arc" target="_blank" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-nature-primary hover:bg-nature-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-nature-primary transition">
                     Get Started
                 </a>
             </div>
@@ -74,26 +74,26 @@
 </nav>
 
 <!-- Hero Section -->
-<header class="hero-gradient pt-20 pb-32 overflow-hidden border-b border-iron-border">
+<header class="hero-gradient pt-20 pb-32 overflow-hidden border-b border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div class="lg:grid lg:grid-cols-12 lg:gap-8">
             <div class="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
-                <h1 class="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+                <h1 class="text-4xl tracking-tight font-extrabold text-nature-dark sm:text-5xl md:text-6xl">
                     <span class="block">Supercharge your</span>
-                    <span class="block text-iron-gold gold-glow">Prompt Engineering</span>
+                    <span class="block text-nature-accent accent-glow">Prompt Engineering</span>
                 </h1>
-                <p class="mt-3 text-base text-slate-400 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                <p class="mt-3 text-base text-stone-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
                     The Agent Definition Language (ADL) combines natural language with structural tokens to make AI agents predictable, robust, and manageable at scale.
                 </p>
                 <div class="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
-                    <p class="text-base font-medium text-slate-300">
+                    <p class="text-base font-medium text-stone-800">
                         Build complex behaviors with stateful conversations.
                     </p>
                     <div class="mt-5 sm:flex sm:justify-center lg:justify-start gap-4">
-                        <a href="#features" class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-iron-red hover:bg-iron-redlight md:py-4 md:text-lg transition shadow-[0_0_15px_rgba(139,0,0,0.5)]">
+                        <a href="#features" class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-nature-primary hover:bg-nature-light md:py-4 md:text-lg transition shadow-lg shadow-nature-primary/20">
                             Learn ADL
                         </a>
-                        <a href="/graphql" class="flex items-center justify-center px-8 py-3 border border-iron-gold text-base font-medium rounded-md text-iron-gold hover:bg-iron-gold/10 md:py-4 md:text-lg transition">
+                        <a href="/graphql" class="flex items-center justify-center px-8 py-3 border border-nature-primary text-base font-medium rounded-md text-nature-primary hover:bg-nature-primary/10 md:py-4 md:text-lg transition">
                             Try Playground
                         </a>
                     </div>
@@ -102,23 +102,36 @@
             <div class="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
                 <div class="w-full rounded-xl shadow-2xl ring-1 ring-white/10 code-preview p-6 text-sm font-mono overflow-x-auto transform transition hover:scale-105 duration-500">
                     <div class="flex gap-1.5 mb-4">
-                        <div class="w-3 h-3 rounded-full bg-iron-red"></div>
-                        <div class="w-3 h-3 rounded-full bg-iron-gold"></div>
-                        <div class="w-3 h-3 rounded-full bg-iron-reactor"></div>
+                        <div class="w-3 h-3 rounded-full bg-nature-primary"></div>
+                        <div class="w-3 h-3 rounded-full bg-nature-accent"></div>
+                        <div class="w-3 h-3 rounded-full bg-nature-sky"></div>
                     </div>
-                    <pre><code><span class="text-iron-gold">agent</span> SupportBot {
-  <span class="text-iron-reactor">model</span>: <span class="text-green-400">"gpt-4-turbo"</span>
-  <span class="text-iron-reactor">description</span>: <span class="text-green-400">"Customer Service"</span>
-
-  <span class="text-iron-gold">use_case</span> AnalyzeIssue {
-    <span class="text-iron-reactor">when</span>: <span class="text-green-400">"Use provides an error log"</span>
-    <span class="text-iron-reactor">steps</span>: [
-      <span class="text-green-400">"Identify error code"</span>,
-      <span class="text-green-400">"Search knowledge base"</span>,
-      <span class="text-green-400">"Propose solution"</span>
-    ]
-  }
-}</code></pre>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-nature-accent font-bold text-lg">UseCase:</span> <span class="text-nature-sky">buy_a_car</span>
+                        </div>
+                        <div>
+                            <div class="text-nature-light font-bold mb-1">Description</div>
+                            <div class="pl-4 text-stone-300">Customer want to buy a car.</div>
+                        </div>
+                        <div>
+                            <div class="text-nature-light font-bold mb-1">Steps</div>
+                            <ul class="pl-8 text-stone-300 list-disc">
+                                <li>Ask the customer how much they want to spend on the car.</li>
+                                <li>Ask the customer if they would like to trade in their old car.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="text-nature-light font-bold mb-1">Solution</div>
+                            <div class="pl-4 text-stone-300 space-y-1">
+                                <p>Use <span class="text-nature-accent">@send_email()</span> and send Pete an email with the details.</p>
+                                <p>Tell the customer we will notify them when we have cars that fit their budget and model preference.</p>
+                            </div>
+                        </div>
+                        <div class="pl-4 mt-4 text-stone-300">
+                            <span class="text-nature-sky">&lt;is_weekend&gt;</span> As it is the weekend. Tell the customer that they will receive a response on Monday.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,14 +139,14 @@
 </header>
 
 <!-- Philosophy Section -->
-<section id="philosophy" class="py-16 bg-iron-dark">
+<section id="philosophy" class="py-16 bg-white border-t border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
-            <h2 class="text-base text-iron-reactor font-semibold tracking-wide uppercase">Core Philosophy</h2>
-            <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl">
+            <h2 class="text-base text-nature-primary font-semibold tracking-wide uppercase">Core Philosophy</h2>
+            <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-nature-dark sm:text-4xl">
                 Why ADL?
             </p>
-            <p class="mt-4 max-w-2xl text-xl text-slate-400 lg:mx-auto">
+            <p class="mt-4 max-w-2xl text-xl text-stone-600 lg:mx-auto">
                 Prompting shouldn't be a black box. ADL brings structure to the chaos of Large Language Models.
             </p>
         </div>
@@ -141,40 +154,39 @@
         <div class="mt-16">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
                 <!-- Feature 1 -->
-                <div class="relative p-6 bg-iron-panel rounded-2xl border border-iron-border hover:border-iron-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)] transition group">
-                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-iron-red rounded-xl flex items-center justify-center shadow-lg border border-iron-gold">
+                <div class="relative p-6 bg-nature-page rounded-2xl border border-nature-border hover:border-nature-accent/50 hover:shadow-lg transition group">
+                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-nature-primary rounded-xl flex items-center justify-center shadow-lg border border-nature-light">
                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                        </svg>
                     </div>
-                    <h3 class="mt-8 text-xl font-bold text-white text-center group-hover:text-iron-gold transition">Robust Structure</h3>
-                    <p class="mt-4 text-slate-400 text-center">
+                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-primary transition">Robust Structure</h3>
+                    <p class="mt-4 text-stone-600 text-center">
                         Combining natural language with special tokens makes agent behavior predictable. Define boundaries, rules, and formats that LLMs actually respect.
                     </p>
                 </div>
 
                 <!-- Feature 2 -->
-                <div class="relative p-6 bg-iron-panel rounded-2xl border border-iron-border hover:border-iron-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)] transition group">
-                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-iron-panel border border-iron-reactor rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-iron-reactor" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="relative p-6 bg-nature-page rounded-2xl border border-nature-border hover:border-nature-accent/50 hover:shadow-lg transition group">
+                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white border border-nature-primary rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-nature-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 class="mt-8 text-xl font-bold text-white text-center group-hover:text-iron-reactor transition">Progressive Disclosure</h3>
-                    <p class="mt-4 text-slate-400 text-center">
+                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-primary transition">Progressive Disclosure</h3>
+                    <p class="mt-4 text-stone-600 text-center">
                         Manage complexity by revealing concepts and instructions only when needed. Similar to how humans learn, agents perform better when focused.
                     </p>
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="relative p-6 bg-iron-panel rounded-2xl border border-iron-border hover:border-iron-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)] transition group">
-                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-iron-gold rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="relative p-6 bg-nature-page rounded-2xl border border-nature-border hover:border-nature-accent/50 hover:shadow-lg transition group">
+                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-nature-accent rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </div>
-                    <h3 class="mt-8 text-xl font-bold text-white text-center group-hover:text-iron-gold transition">Stateful Conversations</h3>
-                    <p class="mt-4 text-slate-400 text-center">
+                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-accent transition">Stateful Conversations</h3>
+                    <p class="mt-4 text-stone-600 text-center">
                         Unlike stateless API calls, ADL agents maintain context awareness over time, enabling long-running workflows and coherent multi-turn interactions.
                     </p>
                 </div>
@@ -183,59 +195,292 @@
     </div>
 </section>
 
+<!-- ADL Technical Specification -->
+<section id="technical-spec" class="py-16 bg-nature-page border-t border-nature-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-base text-nature-primary font-semibold tracking-wide uppercase">Technical Specification</h2>
+            <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-nature-dark sm:text-4xl">
+                Format & Capabilities
+            </p>
+            <p class="mt-4 max-w-2xl text-xl text-stone-600 lg:mx-auto">
+                ADL separates agent behavior definition from LLM prompting, providing a structured format backed by rules and conventions.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Breakdown of the Format -->
+            <div class="bg-white rounded-2xl shadow-lg border border-nature-border p-8">
+                 <div class="flex items-center gap-4 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-nature-primary/10 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-nature-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-nature-dark">UseCase Structure</h3>
+                </div>
+                <div class="prose prose-stone text-stone-600">
+                    <p class="mb-4">Each use case defines how the agent responds to a specific scenario.</p>
+                    <ul class="space-y-4 list-none p-0">
+                        <li class="flex gap-3">
+                            <span class="font-bold text-nature-primary min-w-[7rem]">Name</span>
+                            <span>Unique identifier (lowercase with underscores).</span>
+                        </li>
+                         <li class="flex gap-3">
+                            <span class="font-bold text-nature-primary min-w-[7rem]">Description</span>
+                            <span>Detailed explanation of the scenario.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-nature-primary min-w-[7rem]">Steps</span>
+                            <span>Optional sequence of actions before the solution.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-nature-primary min-w-[7rem]">Solution</span>
+                            <span>The recommended resolution path.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-nature-primary min-w-[7rem]">Fallback</span>
+                             <span>Logic to prevent loops if primary solutions fail.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="bg-white rounded-2xl shadow-lg border border-nature-border p-8">
+                 <div class="flex items-center gap-4 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-nature-accent/10 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-nature-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-nature-dark">Dynamic Features</h3>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <h4 class="font-bold text-nature-dark mb-2">Conditionals</h4>
+                        <p class="text-sm text-stone-600 mb-2">Filter content based on context matches.</p>
+                        <ul class="text-sm text-stone-600 space-y-1 ml-4 list-disc marker:text-nature-primary">
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;isPremium&gt;</code> Context variable match.</li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;isMonday or isFriday&gt;</code> Logical OR.</li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;!isMaintenance&gt;</code> Negation.</li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;else&gt;</code> Fallback branch.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-nature-dark mb-2">Executable Code</h4>
+                        <p class="text-sm text-stone-600 mb-2">Embed Kotlin code blocks for dynamic values.</p>
+                        <div class="bg-nature-dark p-3 rounded-lg text-xs text-stone-300 font-mono border border-stone-800">
+                            <span class="text-stone-500">```kotlin</span><br>
+                            // Inject verified data<br>
+                            "Account Balance: ${getBalance(userId)}"<br>
+                            <span class="text-stone-500">```</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-nature-dark mb-2">Tool Calls</h4>
+                        <p class="text-sm text-stone-600 mb-2">Invoke functions with arguments. Add <span class="font-mono text-nature-accent">!</span> to force execution.</p>
+                         <div class="flex flex-col gap-2 text-xs font-mono">
+                             <div class="bg-nature-page px-2 py-1 rounded border border-nature-border text-nature-primary">@check_inventory(item="model_x")</div>
+                             <div class="bg-nature-page px-2 py-1 rounded border border-nature-border text-nature-accent">@process_payment(amount=5000)!</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-nature-dark mb-2">Flow Options</h4>
+                        <p class="text-sm text-stone-600 mb-2">Guide the conversation flow based on user intent.</p>
+                        <div class="space-y-1 text-xs font-mono text-stone-500 bg-nature-page p-3 rounded-lg border border-nature-border">
+                             <div><span class="text-nature-primary font-bold">[buy]</span> go to #product_selection</div>
+                             <div><span class="text-nature-primary font-bold">[support]</span> go to #customer_service</div>
+                             <div><span class="text-nature-accent font-bold">[other]</span> reply "How can I help you?"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- GraphQL API Section -->
+<section id="graphql-api" class="py-16 bg-white border-t border-nature-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">GraphQL API</h2>
+            <p class="mt-4 text-xl text-stone-600 lg:mx-auto">
+                Comprehensive API for managing, compiling, testing, and evaluating agents.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Queries -->
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-nature-primary/10 rounded-full text-nature-primary">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-nature-dark">Queries</h3>
+                </div>
+                <div class="space-y-4">
+                    <!-- AdlQuery -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Core ADL</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-primary font-bold">version</span>(): String
+                                <p class="text-xs text-stone-500 font-sans mt-1">Returns the supported API version.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">list</span>(searchTerm: SearchCriteria?): [Adl]
+                                <p class="text-xs text-stone-500 font-sans mt-1">List stored ADLs, optionally filtered.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">searchById</span>(id: String): Adl
+                                <p class="text-xs text-stone-500 font-sans mt-1">Retrieve a single ADL by ID.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">search</span>(conversation: [Message], ...): [UseCaseMatch]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Find UseCases matching a conversation context.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tools & Tests -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Tools & Tests</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-primary font-bold">getMcpTools</span>(): [AdlTool]
+                                <p class="text-xs text-stone-500 font-sans mt-1">List available MCP tools.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-primary font-bold">testCases</span>(useCaseId: String): [TestCase]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases for a specific UseCase.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mutations -->
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-nature-accent/10 rounded-full text-nature-accent">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-nature-dark">Mutations</h3>
+                </div>
+                <div class="space-y-4">
+                    <!-- Compiler & Validation -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Build & Validate</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-accent font-bold">compile</span>(adl: String, conditionals: [String]): CompileResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Compiles ADL to agent-ready format.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">validate</span>(adl: String): ValidationResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Check syntax and tool references.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">systemPrompt</span>(adl: String, ...): SystemPromptResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Generate the full system prompt.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Evaluation & Storage -->
+                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
+                        <h4 class="font-bold text-nature-dark mb-2">Eval & Storage</h4>
+                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
+                            <li>
+                                <span class="text-nature-accent font-bold">eval</span>(input: EvalInput): EvalOutput
+                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against inputs.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">improveUseCase</span>(useCase: String): ImprovementResponse
+                                <p class="text-xs text-stone-500 font-sans mt-1">Get AI-suggested improvements.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String, ...): StorageResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Save ADL definitions to storage.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String): [TestCase]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Auto-generate test cases.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center">
+             <div class="inline-flex bg-nature-page p-1 rounded-lg border border-nature-border">
+                 <div class="px-4 py-2 flex items-center gap-2">
+                     <span class="text-sm font-medium text-nature-dark">Ready to explore?</span>
+                     <code class="text-xs bg-stone-900 text-stone-300 px-2 py-1 rounded">POST /graphql</code>
+                 </div>
+                 <a href="/graphiql" target="_blank" class="px-4 py-2 bg-white rounded shadow-sm text-sm font-medium text-nature-primary hover:text-nature-dark flex items-center gap-1 transition-colors">
+                     Open GraphiQL <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                 </a>
+             </div>
+        </div>
+    </div>
+</section>
+
 <!-- Technical Features -->
-<section id="features" class="py-16 bg-gradient-to-b from-iron-dark to-black border-t border-iron-border">
+<section id="features" class="py-16 bg-gradient-to-b from-white to-nature-page border-t border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="md:grid md:grid-cols-2 md:gap-16 items-center">
             <div>
-                <h2 class="text-3xl font-extrabold text-white tracking-tight">OpenAI Compatible Endpoint</h2>
-                <p class="mt-4 text-lg text-slate-400">
-                    Integration is effortless. ADL Server exposes a standard <code class="text-iron-gold">/v1/chat/completions</code> endpoint.
+                <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">OpenAI Compatible Endpoint</h2>
+                <p class="mt-4 text-lg text-stone-600">
+                    Integration is effortless. ADL Server exposes a standard <code class="text-nature-primary">/v1/chat/completions</code> endpoint.
                 </p>
-                <p class="mt-4 text-lg text-slate-400">
+                <p class="mt-4 text-lg text-stone-600">
                     This allows you to swap out your existing OpenAI API calls for ADL Server calls, instantly upgrading your application with ADL's structured capabilities without rewriting your client code.
                 </p>
                 <ul class="mt-8 space-y-3">
                     <li class="flex items-start">
-                        <svg class="h-6 w-6 text-iron-reactor shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="ml-3 text-slate-300">Drop-in replacement for OpenAI SDKs</span>
+                        <span class="ml-3 text-stone-800">Drop-in replacement for OpenAI SDKs</span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="h-6 w-6 text-iron-reactor shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="ml-3 text-slate-300">Streaming support for real-time UIs</span>
+                        <span class="ml-3 text-stone-800">Streaming support for real-time UIs</span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="h-6 w-6 text-iron-reactor shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="ml-3 text-slate-300">Model agnostic - Connect to any LLM backend</span>
+                        <span class="ml-3 text-stone-800">Model agnostic - Connect to any LLM backend</span>
                     </li>
                 </ul>
             </div>
             <div class="mt-10 md:mt-0">
-                <div class="rounded-lg shadow-2xl overflow-hidden border border-iron-border">
-                    <div class="bg-black px-4 py-2 flex items-center justify-between border-b border-iron-border">
-                        <span class="text-xs text-slate-500">cURL Request</span>
+                <div class="rounded-lg shadow-2xl overflow-hidden border border-stone-200">
+                    <div class="bg-stone-900 px-4 py-2 flex items-center justify-between border-b border-stone-800">
+                        <span class="text-xs text-stone-400">cURL Request</span>
                         <div class="flex space-x-1">
-                            <div class="w-2 h-2 rounded-full bg-slate-700"></div>
-                            <div class="w-2 h-2 rounded-full bg-slate-700"></div>
+                            <div class="w-2 h-2 rounded-full bg-stone-600"></div>
+                            <div class="w-2 h-2 rounded-full bg-stone-600"></div>
                         </div>
                     </div>
-                    <div class="bg-black p-6 overflow-x-auto">
-<pre class="text-sm font-mono text-blue-300">
-<span class="text-iron-gold">curl</span> https://adl-server/v1/chat/completions \
-  -H <span class="text-green-400">"Content-Type: application/json"</span> \
-  -H <span class="text-green-400">"Authorization: Bearer $KEY"</span> \
+                    <div class="bg-stone-900 p-6 overflow-x-auto">
+<pre class="text-sm font-mono text-stone-300">
+<span class="text-nature-accent">curl</span> https://adl-server/v1/chat/completions \
+  -H <span class="text-nature-light">"Content-Type: application/json"</span> \
+  -H <span class="text-nature-light">"Authorization: Bearer $KEY"</span> \
   -d '{
-    <span class="text-iron-reactor">"model"</span>: <span class="text-green-400">"finance-agent"</span>,
-    <span class="text-iron-reactor">"messages"</span>: [
+    <span class="text-nature-sky">"model"</span>: <span class="text-nature-light">"finance-agent"</span>,
+    <span class="text-nature-sky">"messages"</span>: [
       {
-        <span class="text-iron-reactor">"role"</span>: <span class="text-green-400">"user"</span>,
-        <span class="text-iron-reactor">"content"</span>: <span class="text-green-400">"Analyze the Q3 report attached."</span>
+        <span class="text-nature-sky">"role"</span>: <span class="text-nature-light">"user"</span>,
+        <span class="text-nature-sky">"content"</span>: <span class="text-nature-light">"Analyze the Q3 report attached."</span>
       }
     ]
   }'
@@ -248,76 +493,77 @@
 </section>
 
 <!-- MCP Section -->
-<section class="py-16 bg-iron-dark border-t border-iron-border">
+<section class="py-16 bg-white border-t border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:text-center mb-12">
-            <h2 class="text-3xl font-extrabold text-white">Extensible with MCP</h2>
-            <p class="mt-4 text-xl text-slate-400">
+            <h2 class="text-3xl font-extrabold text-nature-dark">Extensible with MCP</h2>
+            <p class="mt-4 text-xl text-stone-600">
                 The Model Context Protocol (MCP) connects your agents to the real world.
             </p>
         </div>
 
         <div class="relative">
             <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <div class="w-full border-t border-iron-border"></div>
+                <div class="w-full border-t border-nature-border"></div>
             </div>
             <div class="relative flex justify-center">
-                    <span class="px-3 bg-iron-panel text-lg font-medium text-white border border-iron-border rounded shadow-lg">
-                        Agent <span class="text-iron-gold mx-2">&larr; MCP &rarr;</span> World
+                    <span class="px-3 bg-white text-lg font-medium text-nature-dark border border-nature-border rounded shadow-lg">
+                        Agent <span class="text-nature-primary mx-2">&larr; MCP &rarr;</span> World
                     </span>
             </div>
         </div>
 
         <div class="mt-12 grid gap-8 grid-cols-1 md:grid-cols-3">
-            <div class="bg-iron-panel p-6 rounded-lg text-center border border-iron-border hover:border-iron-reactor hover:shadow-[0_0_15px_rgba(0,191,255,0.1)] transition">
+            <div class="bg-nature-page p-6 rounded-lg text-center border border-nature-border hover:border-nature-primary hover:shadow-lg transition">
                 <span class="block text-4xl mb-4 grayscale hover:grayscale-0 transition">🗄️</span>
-                <h3 class="text-lg font-medium text-white">Databases</h3>
-                <p class="mt-2 text-slate-400">Safe, read/write access to business data.</p>
+                <h3 class="text-lg font-medium text-nature-dark">Databases</h3>
+                <p class="mt-2 text-stone-600">Safe, read/write access to business data.</p>
             </div>
-            <div class="bg-iron-panel p-6 rounded-lg text-center border border-iron-border hover:border-iron-reactor hover:shadow-[0_0_15px_rgba(0,191,255,0.1)] transition">
+            <div class="bg-nature-page p-6 rounded-lg text-center border border-nature-border hover:border-nature-primary hover:shadow-lg transition">
                 <span class="block text-4xl mb-4 grayscale hover:grayscale-0 transition">🌐</span>
-                <h3 class="text-lg font-medium text-white">APIs</h3>
-                <p class="mt-2 text-slate-400">Interact with internal services and 3rd party tools.</p>
+                <h3 class="text-lg font-medium text-nature-dark">APIs</h3>
+                <p class="mt-2 text-stone-600">Interact with internal services and 3rd party tools.</p>
             </div>
-            <div class="bg-iron-panel p-6 rounded-lg text-center border border-iron-border hover:border-iron-reactor hover:shadow-[0_0_15px_rgba(0,191,255,0.1)] transition">
+            <div class="bg-nature-page p-6 rounded-lg text-center border border-nature-border hover:border-nature-primary hover:shadow-lg transition">
                 <span class="block text-4xl mb-4 grayscale hover:grayscale-0 transition">📁</span>
-                <h3 class="text-lg font-medium text-white">Filesystems</h3>
-                <p class="mt-2 text-slate-400">Read docs, logs, and generate reports.</p>
+                <h3 class="text-lg font-medium text-nature-dark">Filesystems</h3>
+                <p class="mt-2 text-stone-600">Read docs, logs, and generate reports.</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Footer -->
-<footer class="bg-black text-slate-400 py-12 border-t border-iron-border">
+<footer class="bg-nature-dark text-stone-400 py-12 border-t border-stone-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div class="col-span-1 md:col-span-2">
-            <span class="font-bold text-2xl text-white tracking-tight">ADL <span class="text-iron-red">Server</span></span>
-            <p class="mt-4 text-sm max-w-xs text-slate-500">
+            <span class="font-bold text-2xl text-white tracking-tight">ADL <span class="text-nature-primary">Server</span></span>
+            <p class="mt-4 text-sm max-w-xs text-stone-500">
                 Empowering developers to build reliable, scalable AI agents with the Agent Definition Language.
             </p>
         </div>
         <div>
-            <h4 class="text-sm font-semibold uppercase tracking-wider text-iron-gold">Product</h4>
+            <h4 class="text-sm font-semibold uppercase tracking-wider text-nature-accent">Product</h4>
             <ul class="mt-4 space-y-2 text-sm">
-                <li><a href="#" class="hover:text-iron-reactor transition">Features</a></li>
-                <li><a href="#" class="hover:text-iron-reactor transition">MCP Integration</a></li>
-                <li><a href="#" class="hover:text-iron-reactor transition">Changelog</a></li>
+                <li><a href="#" class="hover:text-nature-light transition">Features</a></li>
+                <li><a href="#" class="hover:text-nature-light transition">MCP Integration</a></li>
+                <li><a href="#" class="hover:text-nature-light transition">Changelog</a></li>
             </ul>
         </div>
         <div>
-            <h4 class="text-sm font-semibold uppercase tracking-wider text-iron-gold">Community</h4>
+            <h4 class="text-sm font-semibold uppercase tracking-wider text-nature-accent">Community</h4>
             <ul class="mt-4 space-y-2 text-sm">
-                <li><a href="https://github.com/eclipse-lmos/arc" class="hover:text-iron-reactor transition">GitHub</a></li>
-                <li><a href="#" class="hover:text-iron-reactor transition">Discord</a></li>
-                <li><a href="#" class="hover:text-iron-reactor transition">Docs</a></li>
+                <li><a href="https://github.com/eclipse-lmos/arc" class="hover:text-nature-light transition">GitHub</a></li>
+                <li><a href="#" class="hover:text-nature-light transition">Discord</a></li>
+                <li><a href="#" class="hover:text-nature-light transition">Docs</a></li>
             </ul>
         </div>
     </div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-slate-900 text-sm text-center text-slate-600">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-stone-800 text-sm text-center text-stone-600">
         &copy; 2025 Deutsche Telekom AG and others. All rights reserved.
     </div>
 </footer>
+
 
 </body>
 </html>

@@ -204,7 +204,7 @@ class QdrantUseCaseEmbeddingsStore(
                         io.qdrant.client.grpc.Points.Condition.newBuilder()
                             .setField(
                                 io.qdrant.client.grpc.Points.FieldCondition.newBuilder()
-                                    .setKey(PAYLOAD_USECASE_ID)
+                                    .setKey(PAYLOAD_ADL_ID)
                                     .setMatch(
                                         io.qdrant.client.grpc.Points.Match.newBuilder()
                                             .setKeyword(useCaseId),
@@ -259,7 +259,7 @@ class QdrantUseCaseEmbeddingsStore(
         example: String,
     ): Map<String, io.qdrant.client.grpc.JsonWithInt.Value> {
         return buildMap {
-            put(PAYLOAD_USECASE_ID, value(useCaseId))
+            put(PAYLOAD_ADL_ID, value(useCaseId))
             put(PAYLOAD_EXAMPLE, value(example))
             put(PAYLOAD_CONTENT, value(useCase))
         }
@@ -268,7 +268,7 @@ class QdrantUseCaseEmbeddingsStore(
     private fun ScoredPoint.toSearchResult(): SearchResult {
         val payload = this.payloadMap
         return SearchResult(
-            useCaseId = payload[PAYLOAD_USECASE_ID]?.stringValue ?: "",
+            adlId = payload[PAYLOAD_ADL_ID]?.stringValue ?: "",
             example = payload[PAYLOAD_EXAMPLE]?.stringValue ?: "",
             score = this.score,
             content = payload[PAYLOAD_CONTENT]?.stringValue ?: "",
@@ -276,7 +276,7 @@ class QdrantUseCaseEmbeddingsStore(
     }
 
     companion object {
-        private const val PAYLOAD_USECASE_ID = "usecase_id"
+        private const val PAYLOAD_ADL_ID = "adl_id"
         private const val PAYLOAD_EXAMPLE = "example"
         private const val PAYLOAD_CONTENT = "content"
     }

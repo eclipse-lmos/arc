@@ -52,6 +52,7 @@ import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
+import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.time.Instant.now
 
 fun startServer(
@@ -65,7 +66,7 @@ fun startServer(
     val sessions = InMemorySessions()
     val embeddingModel = AllMiniLmL6V2EmbeddingModel()
     // val useCaseStore: UseCaseEmbeddingsRepository = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
-    val useCaseStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
+    val embeddingStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
     val adlStorage: AdlRepository = InMemoryAdlRepository()
     val mcpService = McpService()
     val testCaseRepository = InMemoryTestCaseRepository()
@@ -73,7 +74,7 @@ fun startServer(
     // Agents
     val exampleAgent = createExampleAgent()
     val evalAgent = createEvalAgent()
-    val assistantAgent = createAssistantAgent(mcpService, testCaseRepository, useCaseStore, adlStorage)
+    val assistantAgent = createAssistantAgent(mcpService, testCaseRepository, embeddingStore, adlStorage)
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()
@@ -81,23 +82,25 @@ fun startServer(
 
     // Initialize Qdrant collection
     runBlocking {
-        useCaseStore.initialize()
+        embeddingStore.initialize()
     }
 
     // Add example data
     runBlocking {
         // log.info("Loading examples", id, examples.size)
-        listOf("buy_a_car.md").forEach { example ->
-            val id = example.substringBeforeLast(".")
-            val content = this::class.java.classLoader.getResource("examples/$example")!!.readText()
-            adlStorage.store(Adl(id, content.trim(), listOf(), now().toString(), emptyList()))
+        listOf("buy_a_car.md", "greeting.md").forEach { name ->
+            val content = this::class.java.classLoader.getResource("examples/$name")!!.readText()
+            val id = name.substringBeforeLast(".")
+            val examples = content.toUseCases().flatMap { it.examples.split("\n") }.filter { it.isNotBlank() }
+            adlStorage.store(Adl(id, content.trim(), listOf(), now().toString(), examples))
+            if (examples.isNotEmpty()) embeddingStore.storeUtterances(id, examples)
         }
     }
 
     return embeddedServer(CIO, port = port ?: EnvConfig.serverPort) {
         // Register shutdown hook to close resources
         monitor.subscribe(ApplicationStopping) {
-            useCaseStore.close()
+            embeddingStore.close()
         }
 
         install(CORS) {
@@ -119,13 +122,13 @@ fun startServer(
                     "org.eclipse.lmos.adl.server.model",
                 )
                 queries = listOf(
-                    AdlQuery(useCaseStore, adlStorage),
+                    AdlQuery(embeddingStore, adlStorage),
                     TestCaseQuery(testCaseRepository),
                     McpToolsQuery(mcpService),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
-                    AdlStorageMutation(useCaseStore, adlStorage),
+                    AdlStorageMutation(embeddingStore, adlStorage),
                     SystemPromptMutation(sessions, templateLoader),
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlAssistantMutation(assistantAgent, adlStorage),
