@@ -279,7 +279,7 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div class="flex flex-col gap-12">
             <!-- Breakdown of the Format -->
             <div class="bg-white rounded-2xl shadow-lg border border-nature-border p-8">
                  <div class="flex items-center gap-4 mb-6">
@@ -290,35 +290,38 @@
                     </div>
                     <h3 class="text-2xl font-bold text-nature-dark">UseCase Structure</h3>
                 </div>
-                <div class="prose prose-stone text-stone-600">
+                <div class="prose prose-stone text-stone-600 max-w-none">
                     <p class="mb-4">Each use case defines how the agent responds to a specific scenario.</p>
-                    <ul class="space-y-4 list-none p-0">
-                        <li class="flex gap-3">
-                            <span class="font-bold text-nature-primary min-w-[7rem]">Name</span>
-                            <span>Unique identifier (lowercase with underscores).</span>
-                        </li>
-                         <li class="flex gap-3">
-                            <span class="font-bold text-nature-primary min-w-[7rem]">Description</span>
-                            <span>Detailed explanation of the scenario.</span>
-                        </li>
-                        <li class="flex gap-3">
-                            <span class="font-bold text-nature-primary min-w-[7rem]">Steps</span>
-                            <span>The Steps block lists a set of instructions that is fed to the Agent one at the time with the ADL skipping steps that do not apply.</span>
-                        </li>
-                        <li class="flex gap-3">
-                            <span class="font-bold text-nature-primary min-w-[7rem]">Solution</span>
-                            <span>The recommended resolution path.</span>
-                        </li>
-                        <li class="flex gap-3">
-                            <span class="font-bold text-nature-primary min-w-[7rem]">Alternative Solution</span>
-                            <span>(Optional) Logic that is activated after the primary solution was used.</span>
-                        </li>
-                        <li class="flex gap-3">
-                            <span class="font-bold text-nature-primary min-w-[7rem]">Fallback</span>
-                            <span>(Optional) Logic that is activated when the primary and fallback solution does not work.
-                                This will be trigger after x turns of the conversation. Where x can be configured in the ADL engine settings.</span>
-                        </li>
-                    </ul>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <ul class="space-y-4 list-none p-0">
+                            <li class="flex gap-3">
+                                <span class="font-bold text-nature-primary min-w-[7rem]">Name</span>
+                                <span>Unique identifier (lowercase with underscores).</span>
+                            </li>
+                             <li class="flex gap-3">
+                                <span class="font-bold text-nature-primary min-w-[7rem]">Description</span>
+                                <span>Detailed explanation of the scenario.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="font-bold text-nature-primary min-w-[7rem]">Steps</span>
+                                <span>The Steps block lists a set of instructions that is fed to the Agent one at the time with the ADL skipping steps that do not apply.</span>
+                            </li>
+                        </ul>
+                        <ul class="space-y-4 list-none p-0">
+                            <li class="flex gap-3">
+                                <span class="font-bold text-nature-primary min-w-[7rem]">Solution</span>
+                                <span>The recommended resolution path.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="font-bold text-nature-primary min-w-[7rem]">Alternative Solution</span>
+                                <span>(Optional) Logic that is activated after the primary solution was used.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="font-bold text-nature-primary min-w-[7rem]">Fallback</span>
+                                <span>(Optional) Logic that is activated when the primary and fallback solution does not work.</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -332,8 +335,8 @@
                     </div>
                     <h3 class="text-2xl font-bold text-nature-dark">Dynamic Features</h3>
                 </div>
-                <div class="space-y-8">
-                    <div>
+                <div class="flex overflow-x-auto gap-8 pb-6 snap-x">
+                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
                         <h4 class="font-bold text-nature-dark mb-2">Conditionals</h4>
                         <p class="text-sm text-stone-600 mb-2">Conditionals are like "if statements" where any lines noted inside the conditional block are only active if the condition is met.</p>
                         <p class="text-sm text-stone-600 mb-2">ADL defines several built-in conditionals. Custom conditionals can be defined and passed to the ADL engine at runtime.</p>
@@ -347,8 +350,8 @@
                             <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;step_n&gt;</code> True for each turn (e.g. &lt;step_1&gt;,  &lt;step_2&gt;).</li>
                         </ul>
                         <div class="mt-4 bg-nature-dark p-3 rounded-lg text-xs border border-stone-800">
-                            <div class="text-nature-accent font-bold mb-1">### UseCase: password_reset</div>
-                            <div class="text-nature-light font-bold mb-1">#### Solution</div>
+                            <div class="text-nature-accent font-bold mb-1"> UseCase: password_reset</div>
+                            <div class="text-nature-light font-bold mb-1"> Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
                                <span class="text-nature-accent"> &lt;isBusinessCustomer&gt;</span>Provide https://www.example.com/business/reset-password.<br>
                                 Provide https://www.example.com/reset-password.<span class="text-nature-accent">&lt;isPrivateCustomer&gt;</span>
@@ -357,8 +360,8 @@
                         <br>
                         <p  class="text-sm text-stone-600 mb-2">Multi-line conditionals are also supported:</p>
                         <div class="mt-4 bg-nature-dark p-3 rounded-lg text-xs border border-stone-800">
-                            <div class="text-nature-accent font-bold mb-1">### UseCase: password_reset</div>
-                            <div class="text-nature-light font-bold mb-1">#### Solution</div>
+                            <div class="text-nature-accent font-bold mb-1"> UseCase: password_reset</div>
+                            <div class="text-nature-light font-bold mb-1"> Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
                                 <span class="text-nature-accent">
                                     &lt;isBusinessCustomer&gt;</span><br>A multi line<br> conditional<span class="text-nature-accent"><br>&lt;/&gt;
@@ -369,12 +372,12 @@
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
                         <h4 class="font-bold text-nature-dark mb-2">Executable Code</h4>
                         <p class="text-sm text-stone-600 mb-2">Embed Kotlin code blocks for dynamic values.</p>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs text-stone-300 font-mono border border-stone-800">
-                            <div class="text-nature-accent font-bold mb-1">### UseCase: password_reset</div>
-                            <div class="text-nature-light font-bold mb-1">#### Solution</div>
+                            <div class="text-nature-accent font-bold mb-1"> UseCase: password_reset</div>
+                            <div class="text-nature-light font-bold mb-1"> Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
                                 <span class="text-stone-500">```kotlin</span><br>
                                 // Inject verified data<br>
@@ -383,7 +386,7 @@
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
                         <h4 class="font-bold text-nature-dark mb-2">Tool Calls</h4>
                         <p class="text-sm text-stone-600 mb-3">Agents can call tools or functions inline.</p>
 
@@ -399,8 +402,8 @@
                         </div>
 
                         <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
-                            <div class="text-nature-accent font-bold mb-1">### UseCase: password_reset</div>
-                            <div class="text-nature-light font-bold mb-1">#### Solution</div>
+                            <div class="text-nature-accent font-bold mb-1">UseCase: password_reset</div>
+                            <div class="text-nature-light font-bold mb-1">Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700">
                                 Call <span class="text-nature-accent">@password_reset_link()!</span> to generate a reset link.<br>
                                 Provide the link and guide the customer through the process.
@@ -413,12 +416,12 @@
                             <li>Ensures execution.</li>
                         </ul>
                     </div>
-                    <div>
+                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
                         <h4 class="font-bold text-nature-dark mb-2">Static Responses</h4>
                         <p class="text-sm text-stone-600 mb-2">Static responses allow you to define static responses in the prompt.</p>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
-                            <div class="text-nature-accent font-bold mb-1">### UseCase: greeting</div>
-                            <div class="text-nature-light font-bold mb-1">#### Description</div>
+                            <div class="text-nature-accent font-bold mb-1">UseCase: greeting</div>
+                            <div class="text-nature-light font-bold mb-1">Description</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 mb-1">
                                 Customer is saying hello or greeting the agent.
                             </div>
@@ -428,6 +431,112 @@
                             </div>
                         </div>
                         <p class="text-sm text-stone-600">In this example, the Agent will always return the text within the brackets.</p>
+                    </div>
+
+                    <div class="min-w-[800px] snap-center">
+                        <h4 class="font-bold text-nature-dark mb-2">Conversation flows</h4>
+                        <p class="text-sm text-stone-600 mb-4">Conversation flows enable the author to convey decision trees in their use cases.</p>
+
+                        <div class="grid grid-cols-2 gap-8">
+                            <!-- Code Example -->
+                            <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 h-fit">
+                                <div class="text-nature-accent font-bold mb-1">UseCase: buy_a_new_phone</div>
+                                <div class="text-nature-light font-bold mb-1">Description</div>
+                                <div class="text-stone-300 pl-2 border-l border-stone-700 mb-1">
+                                    Customer wants to buy a new phone.
+                                </div>
+                                <div class="text-nature-light font-bold mb-1">### Solution</div>
+                                <div class="text-stone-300 pl-2 border-l border-stone-700 mb-2">
+                                    Ask the customer what phone they want to buy.<br><br>
+                                    <span class="text-nature-accent">[android]</span> goto #buy_android<br>
+                                    <span class="text-nature-accent">[ios]</span> goto #buy_ios<br>
+                                    <span class="text-nature-accent">[else]</span> thank the customer...
+                                </div>
+
+                                <div class="text-nature-light font-bold mb-1">buy_ios</div>
+                                <div class="text-stone-300 pl-2 border-l border-stone-700 mb-2">
+                                    Inform the customer that we currently don't have iphones in stock.
+                                </div>
+
+                                <div class="text-nature-light font-bold mb-1">buy_android</div>
+                                <div class="text-stone-300 pl-2 border-l border-stone-700 mb-2">
+                                    Ask the customer what color they would like?<br><br>
+                                    <span class="text-nature-accent">[color]</span> goto #complete_buy_phone<br>
+                                    <span class="text-nature-accent">[pink]</span> inform the customer that the color pink is currently out of stock.
+                                </div>
+
+                                <div class="text-nature-light font-bold mb-1">complete_buy_phone</div>
+                                <div class="text-stone-300 pl-2 border-l border-stone-700">
+                                    Use the <span class="text-nature-accent">@buy_phone()</span> tool to complete the purchase.
+                                </div>
+                            </div>
+
+                            <!-- Diagram -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-200 flex items-center justify-center overflow-hidden">
+                                <svg width="100%" height="100%" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto" style="font-family: 'Inter', sans-serif; font-size: 10px;">
+                                    <defs>
+                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#588157" />
+                                        </marker>
+                                    </defs>
+
+                                    <!-- Start -->
+                                    <rect x="200" y="10" width="100" height="30" rx="4" fill="#3a5a40" stroke="#3a5a40" />
+                                    <text x="250" y="28" text-anchor="middle" fill="#fff" font-weight="bold">Start Selection</text>
+
+                                    <!-- Line to Split -->
+                                    <line x1="250" y1="40" x2="250" y2="70" stroke="#588157" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+                                    <!-- Split Android/iOS -->
+                                    <path d="M 250 70 L 150 70 L 150 100" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+                                    <path d="M 250 70 L 350 70 L 350 100" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+                                    <!-- Text Labels -->
+                                    <rect x="160" y="60" width="40" height="16" rx="2" fill="#e6f0e6" />
+                                    <text x="180" y="72" text-anchor="middle" fill="#3a5a40" font-size="9">Android</text>
+
+                                    <rect x="300" y="60" width="30" height="16" rx="2" fill="#e6f0e6" />
+                                    <text x="315" y="72" text-anchor="middle" fill="#3a5a40" font-size="9">iOS</text>
+
+                                    <!-- Node Android -->
+                                    <rect x="100" y="100" width="100" height="30" rx="4" fill="#fff" stroke="#3a5a40" stroke-width="1" />
+                                    <text x="150" y="118" text-anchor="middle" fill="#1c1917">What color?</text>
+
+                                    <!-- Node iOS -->
+                                    <rect x="300" y="100" width="100" height="30" rx="4" fill="#fff" stroke="#3a5a40" stroke-width="1" />
+                                    <text x="350" y="118" text-anchor="middle" fill="#1c1917">Out of Stock</text>
+                                    <path d="M 350 130 L 350 150" stroke="#a8a29e" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrowhead)" />
+                                    <circle cx="350" cy="155" r="3" fill="#a8a29e" />
+
+                                    <!-- Android Path Continue -->
+                                    <line x1="150" y1="130" x2="150" y2="170" stroke="#588157" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+                                    <!-- Split Color/Pink -->
+                                    <path d="M 150 170 L 80 170 L 80 200" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+                                    <path d="M 150 170 L 220 170 L 220 200" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+
+                                     <!-- Text Labels -->
+                                    <rect x="90" y="160" width="40" height="16" rx="2" fill="#fff" stroke="#d4a373" stroke-width="1" />
+                                    <text x="110" y="171" text-anchor="middle" fill="#d4a373" font-size="9">[color]</text>
+
+                                    <rect x="170" y="160" width="40" height="16" rx="2" fill="#fff" stroke="#d4a373" stroke-width="1" />
+                                    <text x="190" y="171" text-anchor="middle" fill="#d4a373" font-size="9">[pink]</text>
+
+                                    <!-- Node Buy -->
+                                    <rect x="30" y="200" width="100" height="40" rx="4" fill="#e6f0e6" stroke="#3a5a40" stroke-width="1" />
+                                    <text x="80" y="215" text-anchor="middle" fill="#1c1917" font-weight="bold">Complete</text>
+                                    <text x="80" y="228" text-anchor="middle" fill="#3a5a40" font-family="monospace">@buy_phone()</text>
+
+                                    <!-- Node Pink Sold Out -->
+                                    <rect x="170" y="200" width="100" height="30" rx="4" fill="#fff" stroke="#d4a373" stroke-width="1" />
+                                    <text x="220" y="218" text-anchor="middle" fill="#d4a373">Sold Out</text>
+
+                                     <path d="M 220 230 L 220 250" stroke="#a8a29e" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrowhead)" />
+                                     <circle cx="220" cy="255" r="3" fill="#a8a29e" />
+
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
