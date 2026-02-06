@@ -52,6 +52,7 @@ interface FunctionDefinitionContext {
         outputDescription: String? = null,
         params: ParametersSchema = ParametersSchema(),
         isSensitive: Boolean = false,
+        metadata: Map<String, Any> = emptyMap(),
         fn: suspend DSLContext.(List<Any?>) -> String,
     )
 }
@@ -109,6 +110,7 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
         outputDescription: String?,
         params: ParametersSchema,
         isSensitive: Boolean,
+        metadata: Map<String, Any>,
         fn: suspend DSLContext.(List<Any?>) -> String,
     ) {
         functions.add(
@@ -121,6 +123,7 @@ class BasicFunctionDefinitionContext(private val beanProvider: BeanProvider) : F
                 isSensitive = isSensitive,
                 parameters = params,
                 context = BasicDSLContext(beanProvider),
+                metadata = metadata,
                 function = wrapOutput(fn),
             ),
         )

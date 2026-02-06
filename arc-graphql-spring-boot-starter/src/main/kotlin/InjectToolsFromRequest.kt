@@ -119,6 +119,7 @@ class RequestFunctionProvider(private val request: AgentRequest, private val fun
                     override val group: String? = null
                     override val isSensitive: Boolean = false
                     override val outputDescription: String? = null
+                    override val metadata: Map<String, Any> = emptyMap()
                     override val parameters: ParametersSchema =
                         ParametersSchema(properties = parameters.associateBy { it.name!! })
 
