@@ -20,6 +20,7 @@ interface LLMFunction {
     val group: String?
     val isSensitive: Boolean
     val outputDescription: String?
+    val metadata: Map<String, Any> get() = emptyMap()
 
     suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException>
 }

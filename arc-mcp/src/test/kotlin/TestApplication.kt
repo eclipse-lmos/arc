@@ -40,6 +40,7 @@ open class TestApplication {
         name = "getBooks",
         description = "description",
         params = types(string("id", "the id")),
+        metadata = mapOf("category" to listOf("books")),
     ) { (id) ->
         """[{"name":"Spring Boot"},{"name":"$id"}]"""
     }
