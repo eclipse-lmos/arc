@@ -28,19 +28,37 @@
                 }
             }
         }
+
+        function scrollToFeature(id) {
+            const container = document.getElementById('features-scroll-container');
+            const target = document.getElementById(id);
+            if (container && target) {
+                const card = target.closest('.snap-center');
+                if (card) {
+                    container.scrollTo({
+                        left: card.offsetLeft - 30,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+            return false;
+        }
     </script>
     <style>
         .hero-gradient {
             background: linear-gradient(135deg, #e6f0e6 0%, #fafaf9 100%);
         }
+
         .code-preview {
             background-color: #0c0a09; /* Dark stone/black */
             color: #e7e5e4; /* Light stone */
             border: 1px solid #44403c; /* Dark border */
         }
+
         .nature-shadow {
             box-shadow: 0 4px 20px rgba(58, 90, 64, 0.15);
         }
+
         .accent-glow {
             text-shadow: 0 0 20px rgba(212, 163, 115, 0.2);
         }
@@ -53,8 +71,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
             <div class="flex items-center gap-2">
-                <svg class="h-8 w-8 text-nature-primary nature-shadow rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                <svg class="h-8 w-8 text-nature-primary nature-shadow rounded-full" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                 </svg>
                 <span class="font-bold text-xl tracking-tight text-nature-dark">ADL <span class="text-nature-primary">Server</span></span>
             </div>
@@ -65,7 +85,8 @@
                 <a href="#graphql-api" class="text-sm font-medium text-stone-500 hover:text-nature-sky transition">GraphQL</a>
             </div>
             <div>
-                <a href="https://github.com/eclipse-lmos/arc" target="_blank" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-nature-primary hover:bg-nature-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-nature-primary transition">
+                <a href="https://github.com/eclipse-lmos/arc" target="_blank"
+                   class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-nature-primary hover:bg-nature-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-nature-primary transition">
                     Get Started
                 </a>
             </div>
@@ -83,17 +104,20 @@
                     <span class="block text-nature-accent accent-glow">Prompt Engineering</span>
                 </h1>
                 <p class="mt-3 text-base text-stone-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                    The Agent Definition Language (ADL) combines natural language with structural tokens to make AI agents predictable, robust, and manageable at scale.
+                    The Agent Definition Language (ADL) combines natural language with structural tokens to make AI
+                    agents predictable, robust, and manageable at scale.
                 </p>
                 <div class="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
                     <p class="text-base font-medium text-stone-800">
                         Build complex behaviors with stateful conversations.
                     </p>
                     <div class="mt-5 sm:flex sm:justify-center lg:justify-start gap-4">
-                        <a href="#features" class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-nature-primary hover:bg-nature-light md:py-4 md:text-lg transition shadow-lg shadow-nature-primary/20">
+                        <a href="#features"
+                           class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-nature-primary hover:bg-nature-light md:py-4 md:text-lg transition shadow-lg shadow-nature-primary/20">
                             Learn ADL
                         </a>
-                        <a href="/graphql" class="flex items-center justify-center px-8 py-3 border border-nature-primary text-base font-medium rounded-md text-nature-primary hover:bg-nature-primary/10 md:py-4 md:text-lg transition">
+                        <a href="/graphql"
+                           class="flex items-center justify-center px-8 py-3 border border-nature-primary text-base font-medium rounded-md text-nature-primary hover:bg-nature-primary/10 md:py-4 md:text-lg transition">
                             Try Playground
                         </a>
                     </div>
@@ -108,7 +132,8 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <span class="text-nature-accent font-bold text-lg">UseCase:</span> <span class="text-nature-sky">buy_a_car</span>
+                            <span class="text-nature-accent font-bold text-lg">UseCase:</span> <span
+                                class="text-nature-sky">buy_a_car</span>
                         </div>
                         <div>
                             <div class="text-nature-light font-bold mb-1">Description</div>
@@ -124,12 +149,15 @@
                         <div>
                             <div class="text-nature-light font-bold mb-1">Solution</div>
                             <div class="pl-4 text-stone-300 space-y-1">
-                                <p>Use <span class="text-nature-accent">@send_email()</span> and send Pete an email with the details.</p>
-                                <p>Tell the customer we will notify them when we have cars that fit their budget and model preference.</p>
+                                <p>Use <span class="text-nature-accent">@send_email()</span> and send Pete an email with
+                                    the details.</p>
+                                <p>Tell the customer we will notify them when we have cars that fit their budget and
+                                    model preference.</p>
                             </div>
                         </div>
                         <div class="pl-4 mt-4 text-stone-300">
-                            <span class="text-nature-sky">&lt;is_weekend&gt;</span> As it is the weekend. Tell the customer that they will receive a response on Monday.
+                            <span class="text-nature-sky">&lt;is_weekend&gt;</span> As it is the weekend. Tell the
+                            customer that they will receive a response on Monday.
                         </div>
                     </div>
                 </div>
@@ -157,12 +185,15 @@
                 <div class="relative p-6 bg-nature-page rounded-2xl border border-nature-border hover:border-nature-accent/50 hover:shadow-lg transition group">
                     <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-nature-primary rounded-xl flex items-center justify-center shadow-lg border border-nature-light">
                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                         </svg>
                     </div>
-                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-primary transition">Robust Structure</h3>
+                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-primary transition">
+                        Robust Structure</h3>
                     <p class="mt-4 text-stone-600 text-center">
-                        Combining natural language with special tokens makes agent behavior predictable. Define boundaries, rules, and formats that LLMs actually respect.
+                        Combining natural language with special tokens makes agent behavior predictable. Define
+                        boundaries, rules, and formats that LLMs actually respect.
                     </p>
                 </div>
 
@@ -170,12 +201,15 @@
                 <div class="relative p-6 bg-nature-page rounded-2xl border border-nature-border hover:border-nature-accent/50 hover:shadow-lg transition group">
                     <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white border border-nature-primary rounded-xl flex items-center justify-center shadow-lg">
                         <svg class="w-6 h-6 text-nature-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-primary transition">Progressive Disclosure</h3>
+                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-primary transition">
+                        Progressive Disclosure</h3>
                     <p class="mt-4 text-stone-600 text-center">
-                        Manage complexity by revealing concepts and instructions only when needed. Similar to how humans learn, agents perform better when focused.
+                        Manage complexity by revealing concepts and instructions only when needed. Similar to how humans
+                        learn, agents perform better when focused.
                     </p>
                 </div>
 
@@ -183,12 +217,15 @@
                 <div class="relative p-6 bg-nature-page rounded-2xl border border-nature-border hover:border-nature-accent/50 hover:shadow-lg transition group">
                     <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-nature-accent rounded-xl flex items-center justify-center shadow-lg">
                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
                     </div>
-                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-accent transition">Stateful Conversations</h3>
+                    <h3 class="mt-8 text-xl font-bold text-nature-dark text-center group-hover:text-nature-accent transition">
+                        Stateful Conversations</h3>
                     <p class="mt-4 text-stone-600 text-center">
-                        Unlike stateless API calls, ADL agents maintain context awareness over time, enabling long-running workflows and coherent multi-turn interactions.
+                        Unlike stateless API calls, ADL agents maintain context awareness over time, enabling
+                        long-running workflows and coherent multi-turn interactions.
                     </p>
                 </div>
             </div>
@@ -208,14 +245,16 @@
                 </h3>
                 <div class="mt-6 text-lg text-stone-600 space-y-6">
                     <p>
-                        The idea behind ADL UseCases is a fundamental shift: instead of "prompting" the Agent and creating a black box,
+                        The idea behind ADL UseCases is a fundamental shift: instead of "prompting" the Agent and
+                        creating a black box,
                         you define your requirements in the form of clear, structured UseCases.
                     </p>
                     <p>
-                        The ADL Engine processes these UseCases and ensures that the Agent behaves according to your specifications.
+                        The ADL Engine processes these UseCases and ensures that the Agent behaves according to your
+                        specifications.
                     </p>
                     <p>
-                     Behind the scenes, the ADL Engine translates UseCases into optimized prompts or tools,
+                        Behind the scenes, the ADL Engine translates UseCases into optimized prompts or tools,
                         manages conversation state, and enforces your business rules.
                     </p>
                 </div>
@@ -235,27 +274,36 @@
                         <div class="space-y-4">
                             <div class="bg-white p-4 rounded-lg border border-stone-200 shadow-sm">
                                 <h4 class="text-sm font-bold text-nature-primary mb-2 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
                                     Requirements
                                 </h4>
-                                <p class="text-xs text-stone-600"> <span class="text-nature-accent">UseCase:</span> refund_customer</p>
-                                <p class="text-xs text-stone-600"> <span class="text-nature-accent">UseCase:</span> upgrade_customer</p>
+                                <p class="text-xs text-stone-600"><span class="text-nature-accent">UseCase:</span>
+                                    refund_customer</p>
+                                <p class="text-xs text-stone-600"><span class="text-nature-accent">UseCase:</span>
+                                    upgrade_customer</p>
                             </div>
                             <div class="flex justify-center text-nature-accent">
-                                <svg class="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                                <svg class="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                </svg>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="bg-nature-dark text-stone-300 p-3 rounded-lg shadow-md font-mono text-xs text-center border border-stone-700">
-                                   SystemPrompt
+                                    SystemPrompt
                                 </div>
                                 <div class="bg-nature-primary text-white p-3 rounded-lg shadow-md font-mono text-xs text-center border border-nature-light">
-                                   Tools
+                                    Tools
                                 </div>
                                 <div class="bg-nature-sky text-white p-3 rounded-lg shadow-md font-mono text-xs text-center border border-cyan-800">
-                                   Evals
+                                    Evals
                                 </div>
                                 <div class="bg-nature-accent text-white p-3 rounded-lg shadow-md font-mono text-xs text-center border border-orange-200/20">
-                                   Guardrails
+                                    Guardrails
                                 </div>
                             </div>
                         </div>
@@ -275,17 +323,19 @@
                 ADL UseCase Format & Capabilities
             </p>
             <p class="mt-4 max-w-2xl text-xl text-stone-600 lg:mx-auto">
-                ADL separates agent behavior definition from LLM prompting, providing a structured format backed by rules and conventions.
+                ADL separates agent behavior definition from LLM prompting, providing a structured format backed by
+                rules and conventions.
             </p>
         </div>
 
         <div class="flex flex-col gap-12">
             <!-- Breakdown of the Format -->
             <div class="bg-white rounded-2xl shadow-lg border border-nature-border p-8">
-                 <div class="flex items-center gap-4 mb-6">
+                <div class="flex items-center gap-4 mb-6">
                     <div class="w-10 h-10 rounded-full bg-nature-primary/10 flex items-center justify-center">
                         <svg class="w-6 h-6 text-nature-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 6h16M4 12h16M4 18h7"/>
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-nature-dark">UseCase Structure</h3>
@@ -298,7 +348,7 @@
                                 <span class="font-bold text-nature-primary min-w-[7rem]">Name</span>
                                 <span>Unique identifier (lowercase with underscores).</span>
                             </li>
-                             <li class="flex gap-3">
+                            <li class="flex gap-3">
                                 <span class="font-bold text-nature-primary min-w-[7rem]">Description</span>
                                 <span>Detailed explanation of the scenario.</span>
                             </li>
@@ -327,44 +377,90 @@
 
             <!-- Features -->
             <div class="bg-white rounded-2xl shadow-lg border border-nature-border p-8">
-                 <div class="flex items-center gap-4 mb-6">
+                <div class="flex items-center gap-4 mb-6">
                     <div class="w-10 h-10 rounded-full bg-nature-accent/10 flex items-center justify-center">
                         <svg class="w-6 h-6 text-nature-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-nature-dark">Dynamic Features</h3>
                 </div>
-                <div class="flex overflow-x-auto gap-8 pb-6 snap-x">
-                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
+
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="scrollToFeature('conditionals')"
+                            class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
+                        Conditionals
+                    </button>
+                    <button onclick="scrollToFeature('executable-code')"
+                            class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
+                        Executable Code
+                    </button>
+                    <button onclick="scrollToFeature('tool-calls')"
+                            class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
+                        Tool Calls
+                    </button>
+                    <button onclick="scrollToFeature('static-responses')"
+                            class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
+                        Static Responses
+                    </button>
+                    <button onclick="scrollToFeature('conversation-flows')"
+                            class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
+                        Conversation Flows
+                    </button>
+                </div>
+
+                <div class="flex overflow-x-auto gap-8 pb-6 snap-x relative" id="features-scroll-container">
+                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8" id="conditionals">
                         <h4 class="font-bold text-nature-dark mb-2">Conditionals</h4>
-                        <p class="text-sm text-stone-600 mb-2">Conditionals are like "if statements" where any lines noted inside the conditional block are only active if the condition is met.</p>
-                        <p class="text-sm text-stone-600 mb-2">ADL defines several built-in conditionals. Custom conditionals can be defined and passed to the ADL engine at runtime.</p>
-                        <ul class="text-sm text-stone-600 space-y-1 ml-4 list-disc marker:text-nature-primary">
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;c1, c2&gt;</code> Multiple conditions (AND).</li>
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;c1 or c2&gt;</code> Multiple conditions (OR).</li>
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;!condition&gt;</code> Negation (e.g. &lt;!is_weekend&gt;).</li>
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;else&gt;</code> Fallback branch. True if no other Conditional applies.</li>
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;is_weekend&gt;</code> True if the current date is a weekend.</li>
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;date&gt;</code> Matches the current date, for example, &lt;10.02.2006&gt;</li>
-                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;step_n&gt;</code> True for each turn (e.g. &lt;step_1&gt;,  &lt;step_2&gt;).</li>
-                        </ul>
                         <div class="mt-4 bg-nature-dark p-3 rounded-lg text-xs border border-stone-800">
                             <div class="text-nature-accent font-bold mb-1"> UseCase: password_reset</div>
                             <div class="text-nature-light font-bold mb-1"> Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
-                               <span class="text-nature-accent"> &lt;isBusinessCustomer&gt;</span>Provide https://www.example.com/business/reset-password.<br>
+                                <span class="text-nature-accent"> &lt;isBusinessCustomer&gt;</span>Provide
+                                https://www.example.com/business/reset-password.<br>
                                 Provide https://www.example.com/reset-password.<span class="text-nature-accent">&lt;isPrivateCustomer&gt;</span>
                             </div>
                         </div>
                         <br>
-                        <p  class="text-sm text-stone-600 mb-2">Multi-line conditionals are also supported:</p>
+                        <p class="text-sm text-stone-600 mb-2">Build adaptive agents that change their behavior based on
+                            context. Conditionals act like "if statements" for your prompts, letting you include or
+                            exclude instructions based on user attributes, dates, or conversation state.</p>
+                        <p class="text-sm text-stone-600 mb-2">ADL defines several built-in conditionals, and you can
+                            inject custom logic at runtime to handle complex business rules.</p>
+                        <ul class="text-sm text-stone-600 space-y-1 ml-4 list-disc marker:text-nature-primary">
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;c1,
+                                c2&gt;</code> Multiple conditions (AND).
+                            </li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;c1
+                                or c2&gt;</code> Multiple conditions (OR).
+                            </li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;!condition&gt;</code>
+                                Negation (e.g. &lt;!is_weekend&gt;).
+                            </li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;else&gt;</code>
+                                Fallback branch. True if no other Conditional applies.
+                            </li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;is_weekend&gt;</code>
+                                True if the current date is a weekend.
+                            </li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;date&gt;</code>
+                                Matches the current date, for example, &lt;10.02.2006&gt;
+                            </li>
+                            <li><code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;step_n&gt;</code>
+                                True for each turn (e.g. &lt;step_1&gt;, &lt;step_2&gt;).
+                            </li>
+                        </ul>
+
+                        <br>
+                        <p class="text-sm text-stone-600 mb-2">Multi-line conditionals are also supported:</p>
                         <div class="mt-4 bg-nature-dark p-3 rounded-lg text-xs border border-stone-800">
                             <div class="text-nature-accent font-bold mb-1"> UseCase: password_reset</div>
                             <div class="text-nature-light font-bold mb-1"> Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
                                 <span class="text-nature-accent">
-                                    &lt;isBusinessCustomer&gt;</span><br>A multi line<br> conditional<span class="text-nature-accent"><br>&lt;/&gt;
+                                    &lt;isBusinessCustomer&gt;</span><br>A multi line<br> conditional<span
+                                    class="text-nature-accent"><br>&lt;/&gt;
                                 <br></span>
                                 <span class="text-nature-accent">
                                     &lt;esle&gt;</span><br>A multi line<br> conditional<span class="text-nature-accent"><br>&lt;/&gt;
@@ -373,22 +469,59 @@
                         </div>
                     </div>
                     <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
-                        <h4 class="font-bold text-nature-dark mb-2">Executable Code</h4>
-                        <p class="text-sm text-stone-600 mb-2">Embed Kotlin code blocks for dynamic values.</p>
+                        <h4 id="executable-code" class="font-bold text-nature-dark mb-2">Executable Code</h4>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs text-stone-300 font-mono border border-stone-800">
-                            <div class="text-nature-accent font-bold mb-1"> UseCase: password_reset</div>
-                            <div class="text-nature-light font-bold mb-1"> Solution</div>
-                            <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
-                                <span class="text-stone-500">```kotlin</span><br>
-                                // Inject verified data<br>
-                                "Account Balance: ${getBalance(userId)}"<br>
-                                <span class="text-stone-500">```</span>
-                            </div>
+                            <div class="text-nature-accent font-bold mb-1">UseCase: current_news</div>
+                            <div class="text-nature-light font-bold mb-1">Description</div>
+                            <p>Customer asks for the current news.</p>
+                            <div class="text-nature-light font-bold mb-1">Solution</div>
+
+                                   <div class="text-stone-300 pl-2 border-l border-stone-700 font-mono">
+                                        <span class="text-stone-500">```kotlin</span><br>
+                                        "Today's News is: ${httpGet("https://news.com")}"<br>
+                                        <span class="text-stone-500">```</span>
+                                    </div>
+                        </div>
+                        <br>
+                        <p class="text-sm text-stone-600 mb-2">Use markdown coding blocks to insert code directly into
+                            your UseCase.</p>
+                        <div class="mt-4">
+                            <p class="text-xs font-bold text-nature-primary mb-2 uppercase tracking-wide">Predefined
+                                Functions</p>
+                            <ul class="space-y-2 text-xs font-mono text-stone-600">
+                                <li class="flex gap-2">
+                                    <span class="text-nature-dark font-semibold">httpGet(url)</span>
+                                    <span class="text-stone-500">- Retrieves data from http</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="text-nature-dark font-semibold">time(zoneId?)</span>
+                                    <span class="text-stone-500">- Current time (HH:mm)</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="text-nature-dark font-semibold">date(zoneId?)</span>
+                                    <span class="text-stone-500">- Current date (dd.MM)</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="text-nature-dark font-semibold">year(zoneId?)</span>
+                                    <span class="text-stone-500">- Current year (yyyy)</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
-                        <h4 class="font-bold text-nature-dark mb-2">Tool Calls</h4>
-                        <p class="text-sm text-stone-600 mb-3">Agents can call tools or functions inline.</p>
+                        <h4 id="tool-calls" class="font-bold text-nature-dark mb-2">Tool Calls</h4>
+                        <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
+                            <div class="text-nature-accent font-bold mb-1">UseCase: password_reset</div>
+                            <div class="text-nature-light font-bold mb-1">Solution</div>
+                            <div class="text-stone-300 pl-2 border-l border-stone-700">
+                                Call <span class="text-nature-accent">@password_reset_link()!</span> to generate a reset
+                                link.<br>
+                                Provide the link and guide the customer through the process.
+                            </div>
+                        </div>
+                        <p class="text-sm text-stone-600 mb-3">Empower your agents to take action. Define tools inline,
+                            and the ADL Engine will handle the orchestration—calling the function securely and feeding
+                            the result back to the agent.</p>
 
                         <div class="space-y-2 mb-4 text-xs font-mono">
                             <div class="flex gap-2 items-center">
@@ -401,15 +534,9 @@
                             </div>
                         </div>
 
-                        <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
-                            <div class="text-nature-accent font-bold mb-1">UseCase: password_reset</div>
-                            <div class="text-nature-light font-bold mb-1">Solution</div>
-                            <div class="text-stone-300 pl-2 border-l border-stone-700">
-                                Call <span class="text-nature-accent">@password_reset_link()!</span> to generate a reset link.<br>
-                                Provide the link and guide the customer through the process.
-                            </div>
-                        </div>
-                        <p class="text-sm text-stone-600 mb-3">By explicitly declaring the tools that are required, the ADL Engine can:</p>
+
+                        <p class="text-sm text-stone-600 mb-3">By explicitly declaring the tools that are required, the
+                            ADL Engine can:</p>
                         <ul class="text-sm text-stone-600 space-y-1 list-disc list-inside marker:text-nature-primary">
                             <li>Dynamically loads tools.</li>
                             <li>Validates availability.</li>
@@ -417,25 +544,30 @@
                         </ul>
                     </div>
                     <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
-                        <h4 class="font-bold text-nature-dark mb-2">Static Responses</h4>
-                        <p class="text-sm text-stone-600 mb-2">Static responses allow you to define static responses in the prompt.</p>
+                        <h4 id="static-responses" class="font-bold text-nature-dark mb-2">Static Responses</h4>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
                             <div class="text-nature-accent font-bold mb-1">UseCase: greeting</div>
                             <div class="text-nature-light font-bold mb-1">Description</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700 mb-1">
                                 Customer is saying hello or greeting the agent.
                             </div>
-                            <div class="text-nature-light font-bold mb-1">#### Solution</div>
+                            <div class="text-nature-light font-bold mb-1">Solution</div>
                             <div class="text-stone-300 pl-2 border-l border-stone-700">
                                 "Hello! I am the ADL AI assistant. How can I assist you today?"
                             </div>
                         </div>
-                        <p class="text-sm text-stone-600">In this example, the Agent will always return the text within the brackets.</p>
+                        <p class="text-sm text-stone-600 mb-2">Sometimes you need absolute compliance. Static responses
+                            bypass the LLM entirely for specific turns, ensuring that legal disclaimers, greetings, or
+                            fallback messages are delivered exactly as written.</p>
+
+                        <p class="text-sm text-stone-600">In this example, the Agent will always return the text within
+                            the brackets.</p>
                     </div>
 
                     <div class="min-w-[800px] snap-center">
-                        <h4 class="font-bold text-nature-dark mb-2">Conversation flows</h4>
-                        <p class="text-sm text-stone-600 mb-4">Conversation flows enable the author to convey decision trees in their use cases.</p>
+                        <h4 id="conversation-flows" class="font-bold text-nature-dark mb-2">Conversation flows</h4>
+                        <p class="text-sm text-stone-600 mb-4">Conversation flows enable the author to convey decision
+                            trees in their use cases.</p>
 
                         <div class="grid grid-cols-2 gap-8">
                             <!-- Code Example -->
@@ -462,77 +594,105 @@
                                 <div class="text-stone-300 pl-2 border-l border-stone-700 mb-2">
                                     Ask the customer what color they would like?<br><br>
                                     <span class="text-nature-accent">[color]</span> goto #complete_buy_phone<br>
-                                    <span class="text-nature-accent">[pink]</span> inform the customer that the color pink is currently out of stock.
+                                    <span class="text-nature-accent">[pink]</span> inform the customer that the color
+                                    pink is currently out of stock.
                                 </div>
 
                                 <div class="text-nature-light font-bold mb-1">complete_buy_phone</div>
                                 <div class="text-stone-300 pl-2 border-l border-stone-700">
-                                    Use the <span class="text-nature-accent">@buy_phone()</span> tool to complete the purchase.
+                                    Use the <span class="text-nature-accent">@buy_phone()</span> tool to complete the
+                                    purchase.
                                 </div>
                             </div>
 
                             <!-- Diagram -->
                             <div class="bg-white p-4 rounded-lg border border-stone-200 flex items-center justify-center overflow-hidden">
-                                <svg width="100%" height="100%" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto" style="font-family: 'Inter', sans-serif; font-size: 10px;">
+                                <svg width="100%" height="100%" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg"
+                                     class="w-full h-auto" style="font-family: 'Inter', sans-serif; font-size: 10px;">
                                     <defs>
-                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                            <polygon points="0 0, 10 3.5, 0 7" fill="#588157" />
+                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+                                                orient="auto">
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#588157"/>
                                         </marker>
                                     </defs>
 
                                     <!-- Start -->
-                                    <rect x="200" y="10" width="100" height="30" rx="4" fill="#3a5a40" stroke="#3a5a40" />
-                                    <text x="250" y="28" text-anchor="middle" fill="#fff" font-weight="bold">Start Selection</text>
+                                    <rect x="200" y="10" width="100" height="30" rx="4" fill="#3a5a40"
+                                          stroke="#3a5a40"/>
+                                    <text x="250" y="28" text-anchor="middle" fill="#fff" font-weight="bold">Start
+                                        Selection
+                                    </text>
 
                                     <!-- Line to Split -->
-                                    <line x1="250" y1="40" x2="250" y2="70" stroke="#588157" stroke-width="1.5" marker-end="url(#arrowhead)" />
+                                    <line x1="250" y1="40" x2="250" y2="70" stroke="#588157" stroke-width="1.5"
+                                          marker-end="url(#arrowhead)"/>
 
                                     <!-- Split Android/iOS -->
-                                    <path d="M 250 70 L 150 70 L 150 100" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
-                                    <path d="M 250 70 L 350 70 L 350 100" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+                                    <path d="M 250 70 L 150 70 L 150 100" stroke="#588157" stroke-width="1.5"
+                                          fill="none" marker-end="url(#arrowhead)"/>
+                                    <path d="M 250 70 L 350 70 L 350 100" stroke="#588157" stroke-width="1.5"
+                                          fill="none" marker-end="url(#arrowhead)"/>
 
                                     <!-- Text Labels -->
-                                    <rect x="160" y="60" width="40" height="16" rx="2" fill="#e6f0e6" />
-                                    <text x="180" y="72" text-anchor="middle" fill="#3a5a40" font-size="9">Android</text>
+                                    <rect x="160" y="60" width="40" height="16" rx="2" fill="#e6f0e6"/>
+                                    <text x="180" y="72" text-anchor="middle" fill="#3a5a40" font-size="9">Android
+                                    </text>
 
-                                    <rect x="300" y="60" width="30" height="16" rx="2" fill="#e6f0e6" />
+                                    <rect x="300" y="60" width="30" height="16" rx="2" fill="#e6f0e6"/>
                                     <text x="315" y="72" text-anchor="middle" fill="#3a5a40" font-size="9">iOS</text>
 
                                     <!-- Node Android -->
-                                    <rect x="100" y="100" width="100" height="30" rx="4" fill="#fff" stroke="#3a5a40" stroke-width="1" />
+                                    <rect x="100" y="100" width="100" height="30" rx="4" fill="#fff" stroke="#3a5a40"
+                                          stroke-width="1"/>
                                     <text x="150" y="118" text-anchor="middle" fill="#1c1917">What color?</text>
 
                                     <!-- Node iOS -->
-                                    <rect x="300" y="100" width="100" height="30" rx="4" fill="#fff" stroke="#3a5a40" stroke-width="1" />
+                                    <rect x="300" y="100" width="100" height="30" rx="4" fill="#fff" stroke="#3a5a40"
+                                          stroke-width="1"/>
                                     <text x="350" y="118" text-anchor="middle" fill="#1c1917">Out of Stock</text>
-                                    <path d="M 350 130 L 350 150" stroke="#a8a29e" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrowhead)" />
-                                    <circle cx="350" cy="155" r="3" fill="#a8a29e" />
+                                    <path d="M 350 130 L 350 150" stroke="#a8a29e" stroke-width="1.5"
+                                          stroke-dasharray="4" marker-end="url(#arrowhead)"/>
+                                    <circle cx="350" cy="155" r="3" fill="#a8a29e"/>
 
                                     <!-- Android Path Continue -->
-                                    <line x1="150" y1="130" x2="150" y2="170" stroke="#588157" stroke-width="1.5" marker-end="url(#arrowhead)" />
+                                    <line x1="150" y1="130" x2="150" y2="170" stroke="#588157" stroke-width="1.5"
+                                          marker-end="url(#arrowhead)"/>
 
                                     <!-- Split Color/Pink -->
-                                    <path d="M 150 170 L 80 170 L 80 200" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
-                                    <path d="M 150 170 L 220 170 L 220 200" stroke="#588157" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" />
+                                    <path d="M 150 170 L 80 170 L 80 200" stroke="#588157" stroke-width="1.5"
+                                          fill="none" marker-end="url(#arrowhead)"/>
+                                    <path d="M 150 170 L 220 170 L 220 200" stroke="#588157" stroke-width="1.5"
+                                          fill="none" marker-end="url(#arrowhead)"/>
 
-                                     <!-- Text Labels -->
-                                    <rect x="90" y="160" width="40" height="16" rx="2" fill="#fff" stroke="#d4a373" stroke-width="1" />
-                                    <text x="110" y="171" text-anchor="middle" fill="#d4a373" font-size="9">[color]</text>
+                                    <!-- Text Labels -->
+                                    <rect x="90" y="160" width="40" height="16" rx="2" fill="#fff" stroke="#d4a373"
+                                          stroke-width="1"/>
+                                    <text x="110" y="171" text-anchor="middle" fill="#d4a373" font-size="9">[color]
+                                    </text>
 
-                                    <rect x="170" y="160" width="40" height="16" rx="2" fill="#fff" stroke="#d4a373" stroke-width="1" />
-                                    <text x="190" y="171" text-anchor="middle" fill="#d4a373" font-size="9">[pink]</text>
+                                    <rect x="170" y="160" width="40" height="16" rx="2" fill="#fff" stroke="#d4a373"
+                                          stroke-width="1"/>
+                                    <text x="190" y="171" text-anchor="middle" fill="#d4a373" font-size="9">[pink]
+                                    </text>
 
                                     <!-- Node Buy -->
-                                    <rect x="30" y="200" width="100" height="40" rx="4" fill="#e6f0e6" stroke="#3a5a40" stroke-width="1" />
-                                    <text x="80" y="215" text-anchor="middle" fill="#1c1917" font-weight="bold">Complete</text>
-                                    <text x="80" y="228" text-anchor="middle" fill="#3a5a40" font-family="monospace">@buy_phone()</text>
+                                    <rect x="30" y="200" width="100" height="40" rx="4" fill="#e6f0e6" stroke="#3a5a40"
+                                          stroke-width="1"/>
+                                    <text x="80" y="215" text-anchor="middle" fill="#1c1917" font-weight="bold">
+                                        Complete
+                                    </text>
+                                    <text x="80" y="228" text-anchor="middle" fill="#3a5a40" font-family="monospace">
+                                        @buy_phone()
+                                    </text>
 
                                     <!-- Node Pink Sold Out -->
-                                    <rect x="170" y="200" width="100" height="30" rx="4" fill="#fff" stroke="#d4a373" stroke-width="1" />
+                                    <rect x="170" y="200" width="100" height="30" rx="4" fill="#fff" stroke="#d4a373"
+                                          stroke-width="1"/>
                                     <text x="220" y="218" text-anchor="middle" fill="#d4a373">Sold Out</text>
 
-                                     <path d="M 220 230 L 220 250" stroke="#a8a29e" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrowhead)" />
-                                     <circle cx="220" cy="255" r="3" fill="#a8a29e" />
+                                    <path d="M 220 230 L 220 250" stroke="#a8a29e" stroke-width="1.5"
+                                          stroke-dasharray="4" marker-end="url(#arrowhead)"/>
+                                    <circle cx="220" cy="255" r="3" fill="#a8a29e"/>
 
                                 </svg>
                             </div>
@@ -554,7 +714,8 @@
                 Connect Anywhere
             </p>
             <p class="mt-4 max-w-2xl text-xl text-stone-600 lg:mx-auto">
-                The ADL Engine accepts ADL files and exposes them via standard protocols, integrating seamlessly into your existing ecosystem.
+                The ADL Engine accepts ADL files and exposes them via standard protocols, integrating seamlessly into
+                your existing ecosystem.
             </p>
         </div>
 
@@ -566,8 +727,10 @@
                 <div class="w-full md:w-auto flex flex-col items-center flex-1">
                     <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 shadow-sm w-full max-w-xs text-center group hover:border-nature-accent transition duration-300">
                         <div class="w-14 h-14 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-sm border border-stone-100">
-                             <svg class="h-8 w-8 text-nature-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <svg class="h-8 w-8 text-nature-accent" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
                         <h3 class="font-bold text-nature-dark text-lg">ADL Files</h3>
@@ -577,15 +740,17 @@
 
                 <!-- Arrow 1 -->
                 <div class="hidden md:flex text-stone-300">
-                     <svg class="w-8 h-8 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                     </svg>
+                    <svg class="w-8 h-8 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
                 </div>
                 <!-- Mobile Arrow -->
-                 <div class="md:hidden text-stone-300 transform rotate-90">
-                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                     </svg>
+                <div class="md:hidden text-stone-300 transform rotate-90">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
                 </div>
 
                 <!-- 2. Engine -->
@@ -594,8 +759,10 @@
                         <div class="absolute inset-0 bg-nature-primary/10"></div>
                         <div class="relative z-10">
                             <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-full mx-auto mb-4 flex items-center justify-center shadow-inner border border-white/20">
-                                <svg class="h-9 w-9 text-nature-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                <svg class="h-9 w-9 text-nature-primary" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                                 </svg>
                             </div>
                             <h3 class="font-bold text-white text-xl">ADL Engine</h3>
@@ -606,15 +773,17 @@
 
                 <!-- Arrow 2 -->
                 <div class="hidden md:flex text-stone-300">
-                     <svg class="w-8 h-8 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                     </svg>
+                    <svg class="w-8 h-8 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
                 </div>
-                 <!-- Mobile Arrow -->
-                 <div class="md:hidden text-stone-300 transform rotate-90">
-                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                     </svg>
+                <!-- Mobile Arrow -->
+                <div class="md:hidden text-stone-300 transform rotate-90">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
                 </div>
 
                 <!-- 3. Interfaces -->
@@ -624,7 +793,8 @@
                     <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm hover:shadow-md hover:border-nature-primary/50 transition duration-200 flex items-center gap-4">
                         <div class="flex-shrink-0 p-2 bg-nature-page rounded-lg">
                             <svg class="w-6 h-6 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                             </svg>
                         </div>
                         <div class="text-left">
@@ -636,8 +806,9 @@
                     <!-- MCP -->
                     <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm hover:shadow-md hover:border-nature-primary/50 transition duration-200 flex items-center gap-4">
                         <div class="flex-shrink-0 p-2 bg-nature-page rounded-lg">
-                             <svg class="w-6 h-6 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            <svg class="w-6 h-6 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
                         </div>
                         <div class="text-left">
@@ -649,8 +820,9 @@
                     <!-- GraphQL / REST -->
                     <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm hover:shadow-md hover:border-nature-primary/50 transition duration-200 flex items-center gap-4">
                         <div class="flex-shrink-0 p-2 bg-nature-page rounded-lg">
-                             <svg class="w-6 h-6 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                            <svg class="w-6 h-6 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 6h16M4 12h16m-7 6h7"/>
                             </svg>
                         </div>
                         <div class="text-left">
@@ -672,27 +844,32 @@
             <div>
                 <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">OpenAI Compatible Endpoint</h2>
                 <p class="mt-4 text-lg text-stone-600">
-                    Integration is effortless. ADL Server exposes a standard <code class="text-nature-primary">/v1/chat/completions</code> endpoint.
+                    Integration is effortless. ADL Server exposes a standard <code class="text-nature-primary">/v1/chat/completions</code>
+                    endpoint.
                 </p>
                 <p class="mt-4 text-lg text-stone-600">
-                    This allows you to swap out your existing OpenAI API calls for ADL Server calls, instantly upgrading your application with ADL's structured capabilities without rewriting your client code.
+                    This allows you to swap out your existing OpenAI API calls for ADL Server calls, instantly upgrading
+                    your application with ADL's structured capabilities without rewriting your client code.
                 </p>
                 <ul class="mt-8 space-y-3">
                     <li class="flex items-start">
-                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         <span class="ml-3 text-stone-800">Drop-in replacement for OpenAI SDKs</span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         <span class="ml-3 text-stone-800">Streaming support for real-time UIs</span>
                     </li>
                     <li class="flex items-start">
-                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <svg class="h-6 w-6 text-nature-primary shrink-0" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         <span class="ml-3 text-stone-800">Model agnostic - Connect to any LLM backend</span>
                     </li>
@@ -745,7 +922,10 @@
             <div>
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-nature-primary/10 rounded-full text-nature-primary">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-nature-dark">Queries</h3>
                 </div>
@@ -759,16 +939,20 @@
                                 <p class="text-xs text-stone-500 font-sans mt-1">Returns the supported API version.</p>
                             </li>
                             <li>
-                                <span class="text-nature-primary font-bold">list</span>(searchTerm: SearchCriteria?): [Adl]
-                                <p class="text-xs text-stone-500 font-sans mt-1">List stored ADLs, optionally filtered.</p>
+                                <span class="text-nature-primary font-bold">list</span>(searchTerm: SearchCriteria?):
+                                [Adl]
+                                <p class="text-xs text-stone-500 font-sans mt-1">List stored ADLs, optionally
+                                    filtered.</p>
                             </li>
                             <li>
                                 <span class="text-nature-primary font-bold">searchById</span>(id: String): Adl
                                 <p class="text-xs text-stone-500 font-sans mt-1">Retrieve a single ADL by ID.</p>
                             </li>
                             <li>
-                                <span class="text-nature-primary font-bold">search</span>(conversation: [Message], ...): [UseCaseMatch]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Find UseCases matching a conversation context.</p>
+                                <span class="text-nature-primary font-bold">search</span>(conversation: [Message], ...):
+                                [UseCaseMatch]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Find UseCases matching a conversation
+                                    context.</p>
                             </li>
                         </ul>
                     </div>
@@ -782,8 +966,10 @@
                                 <p class="text-xs text-stone-500 font-sans mt-1">List available MCP tools.</p>
                             </li>
                             <li>
-                                <span class="text-nature-primary font-bold">testCases</span>(useCaseId: String): [TestCase]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases for a specific UseCase.</p>
+                                <span class="text-nature-primary font-bold">testCases</span>(useCaseId: String):
+                                [TestCase]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases for a specific
+                                    UseCase.</p>
                             </li>
                         </ul>
                     </div>
@@ -794,7 +980,10 @@
             <div>
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-nature-accent/10 rounded-full text-nature-accent">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-nature-dark">Mutations</h3>
                 </div>
@@ -804,15 +993,18 @@
                         <h4 class="font-bold text-nature-dark mb-2">Build & Validate</h4>
                         <ul class="space-y-3 text-sm text-stone-600 font-mono">
                             <li>
-                                <span class="text-nature-accent font-bold">compile</span>(adl: String, conditionals: [String]): CompileResult
+                                <span class="text-nature-accent font-bold">compile</span>(adl: String, conditionals:
+                                [String]): CompileResult
                                 <p class="text-xs text-stone-500 font-sans mt-1">Compiles ADL to agent-ready format.</p>
                             </li>
                             <li>
-                                <span class="text-nature-accent font-bold">validate</span>(adl: String): ValidationResult
+                                <span class="text-nature-accent font-bold">validate</span>(adl: String):
+                                ValidationResult
                                 <p class="text-xs text-stone-500 font-sans mt-1">Check syntax and tool references.</p>
                             </li>
                             <li>
-                                <span class="text-nature-accent font-bold">systemPrompt</span>(adl: String, ...): SystemPromptResult
+                                <span class="text-nature-accent font-bold">systemPrompt</span>(adl: String, ...):
+                                SystemPromptResult
                                 <p class="text-xs text-stone-500 font-sans mt-1">Generate the full system prompt.</p>
                             </li>
                         </ul>
@@ -824,18 +1016,22 @@
                         <ul class="space-y-3 text-sm text-stone-600 font-mono">
                             <li>
                                 <span class="text-nature-accent font-bold">eval</span>(input: EvalInput): EvalOutput
-                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against inputs.</p>
+                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against
+                                    inputs.</p>
                             </li>
                             <li>
-                                <span class="text-nature-accent font-bold">improveUseCase</span>(useCase: String): ImprovementResponse
+                                <span class="text-nature-accent font-bold">improveUseCase</span>(useCase: String):
+                                ImprovementResponse
                                 <p class="text-xs text-stone-500 font-sans mt-1">Get AI-suggested improvements.</p>
                             </li>
                             <li>
-                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String, ...): StorageResult
+                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String,
+                                ...): StorageResult
                                 <p class="text-xs text-stone-500 font-sans mt-1">Save ADL definitions to storage.</p>
                             </li>
                             <li>
-                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String): [TestCase]
+                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String):
+                                [TestCase]
                                 <p class="text-xs text-stone-500 font-sans mt-1">Auto-generate test cases.</p>
                             </li>
                         </ul>
@@ -850,8 +1046,13 @@
                     <span class="text-sm font-medium text-nature-dark">Ready to explore?</span>
                     <code class="text-xs bg-stone-900 text-stone-300 px-2 py-1 rounded">POST /graphql</code>
                 </div>
-                <a href="/graphiql" target="_blank" class="px-4 py-2 bg-white rounded shadow-sm text-sm font-medium text-nature-primary hover:text-nature-dark flex items-center gap-1 transition-colors">
-                    Open GraphiQL <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                <a href="/graphiql" target="_blank"
+                   class="px-4 py-2 bg-white rounded shadow-sm text-sm font-medium text-nature-primary hover:text-nature-dark flex items-center gap-1 transition-colors">
+                    Open GraphiQL
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
                 </a>
             </div>
         </div>
@@ -863,7 +1064,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div class="col-span-1 md:col-span-2">
-                <span class="font-bold text-2xl text-white tracking-tight">ADL <span class="text-nature-primary">Server</span></span>
+                <span class="font-bold text-2xl text-white tracking-tight">ADL <span
+                        class="text-nature-primary">Server</span></span>
                 <p class="mt-4 text-sm max-w-xs text-stone-500">
                     Empowering developers to build reliable, scalable AI agents with the Agent Definition Language.
                 </p>
@@ -871,21 +1073,28 @@
 
             <div class="col-span-1 md:col-span-2 md:flex md:justify-end">
                 <div>
-                     <h3 class="text-sm font-semibold text-stone-200 tracking-wider uppercase mb-4">Eclipse Foundation</h3>
-                     <ul class="space-y-2">
-                        <li><a href="https://www.eclipse.org" target="_blank" class="text-sm hover:text-nature-primary transition">Eclipse Foundation Website</a></li>
-                        <li><a href="https://www.eclipse.org/legal/privacy/" target="_blank" class="text-sm hover:text-nature-primary transition">Privacy Policy</a></li>
-                        <li><a href="https://www.eclipse.org/legal/terms-of-use/" target="_blank" class="text-sm hover:text-nature-primary transition">Website Terms of Use</a></li>
-                        <li><a href="https://www.eclipse.org/legal/compliance/" target="_blank" class="text-sm hover:text-nature-primary transition">Compliance</a></li>
-                        <li><a href="https://www.eclipse.org/legal/" target="_blank" class="text-sm hover:text-nature-primary transition">Legal</a></li>
+                    <h3 class="text-sm font-semibold text-stone-200 tracking-wider uppercase mb-4">Eclipse
+                        Foundation</h3>
+                    <ul class="space-y-2">
+                        <li><a href="https://www.eclipse.org" target="_blank"
+                               class="text-sm hover:text-nature-primary transition">Eclipse Foundation Website</a></li>
+                        <li><a href="https://www.eclipse.org/legal/privacy/" target="_blank"
+                               class="text-sm hover:text-nature-primary transition">Privacy Policy</a></li>
+                        <li><a href="https://www.eclipse.org/legal/terms-of-use/" target="_blank"
+                               class="text-sm hover:text-nature-primary transition">Website Terms of Use</a></li>
+                        <li><a href="https://www.eclipse.org/legal/compliance/" target="_blank"
+                               class="text-sm hover:text-nature-primary transition">Compliance</a></li>
+                        <li><a href="https://www.eclipse.org/legal/" target="_blank"
+                               class="text-sm hover:text-nature-primary transition">Legal</a></li>
                     </ul>
                 </div>
             </div>
         </div>
 
         <div class="pt-8 border-t border-stone-800 flex flex-col md:flex-row justify-between items-center gap-4">
-             <p class="text-xs text-stone-600">Copyright © Eclipse Foundation AISBL. All Rights Reserved.</p>
-             <img src="https://eclipse.dev/lmos/img/incubation_darkbg.png" alt="Eclipse Incubation" class="h-10 opacity-70 hover:opacity-100 transition"/>
+            <p class="text-xs text-stone-600">Copyright © Eclipse Foundation AISBL. All Rights Reserved.</p>
+            <img src="https://eclipse.dev/lmos/img/incubation_darkbg.png" alt="Eclipse Incubation"
+                 class="h-10 opacity-70 hover:opacity-100 transition"/>
         </div>
     </div>
 </footer>
