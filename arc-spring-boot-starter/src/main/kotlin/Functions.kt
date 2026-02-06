@@ -35,6 +35,7 @@ class Functions(private val beanProvider: BeanProvider) {
         isSensitive: Boolean = false,
         version: String? = null,
         outputDescription: String? = null,
+        metadata: Map<String, Any> = emptyMap(),
         fn: suspend DSLContext.(List<Any?>) -> String,
     ): LLMFunction {
         val context = BasicFunctionDefinitionContext(beanProvider)
@@ -46,6 +47,7 @@ class Functions(private val beanProvider: BeanProvider) {
             outputDescription = outputDescription,
             params = params,
             isSensitive = isSensitive,
+            metadata = metadata,
             fn = fn,
         )
         return context.functions.first()
