@@ -33,10 +33,10 @@
             const container = document.getElementById('features-scroll-container');
             const target = document.getElementById(id);
             if (container && target) {
-                const card = target.closest('.snap-center');
+                const card = target.closest('.snap-start');
                 if (card) {
                     container.scrollTo({
-                        left: card.offsetLeft,
+                        left: card.offsetLeft + 100,
                         behavior: 'smooth'
                     });
                 }
@@ -76,18 +76,17 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                 </svg>
-                <span class="font-bold text-xl tracking-tight text-nature-dark">ADL <span class="text-nature-primary">Server</span></span>
+                <span class="font-bold text-xl tracking-tight text-nature-dark">ADL</span>
             </div>
             <div class="hidden md:flex space-x-8">
                 <a href="#philosophy" class="text-sm font-medium text-stone-500 hover:text-nature-primary transition">Philosophy</a>
-                <a href="#features" class="text-sm font-medium text-stone-500 hover:text-nature-primary transition">Features</a>
                 <a href="#architecture" class="text-sm font-medium text-stone-500 hover:text-nature-primary transition">Integration</a>
                 <a href="#graphql-api" class="text-sm font-medium text-stone-500 hover:text-nature-sky transition">GraphQL</a>
             </div>
             <div>
                 <a href="https://github.com/eclipse-lmos/arc" target="_blank"
                    class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-nature-primary hover:bg-nature-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-nature-primary transition">
-                    Get Started
+                    Checkout on GitHub
                 </a>
             </div>
         </div>
@@ -112,13 +111,13 @@
                         Build complex behaviors with stateful conversations.
                     </p>
                     <div class="mt-5 sm:flex sm:justify-center lg:justify-start gap-4">
-                        <a href="#features"
+                        <a href="#usecases"
                            class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-nature-primary hover:bg-nature-light md:py-4 md:text-lg transition shadow-lg shadow-nature-primary/20">
                             Learn ADL
                         </a>
-                        <a href="/graphql"
+                        <a href="#run-adl-server"
                            class="flex items-center justify-center px-8 py-3 border border-nature-primary text-base font-medium rounded-md text-nature-primary hover:bg-nature-primary/10 md:py-4 md:text-lg transition">
-                            Try Playground
+                            Try ADL Studio
                         </a>
                     </div>
                 </div>
@@ -172,7 +171,7 @@
 <section id="adl-studio" class="py-16 bg-gradient-to-br from-nature-page to-white border-t border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-base text-nature-primary font-semibold tracking-wide uppercase">The IDE</h2>
+            <h2 class="text-base text-nature-primary font-semibold tracking-wide uppercase">The Face</h2>
             <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-nature-dark sm:text-4xl">
                 ADL Studio
             </p>
@@ -287,7 +286,7 @@
 <section id="run-adl-server" class="py-16 bg-nature-page border-t border-nature-border">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">Run ADL Server</h2>
+            <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">Run ADL Server + Studio</h2>
             <p class="mt-4 text-xl text-stone-600 lg:mx-auto">
                 Get up and running quickly with Docker.
             </p>
@@ -337,7 +336,7 @@ docker run -p 8080:8080 \
                 Why ADL?
             </p>
             <p class="mt-4 max-w-2xl text-xl text-stone-600 lg:mx-auto">
-                Prompting shouldn't be a black box. ADL brings structure to the chaos of Large Language Models.
+                Prompting is difficult so don't prompt. Instead define your requirements and let ADL to the rest.
             </p>
         </div>
 
@@ -571,7 +570,7 @@ docker run -p 8080:8080 \
                 </div>
 
                 <div class="flex overflow-x-auto gap-8 pb-6 snap-x relative" id="features-scroll-container">
-                    <div class="min-w-[500px] snap-center border-r border-nature-border pr-8" >
+                    <div class="min-w-[500px] snap-start border-r border-nature-border pr-8" >
                         <h4 class="font-bold text-nature-dark mb-2" id="conditionals">Conditionals</h4>
                         <div class="mt-4 bg-nature-dark p-3 rounded-lg text-xs border border-stone-800">
                             <div class="text-nature-accent font-bold mb-1">UseCase: password_reset</div>
@@ -631,7 +630,7 @@ docker run -p 8080:8080 \
                         </div>
                     </div>
                     <div class="min-w-[400px] border-r border-nature-border pr-8">
-                        <h4 class="font-bold text-nature-dark mb-2 snap-center" id="executable-code">Executable Code</h4>
+                        <h4 class="font-bold text-nature-dark mb-2 snap-start" id="executable-code">Executable Code</h4>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs text-stone-300 font-mono border border-stone-800">
                             <div class="text-nature-accent font-bold mb-1">UseCase: current_news</div>
                             <div class="text-nature-light font-bold mb-1">Description</div>
@@ -669,7 +668,7 @@ docker run -p 8080:8080 \
                             </ul>
                         </div>
                     </div>
-                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
+                    <div class="min-w-[400px] snap-start border-r border-nature-border pr-8">
                         <h4 id="tool-calls" class="font-bold text-nature-dark mb-2">Tool Calls</h4>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
                             <div class="text-nature-accent font-bold mb-1">UseCase: password_reset</div>
@@ -704,7 +703,7 @@ docker run -p 8080:8080 \
                             <li>Ensures execution.</li>
                         </ul>
                     </div>
-                    <div class="min-w-[400px] snap-center border-r border-nature-border pr-8">
+                    <div class="min-w-[400px] snap-start border-r border-nature-border pr-8">
                         <h4 id="static-responses" class="font-bold text-nature-dark mb-2">Static Responses</h4>
                         <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 mb-4">
                             <div class="text-nature-accent font-bold mb-1">UseCase: greeting</div>
@@ -725,7 +724,7 @@ docker run -p 8080:8080 \
                             the brackets.</p>
                     </div>
 
-                    <div class="min-w-[600px] snap-center">
+                    <div class="min-w-[600px] snap-start">
                         <h4 id="conversation-flows" class="font-bold text-nature-dark mb-2">Conversation flows</h4>
 
 
@@ -1083,7 +1082,7 @@ docker run -p 8080:8080 \
         <div class="text-center mb-12">
             <h2 class="text-3xl font-extrabold text-nature-dark tracking-tight">GraphQL API</h2>
             <p class="mt-4 text-xl text-stone-600 lg:mx-auto">
-                Comprehensive API for managing, compiling, testing, and evaluating agents.
+                Comprehensive API for managing, compiling, testing, and evaluating your ADLs.
             </p>
         </div>
 
@@ -1105,13 +1104,12 @@ docker run -p 8080:8080 \
                         <ul class="space-y-3 text-sm text-stone-600 font-mono">
                             <li>
                                 <span class="text-nature-primary font-bold">version</span>(): String
-                                <p class="text-xs text-stone-500 font-sans mt-1">Returns the supported API version.</p>
+                                <p class="text-xs text-stone-500 font-sans mt-1">Returns the supported ADL version.</p>
                             </li>
                             <li>
                                 <span class="text-nature-primary font-bold">list</span>(searchTerm: SearchCriteria?):
                                 [Adl]
-                                <p class="text-xs text-stone-500 font-sans mt-1">List stored ADLs, optionally
-                                    filtered.</p>
+                                <p class="text-xs text-stone-500 font-sans mt-1">List ADLs that semantically match a searchTerm.</p>
                             </li>
                             <li>
                                 <span class="text-nature-primary font-bold">searchById</span>(id: String): Adl
@@ -1120,25 +1118,35 @@ docker run -p 8080:8080 \
                             <li>
                                 <span class="text-nature-primary font-bold">search</span>(conversation: [Message], ...):
                                 [UseCaseMatch]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Find UseCases matching a conversation
+                                <p class="text-xs text-stone-500 font-sans mt-1">Find ADL UseCases matching a conversation
                                     context.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String,
+                                ...): StorageResult
+                                <p class="text-xs text-stone-500 font-sans mt-1">Save ADL definitions to storage.</p>
                             </li>
                         </ul>
                     </div>
 
-                    <!-- Tools & Tests -->
+                    <!-- Eval & Tests -->
                     <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
-                        <h4 class="font-bold text-nature-dark mb-2">Tools & Tests</h4>
+                        <h4 class="font-bold text-nature-dark mb-2">Eval & Tests</h4>
                         <ul class="space-y-3 text-sm text-stone-600 font-mono">
                             <li>
-                                <span class="text-nature-primary font-bold">getMcpTools</span>(): [AdlTool]
-                                <p class="text-xs text-stone-500 font-sans mt-1">List available MCP tools.</p>
+                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String):
+                                [TestCase]
+                                <p class="text-xs text-stone-500 font-sans mt-1">Auto-generate test cases.</p>
                             </li>
                             <li>
-                                <span class="text-nature-primary font-bold">testCases</span>(useCaseId: String):
+                                <span class="text-nature-primary font-bold">testCases</span>(adlId: String):
                                 [TestCase]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases for a specific
-                                    UseCase.</p>
+                                <p class="text-xs text-stone-500 font-sans mt-1">Fetch test cases.</p>
+                            </li>
+                            <li>
+                                <span class="text-nature-accent font-bold">eval</span>(input: EvalInput): EvalOutput
+                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against
+                                    inputs.</p>
                             </li>
                         </ul>
                     </div>
@@ -1176,53 +1184,14 @@ docker run -p 8080:8080 \
                                 SystemPromptResult
                                 <p class="text-xs text-stone-500 font-sans mt-1">Generate the full system prompt.</p>
                             </li>
-                        </ul>
-                    </div>
-
-                    <!-- Evaluation & Storage -->
-                    <div class="bg-nature-page p-4 rounded-lg border border-nature-border">
-                        <h4 class="font-bold text-nature-dark mb-2">Eval & Storage</h4>
-                        <ul class="space-y-3 text-sm text-stone-600 font-mono">
-                            <li>
-                                <span class="text-nature-accent font-bold">eval</span>(input: EvalInput): EvalOutput
-                                <p class="text-xs text-stone-500 font-sans mt-1">Run evaluation logic against
-                                    inputs.</p>
-                            </li>
                             <li>
                                 <span class="text-nature-accent font-bold">improveUseCase</span>(useCase: String):
                                 ImprovementResponse
                                 <p class="text-xs text-stone-500 font-sans mt-1">Get AI-suggested improvements.</p>
                             </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">store</span>(id: String, content: String,
-                                ...): StorageResult
-                                <p class="text-xs text-stone-500 font-sans mt-1">Save ADL definitions to storage.</p>
-                            </li>
-                            <li>
-                                <span class="text-nature-accent font-bold">createTests</span>(useCase: String):
-                                [TestCase]
-                                <p class="text-xs text-stone-500 font-sans mt-1">Auto-generate test cases.</p>
-                            </li>
                         </ul>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="mt-12 text-center">
-            <div class="inline-flex bg-nature-page p-1 rounded-lg border border-nature-border">
-                <div class="px-4 py-2 flex items-center gap-2">
-                    <span class="text-sm font-medium text-nature-dark">Ready to explore?</span>
-                    <code class="text-xs bg-stone-900 text-stone-300 px-2 py-1 rounded">POST /graphql</code>
-                </div>
-                <a href="/graphiql" target="_blank"
-                   class="px-4 py-2 bg-white rounded shadow-sm text-sm font-medium text-nature-primary hover:text-nature-dark flex items-center gap-1 transition-colors">
-                    Open GraphiQL
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                    </svg>
-                </a>
             </div>
         </div>
     </div>

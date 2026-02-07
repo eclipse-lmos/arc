@@ -24,13 +24,17 @@ import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
+import org.eclipse.lmos.adl.server.agents.createFacesAgent
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.agents.createSpellingAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
 import org.eclipse.lmos.adl.server.agents.createTestVariantCreatorAgent
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.WidgetsMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
+import org.eclipse.lmos.adl.server.inbound.query.WidgetQuery
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryWidgetRepository
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
@@ -77,10 +81,12 @@ fun startServer(
     val mcpService = McpService()
     val testCaseRepository = InMemoryTestCaseRepository()
     val userSettingsRepository = InMemoryUserSettingsRepository()
+    val widgetRepository = InMemoryWidgetRepository()
 
     // Agents
     val exampleAgent = createExampleAgent()
     val evalAgent = createEvalAgent()
+    val facesAgent = createFacesAgent()
     val assistantAgent =
         createAssistantAgent(mcpService, testCaseRepository, embeddingStore, adlStorage, embeddingModel)
     val testCreatorAgent = createTestCreatorAgent()
@@ -138,6 +144,7 @@ fun startServer(
                     TestCaseQuery(testCaseRepository),
                     McpToolsQuery(mcpService),
                     UserSettingsQuery(userSettingsRepository),
+                    WidgetQuery(widgetRepository),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
@@ -156,6 +163,7 @@ fun startServer(
                     UseCaseImprovementMutation(improvementAgent),
                     AdlExampleMutation(exampleAgent),
                     McpMutation(mcpService),
+                    WidgetsMutation(facesAgent, widgetRepository),
                     SpellingMutation(spellingAgent),
                     UserSettingsMutation(userSettingsRepository),
                 )
