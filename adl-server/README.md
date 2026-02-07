@@ -49,11 +49,22 @@ Run the following command from the root of the repository:
 docker build -f adl-server/Dockerfile -t adl-server .
 ```
 
-#### Run the Docker Container
+#### Run via GitHub Container Registry
 
-```sh
-docker run -p 8080:8080 -e OPENAI_API_KEY=your-api-key adl-server
-```
+To pull and run the latest image from the GitHub Container Registry:
+
+1.  **Login to GitHub Container Registry** (if required):
+    Follow the instructions here: [Working with the Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+
+2.  **Run the container**:
+
+    ```bash
+    docker run -p 8080:8080 \
+      -e ARC_AI_KEY=[OPENAI_API_KEY] \
+      -e ARC_MODEL=gpt-4o \
+      -e ARC_CLIENT=openai \
+      ghcr.io/eclipse-lmos/adl-server:latest
+    ```
 
 ### GraphQL Endpoint
 

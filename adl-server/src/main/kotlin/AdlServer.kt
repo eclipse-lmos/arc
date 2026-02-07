@@ -38,8 +38,10 @@ import org.eclipse.lmos.adl.server.inbound.mutation.McpMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.SpellingMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
+import org.eclipse.lmos.adl.server.inbound.query.UserSettingsQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.TestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.UseCaseImprovementMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.UserSettingsMutation
 import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
@@ -48,6 +50,7 @@ import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUserSettingsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
@@ -73,6 +76,7 @@ fun startServer(
     val adlStorage: AdlRepository = InMemoryAdlRepository()
     val mcpService = McpService()
     val testCaseRepository = InMemoryTestCaseRepository()
+    val userSettingsRepository = InMemoryUserSettingsRepository()
 
     // Agents
     val exampleAgent = createExampleAgent()
@@ -127,11 +131,13 @@ fun startServer(
                     "org.eclipse.lmos.adl.server.agents",
                     "org.eclipse.lmos.arc.api",
                     "org.eclipse.lmos.adl.server.model",
+                    "org.eclipse.lmos.adl.server.models",
                 )
                 queries = listOf(
                     AdlQuery(embeddingStore, adlStorage),
                     TestCaseQuery(testCaseRepository),
                     McpToolsQuery(mcpService),
+                    UserSettingsQuery(userSettingsRepository),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
@@ -151,6 +157,7 @@ fun startServer(
                     AdlExampleMutation(exampleAgent),
                     McpMutation(mcpService),
                     SpellingMutation(spellingAgent),
+                    UserSettingsMutation(userSettingsRepository),
                 )
             }
             server {
