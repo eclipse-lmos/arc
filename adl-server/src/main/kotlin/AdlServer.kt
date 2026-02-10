@@ -24,7 +24,7 @@ import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
-import org.eclipse.lmos.adl.server.agents.createFacesAgent
+import org.eclipse.lmos.adl.server.agents.createWidgetCreatorAgent
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.agents.createSpellingAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
@@ -86,9 +86,16 @@ fun startServer(
     // Agents
     val exampleAgent = createExampleAgent()
     val evalAgent = createEvalAgent()
-    val facesAgent = createFacesAgent()
+    val facesAgent = createWidgetCreatorAgent()
     val assistantAgent =
-        createAssistantAgent(mcpService, testCaseRepository, embeddingStore, adlStorage, embeddingModel)
+        createAssistantAgent(
+            mcpService,
+            testCaseRepository,
+            embeddingStore,
+            adlStorage,
+            embeddingModel,
+            widgetRepository,
+        )
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val improvementAgent = createImprovementAgent()

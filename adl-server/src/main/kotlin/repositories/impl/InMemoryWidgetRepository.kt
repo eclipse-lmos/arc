@@ -23,5 +23,8 @@ class InMemoryWidgetRepository : WidgetRepository {
     override fun findAll(): List<Widget> {
         return widgets.values.toList()
     }
-}
 
+    override fun delete(id: String): Boolean {
+        return widgets.remove(id) != null
+    }
+}

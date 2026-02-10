@@ -52,11 +52,19 @@ class WidgetsMutation(
         val widget = Widget(
             id = id,
             name = input.name,
+            description = input.description,
             html = input.html,
             jsonSchema = input.jsonSchema,
             preview = input.preview
         )
         return widgetRepository.save(widget)
+    }
+
+    @GraphQLDescription("Delete a widget")
+    fun deleteWidget(
+        @GraphQLDescription("The ID of the widget to delete") id: String
+    ): Boolean {
+        return widgetRepository.delete(id)
     }
 }
 
@@ -84,6 +92,8 @@ data class SaveWidgetInput(
     val id: String? = null,
     @GraphQLDescription("The widget name")
     val name: String,
+    @GraphQLDescription("The widget description")
+    val description: String? = null,
     @GraphQLDescription("The HTML content of the widget")
     val html: String,
     @GraphQLDescription("The JSON schema")

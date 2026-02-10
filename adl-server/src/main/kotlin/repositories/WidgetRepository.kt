@@ -10,5 +10,5 @@ interface WidgetRepository {
     fun save(widget: Widget): Widget
     fun findById(id: String): Widget?
     fun findAll(): List<Widget>
+    fun delete(id: String): Boolean
 }
-

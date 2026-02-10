@@ -113,6 +113,9 @@ dependencies {
     implementation(project(":arc-azure-client"))
     // implementation("dev.langchain4j:langchain4j-ollama:1.8.0")
 
+    // Mutsache
+    implementation("com.github.spullara.mustache.java:compiler:0.9.14")
+
     // Qdrant
     implementation("io.qdrant:client:1.15.0")
     implementation("com.google.guava:guava:33.5.0-jre")

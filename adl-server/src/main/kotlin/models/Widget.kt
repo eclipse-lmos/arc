@@ -12,6 +12,8 @@ data class Widget(
     val id: String,
     @GraphQLDescription("The widget name")
     val name: String,
+    @GraphQLDescription("The widget description")
+    val description: String? = null,
     @GraphQLDescription("The HTML content of the widget")
     val html: String,
     @GraphQLDescription("The JSON schema")
@@ -19,4 +21,3 @@ data class Widget(
     @GraphQLDescription("Preview image or data")
     val preview: String? = null
 )
-

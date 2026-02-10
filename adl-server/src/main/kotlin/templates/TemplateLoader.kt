@@ -38,7 +38,7 @@ class TemplateLoader {
             .replace(USE_CASES_PLACEHOLDER, useCases)
     }
 
-    private fun loadResource(path: String): String {
+    fun loadResource(path: String): String {
         return TemplateLoader::class.java.getResourceAsStream(path)?.bufferedReader()?.readText()
             ?: error("Could not load resource: $path")
     }

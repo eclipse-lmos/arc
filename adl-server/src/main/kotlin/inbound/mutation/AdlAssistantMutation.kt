@@ -30,7 +30,7 @@ import java.time.Duration
 
 class AdlAssistantMutation(
     private val assistantAgent: ConversationAgent,
-    private val adlStorage: AdlRepository
+    private val adlStorage: AdlRepository,
 ) : Mutation {
 
     private val log = org.slf4j.LoggerFactory.getLogger(this.javaClass)

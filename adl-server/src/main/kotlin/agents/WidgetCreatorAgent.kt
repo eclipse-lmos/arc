@@ -3,40 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.adl.server.agents
 
-import dev.langchain4j.model.embedding.EmbeddingModel
-import dev.langchain4j.store.embedding.CosineSimilarity
-import org.eclipse.lmos.adl.server.agents.extensions.ConversationGuider
-import org.eclipse.lmos.adl.server.agents.extensions.InputHintProvider
-import org.eclipse.lmos.adl.server.agents.extensions.currentDate
-import org.eclipse.lmos.adl.server.agents.extensions.isWeekend
-import org.eclipse.lmos.adl.server.repositories.AdlRepository
-import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
-import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
-import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agent.ask
 import org.eclipse.lmos.arc.agents.agents
-import org.eclipse.lmos.arc.agents.conversation.Conversation
-import org.eclipse.lmos.arc.agents.conversation.UserMessage
-import org.eclipse.lmos.arc.agents.conversation.latest
-import org.eclipse.lmos.arc.agents.dsl.extensions.addTool
-import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
-import org.eclipse.lmos.arc.agents.dsl.extensions.info
-import org.eclipse.lmos.arc.agents.dsl.extensions.local
-import org.eclipse.lmos.arc.agents.dsl.extensions.processUseCases
-import org.eclipse.lmos.arc.agents.dsl.extensions.time
-import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
-import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
-import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
-import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
-import org.eclipse.lmos.arc.assistants.support.usecases.features.processFlow
-import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Result
-import kotlin.compareTo
 
 /**
  * Creates and configures the Faces Agent for generating UI widgets based on user prompts.
@@ -50,7 +24,7 @@ import kotlin.compareTo
  *
  * @return A configured [FacesAgent] ready to generate UI widgets based on user prompts.
  */
-fun createFacesAgent(): FacesAgent = agents(handlers = listOf(LoggingEventHandler())) {
+fun createWidgetCreatorAgent(): FacesAgent = agents(handlers = listOf(LoggingEventHandler())) {
     agent {
         name = "faces_agent"
         settings = { ChatCompletionSettings(temperature = 0.0, seed = 42) }
@@ -60,7 +34,7 @@ fun createFacesAgent(): FacesAgent = agents(handlers = listOf(LoggingEventHandle
 
                 ## Goal
                 Generate a single, reusable UI widget using plain HTML + Tailwind CSS classes, 
-                with placeholders for dynamic values, 
+                using the mustache syntax to provide placeholders for dynamic values, 
                 AND generate a JSON Schema that defines the data required to populate those placeholders.
 
                 Inputs I will provide (as the user):
