@@ -99,7 +99,7 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
             if (result.value.classification != null) {
                 result.value.classification.toString()
             } else if (response?.contains("AGENT_HANDOVER") == true) {
-                response
+                "AGENT_HANDOVER"
             } else {
                 when (result.value.latest<AssistantMessage>()?.content) {
                     "UNRESOLVED" -> "UNRESOLVED"
