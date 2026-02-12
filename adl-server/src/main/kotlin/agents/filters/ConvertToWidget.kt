@@ -42,22 +42,27 @@ class ConvertToWidget(private val widgetRepository: WidgetRepository) : AgentOut
     override suspend fun filter(
         message: ConversationMessage,
         context: OutputFilterContext
-    ): ConversationMessage? {
-        if (true) return null // currently disabled
-        return context.getCurrentUseCases()?.currentUseCase()?.let {
-            val widget = widgetRepository.findAll().first()
+    ): ConversationMessage {
+        return context.getCurrentUseCases()?.currentUseCase()?.let { useCase ->
+            val widgetName = useCase.output.joinToString { it.text }.trim().takeIf { it.isNotEmpty() } ?: return message
+            val widget = widgetRepository.findByName(widgetName).firstOrNull() ?: return message
 
             val data = context.llm(
                 system = prompt.replace("{{schema}}", widget.jsonSchema),
                 user = context.outputMessage.content
             ).getOrThrow().content
+            val dataMap = mapper.readValue(data, mapType)
+
+            if (dataMap.isNullOrEmpty() || dataMap.all { it.value == null }) {
+                return message // Don't render the widget if all values are null
+            }
 
             val m = mustacheFactory.compile(StringReader(widget.html), "widget")
             val writer = StringWriter()
 
-            m.execute(writer, mapper.readValue(data, mapType)).flush()
+            m.execute(writer, dataMap).flush()
             val html: String = writer.toString()
             context.outputMessage.update(html)
-        }
+        } ?: message
     }
 }

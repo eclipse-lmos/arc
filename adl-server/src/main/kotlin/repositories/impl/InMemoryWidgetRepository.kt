@@ -20,6 +20,10 @@ class InMemoryWidgetRepository : WidgetRepository {
         return widgets[id]
     }
 
+    override fun findByName(name: String): List<Widget> {
+        return widgets.values.filter { it.name == name }
+    }
+
     override fun findAll(): List<Widget> {
         return widgets.values.toList()
     }
