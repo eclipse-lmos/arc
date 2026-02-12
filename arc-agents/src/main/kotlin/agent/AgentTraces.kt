@@ -100,13 +100,14 @@ fun Tags.addResultTags(result: Result<Conversation, AgentFailedException>, flowB
                 result.value.classification.toString()
             } else if (response?.contains("AGENT_HANDOVER") == true) {
                 "AGENT_HANDOVER"
+            } else if (response?.contains("HACKING_DETECTED") == true) {
+                "HACKING_DETECTED"
+            } else if (response?.contains("UNRESOLVED") == true) {
+                "UNRESOLVED"
+            } else if (response?.contains("RESOLVED") == true) {
+                "RESOLVED"
             } else {
-                when (result.value.latest<AssistantMessage>()?.content) {
-                    "UNRESOLVED" -> "UNRESOLVED"
-                    "RESOLVED" -> "RESOLVED"
-                    "HACKING_DETECTED" -> "HACKING_DETECTED"
-                    else -> "ONGOING"
-                }
+                "ONGOING"
             }
         }
 
