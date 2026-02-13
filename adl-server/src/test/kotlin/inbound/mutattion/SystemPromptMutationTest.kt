@@ -9,6 +9,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.sessions.Sessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
+import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
+import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryRolePromptRepository
+import org.eclipse.lmos.adl.server.models.RolePrompt
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -16,13 +20,15 @@ class SystemPromptMutationTest {
 
     private lateinit var sessions: Sessions
     private lateinit var templateLoader: TemplateLoader
+    private lateinit var rolePromptRepository: RolePromptRepository
     private lateinit var mutation: SystemPromptMutation
 
     @BeforeEach
     fun setUp() {
         sessions = InMemorySessions()
         templateLoader = TemplateLoader()
-        mutation = SystemPromptMutation(sessions, templateLoader)
+        rolePromptRepository = InMemoryRolePromptRepository()
+        mutation = SystemPromptMutation(sessions, templateLoader, rolePromptRepository)
     }
 
     @Test
@@ -252,6 +258,37 @@ class SystemPromptMutationTest {
             assertThat(resultMobileOnly.systemPrompt).contains("mobile_case")
             assertThat(resultMobileOnly.systemPrompt).doesNotContain("premium_case")
             assertThat(resultMobileOnly.systemPrompt).contains("general_case")
+        }
+    }
+
+    @Test
+    fun `systemPrompt with custom role from repository`() {
+        runBlocking {
+            val adl = """
+                ### UseCase: test
+                #### Description
+                Test.
+                
+                #### Solution
+                Test.
+                ----
+            """.trimIndent()
+
+            rolePromptRepository.save(
+                RolePrompt(
+                    id = "custom-role",
+                    name = "Custom Role",
+                    description = "A custom role",
+                    tags = listOf("test"),
+                    role = "You are a custom role assistant.",
+                    tone = "Be very formal."
+                )
+            )
+
+            val result = mutation.systemPrompt(adl, roleId = "custom-role")
+
+            assertThat(result.systemPrompt).contains("You are a custom role assistant.")
+            assertThat(result.systemPrompt).contains("Be very formal.")
         }
     }
 }

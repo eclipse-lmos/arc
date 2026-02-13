@@ -41,6 +41,7 @@ import org.eclipse.lmos.arc.core.getOrThrow
 import java.io.StringWriter
 import com.github.mustachejava.DefaultMustacheFactory
 import org.eclipse.lmos.adl.server.agents.filters.ConvertToWidget
+import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
 import java.io.StringReader
 
 
@@ -63,6 +64,7 @@ fun createAssistantAgent(
     adlRepository: AdlRepository,
     embeddingModel: EmbeddingModel,
     widgetRepository: WidgetRepository,
+    rolePromptRepository: RolePromptRepository
 ): ConversationAgent = agents(
     handlers = listOf(LoggingEventHandler()),
     functionLoaders = listOf(mcpService)
@@ -88,7 +90,15 @@ fun createAssistantAgent(
             +UnresolvedDetector { "UNRESOLVED" }
         }
         prompt {
-            val role = local("role.md")!!
+            val role = rolePromptRepository.findAll().firstOrNull()?.let {
+                """
+                    ## Role and Responsibilities
+                    ${it.role}
+                    
+                    ## Language & Tone Requirements
+                    ${it.tone}
+                """.trimIndent()
+            } ?: local("role.md")!!
 
             // Load Use Cases
             val currentUseCases = get<List<UseCase>>()

@@ -9,7 +9,7 @@ import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.model.embedding.EmbeddingModel
 import dev.langchain4j.model.output.Response
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.junit.jupiter.api.Test
 

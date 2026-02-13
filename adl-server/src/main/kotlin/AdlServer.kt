@@ -53,14 +53,19 @@ import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryRolePromptRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUserSettingsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
 import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
+import org.eclipse.lmos.adl.server.inbound.query.RolePromptQuery
 import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
 import org.eclipse.lmos.adl.server.model.Adl
+import org.eclipse.lmos.adl.server.models.RolePrompt
+import org.eclipse.lmos.adl.server.inbound.mutation.RolePromptMutation
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.time.Instant.now
@@ -78,6 +83,7 @@ fun startServer(
     // val useCaseStore: UseCaseEmbeddingsRepository = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
     val embeddingStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
     val adlStorage: AdlRepository = InMemoryAdlRepository()
+    val rolePromptRepository: RolePromptRepository = InMemoryRolePromptRepository()
     val mcpService = McpService()
     val testCaseRepository = InMemoryTestCaseRepository()
     val userSettingsRepository = InMemoryUserSettingsRepository()
@@ -95,6 +101,7 @@ fun startServer(
             adlStorage,
             embeddingModel,
             widgetRepository,
+            rolePromptRepository
         )
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
@@ -111,6 +118,13 @@ fun startServer(
 
     // Add example data
     runBlocking {
+        // Load default role prompt
+        val defaultRoleContent = templateLoader.loadResource("/role.md")
+        val rolePart = defaultRoleContent.substringBefore("## Language & Tone Requirements").trim()
+        val tonePart = if (defaultRoleContent.contains("## Language & Tone Requirements")) {
+            "## Language & Tone Requirements\n" + defaultRoleContent.substringAfter("## Language & Tone Requirements").trim()
+        } else ""
+
         // log.info("Loading examples", id, examples.size)
         listOf("buy_a_car.md", "greeting.md", "unsure_customer.md").forEach { name ->
             val content = this::class.java.classLoader.getResource("examples/$name")!!.readText()
@@ -148,31 +162,27 @@ fun startServer(
                 )
                 queries = listOf(
                     AdlQuery(embeddingStore, adlStorage),
-                    TestCaseQuery(testCaseRepository),
                     McpToolsQuery(mcpService),
+                    TestCaseQuery(testCaseRepository),
                     UserSettingsQuery(userSettingsRepository),
                     WidgetQuery(widgetRepository),
+                    RolePromptQuery(rolePromptRepository),
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
+                    SystemPromptMutation(sessions, templateLoader, rolePromptRepository),
                     AdlStorageMutation(embeddingStore, adlStorage),
-                    SystemPromptMutation(sessions, templateLoader),
-                    AdlEvalMutation(evalAgent, conversationEvaluator),
-                    AdlAssistantMutation(assistantAgent, adlStorage),
-                    AdlValidationMutation(),
-                    TestCreatorMutation(
-                        testCreatorAgent,
-                        testCaseRepository,
-                        testExecutor,
-                        adlStorage,
-                        testVariantAgent
-                    ),
-                    UseCaseImprovementMutation(improvementAgent),
-                    AdlExampleMutation(exampleAgent),
                     McpMutation(mcpService),
-                    WidgetsMutation(facesAgent, widgetRepository),
-                    SpellingMutation(spellingAgent),
                     UserSettingsMutation(userSettingsRepository),
+                    UseCaseImprovementMutation(improvementAgent),
+                    SpellingMutation(spellingAgent),
+                    AdlEvalMutation(evalAgent, conversationEvaluator),
+                    AdlExampleMutation(exampleAgent),
+                    TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor, adlStorage, testVariantAgent),
+                    AdlValidationMutation(),
+                    AdlAssistantMutation(assistantAgent, adlStorage),
+                    WidgetsMutation(facesAgent, widgetRepository),
+                    RolePromptMutation(rolePromptRepository),
                 )
             }
             server {
