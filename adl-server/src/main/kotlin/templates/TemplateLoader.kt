@@ -29,11 +29,19 @@ class TemplateLoader {
      * Renders the system prompt template with the given placeholder values.
      * @param time The current time string to inject.
      * @param useCases The compiled use cases string to inject.
+     * @param role The role prompt content to inject.
+     * @param tone The tone prompt content to inject.
      * @return The rendered system prompt.
      */
-    fun render(time: String, useCases: String): String {
+    fun render(time: String, useCases: String, role: String? = null, tone: String? = null): String {
+        val roleContent = when {
+            role != null && tone != null -> "$role\n\n$tone"
+            role != null -> role
+            tone != null -> tone
+            else -> roleTemplate
+        }
         return assistantTemplate
-            .replace(ROLE_PLACEHOLDER, roleTemplate)
+            .replace(ROLE_PLACEHOLDER, roleContent)
             .replace(TIME_PLACEHOLDER, time)
             .replace(USE_CASES_PLACEHOLDER, useCases)
     }

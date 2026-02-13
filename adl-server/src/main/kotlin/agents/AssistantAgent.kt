@@ -41,6 +41,8 @@ import org.eclipse.lmos.arc.core.getOrThrow
 import java.io.StringWriter
 import com.github.mustachejava.DefaultMustacheFactory
 import org.eclipse.lmos.adl.server.agents.filters.ConvertToWidget
+import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
+import org.eclipse.lmos.arc.agents.dsl.extensions.system
 import java.io.StringReader
 
 
@@ -63,6 +65,7 @@ fun createAssistantAgent(
     adlRepository: AdlRepository,
     embeddingModel: EmbeddingModel,
     widgetRepository: WidgetRepository,
+    rolePromptRepository: RolePromptRepository
 ): ConversationAgent = agents(
     handlers = listOf(LoggingEventHandler()),
     functionLoaders = listOf(mcpService)
@@ -88,14 +91,23 @@ fun createAssistantAgent(
             +UnresolvedDetector { "UNRESOLVED" }
         }
         prompt {
-            val role = local("role.md")!!
+            val roleId = system("role", "default")
+            val role = rolePromptRepository.findById(roleId)?.let {
+                """
+                    ## Role and Responsibilities
+                    ${it.role}
+                    
+                    ## Language & Tone Requirements
+                    ${it.tone}
+                """.trimIndent()
+            } ?: local("role.md")!!
 
             // Load Use Cases
             val currentUseCases = get<List<UseCase>>()
             val message = get<Conversation>().latest<UserMessage>()?.content
             val otherUseCases = embeddingsRepository.search(message!!, limit = 40, scoreThreshold = 0.7f)
                 .distinctBy { it.adlId }
-                .flatMap { adlRepository.get(it.adlId)?.content?.toUseCases() ?: emptyList() }
+                .flatMap { adlRepository.getAsUseCases(it.adlId)}
             info("Loaded ${otherUseCases.size} additional use cases from embeddings store.")
             val baseUseCases = local("base_use_cases.md")?.toUseCases() ?: emptyList()
 

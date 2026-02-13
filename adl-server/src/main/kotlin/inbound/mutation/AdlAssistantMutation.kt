@@ -40,8 +40,8 @@ class AdlAssistantMutation(
         @GraphQLDescription("The assistant input") input: AssistantInput,
     ): AgentResult {
         log.info("Received assistant request with useCases: ${input.request.conversationContext.conversationId}")
-        if(input.useCases == null && input.useCasesId == null) error("Either useCases or useCase Id must be defined!")
-        val useCases = input.useCasesId?.let{ adlStorage.get(it) } ?: input.useCases!!.toUseCases()
+        if (input.useCases == null && input.useCasesId == null) error("Either useCases or useCase Id must be defined!")
+        val useCases = input.useCasesId?.let { adlStorage.getAsUseCases(it) } ?: input.useCases!!.toUseCases()
         val request = input.request
         val outputContext = OutputContext()
         val start = System.nanoTime()

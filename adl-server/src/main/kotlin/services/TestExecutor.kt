@@ -19,7 +19,6 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.getUseCase
-import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import org.slf4j.LoggerFactory
@@ -35,11 +34,10 @@ class TestExecutor(
     private val conversationEvaluator: ConversationEvaluator,
 ) {
 
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     suspend fun executeTests(adlId: String, testCaseId: String? = null): TestRunResult {
-        val adl = adlStorage.get(adlId) ?: throw IllegalArgumentException("ADL not found: $adlId")
-        val useCases = adl.content.toUseCases()
+        val useCases = adlStorage.getAsUseCases(adlId)
+        if (useCases.isEmpty()) throw IllegalArgumentException("ADL not found or empty: $adlId")
 
         val testCases = if (testCaseId != null) {
             val testCase = testCaseRepository.findById(testCaseId)

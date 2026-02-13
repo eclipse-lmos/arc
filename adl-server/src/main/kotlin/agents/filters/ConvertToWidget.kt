@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package org.eclipse.lmos.adl.server.agents.filters
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.mustachejava.DefaultMustacheFactory
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.WidgetRepository
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -11,6 +16,7 @@ import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.llm
 import org.eclipse.lmos.arc.core.getOrThrow
+import org.slf4j.LoggerFactory
 import java.io.StringReader
 import java.io.StringWriter
 
@@ -25,12 +31,15 @@ import java.io.StringWriter
  *
  * @property widgetRepository Repository to fetch widget definitions.
  */
-class ConvertToWidget(private val widgetRepository: WidgetRepository) : AgentOutputFilter {
+class ConvertToWidget(
+    private val widgetRepository: WidgetRepository,
+) : AgentOutputFilter {
 
     private val mapper = jacksonObjectMapper()
     private val mustacheFactory = DefaultMustacheFactory()
     private val mapType = object : TypeReference<HashMap<String?, Any?>?>() {}
     private val prompt = TemplateLoader().loadResource("/json_converter.md")
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Filters the agent's conversation message.
@@ -44,25 +53,36 @@ class ConvertToWidget(private val widgetRepository: WidgetRepository) : AgentOut
         context: OutputFilterContext
     ): ConversationMessage {
         return context.getCurrentUseCases()?.currentUseCase()?.let { useCase ->
-            val widgetName = useCase.output.joinToString { it.text }.trim().takeIf { it.isNotEmpty() } ?: return message
-            val widget = widgetRepository.findByName(widgetName).firstOrNull() ?: return message
+            try {
+                val widgetName =
+                    useCase.output.joinToString { it.text }.trim().takeIf { it.isNotEmpty() } ?: return message
+                val widget =
+                    widgetRepository.findById(widgetName) ?: widgetRepository.findByName(widgetName).firstOrNull()
+                    ?: return message
 
-            val data = context.llm(
-                system = prompt.replace("{{schema}}", widget.jsonSchema),
-                user = context.outputMessage.content
-            ).getOrThrow().content
-            val dataMap = mapper.readValue(data, mapType)
+                val data = context.llm(
+                    system = prompt.replace("{{schema}}", widget.jsonSchema),
+                    user = context.outputMessage.content
+                ).getOrThrow().content
+                val dataMap = mapper.readValue(data, mapType)
 
-            if (dataMap.isNullOrEmpty() || dataMap.all { it.value == null }) {
-                return message // Don't render the widget if all values are null
+                if (dataMap.isNullOrEmpty() || dataMap.all {
+                        it.value == null || (it.value is List<*> && (it.value as List<*>).isEmpty()) || (it.value is Array<*> && (it.value as Array<*>).isEmpty())
+                    }) {
+                    return message // Don't render the widget if all values are null
+                }
+
+                val m = mustacheFactory.compile(StringReader(widget.html), "widget")
+                val writer = StringWriter()
+
+                m.execute(writer, dataMap).flush()
+                val html: String = writer.toString()
+                context.outputMessage.update(html)
+            } catch (ex: Exception) {
+                // Log the error and return the original message if any step fails
+                log.error("Error in ConvertToWidget filter: ${ex.message}")
+                return message
             }
-
-            val m = mustacheFactory.compile(StringReader(widget.html), "widget")
-            val writer = StringWriter()
-
-            m.execute(writer, dataMap).flush()
-            val html: String = writer.toString()
-            context.outputMessage.update(html)
         } ?: message
     }
 }

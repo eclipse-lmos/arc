@@ -20,30 +20,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.qdrant.QdrantContainer
 import io.ktor.client.engine.cio.CIO as ClientCIO
+import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
+import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 
-@Testcontainers
 class AdlStorageMutationIntegrationTest {
 
     companion object {
-        @Container
-        @JvmStatic
-        val qdrantContainer = QdrantContainer("qdrant/qdrant:v1.7.4")
-
-        @BeforeAll
-        @JvmStatic
-        fun startContainer() {
-            qdrantContainer.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stopContainer() {
-            qdrantContainer.stop()
-        }
     }
 
     private val testPort = 18081
@@ -58,8 +41,8 @@ class AdlStorageMutationIntegrationTest {
     @BeforeEach
     fun setUp() {
         val qdrantConfig = QdrantConfig(
-            host = qdrantContainer.host,
-            port = qdrantContainer.grpcPort,
+            host = "localhost",
+            port = 6333,
         )
         server = startServer(wait = false, port = testPort, qdrantConfig = qdrantConfig)
         client = HttpClient(ClientCIO)
@@ -270,9 +253,19 @@ class AdlStorageMutationIntegrationTest {
     }
 
     private suspend fun executeStoreMutation(adl: String): StorageResultData {
+        val useCases = adl.toUseCases()
+        val id = useCases.firstOrNull()?.id ?: "unknown"
+        val examples = useCases.flatMap { it.examples.split("\n") }.filter { it.isNotBlank() }
+
+        val examplesJson = examples.joinToString(", ") { "\"${it.replace("\"", "\\\"")}\"" }
+        val idJson = "\"$id\""
+        val contentJson = adl.toGraphQLString()
+        val tagsJson = "[]"
+        val outputJson = "\"\""
+
         val query = """
             mutation {
-                store(adl: ${adl.toGraphQLString()}) {
+                store(id: $idJson, content: $contentJson, tags: $tagsJson, examples: [$examplesJson], output: $outputJson) {
                     storedExamplesCount
                     message
                 }

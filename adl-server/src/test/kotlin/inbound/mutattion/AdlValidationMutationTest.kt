@@ -6,6 +6,7 @@ package org.eclipse.lmos.adl.server.inbound
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
 import org.junit.jupiter.api.Test
 
 class AdlValidationMutationTest {
@@ -44,8 +45,8 @@ class AdlValidationMutationTest {
 
         val result = mutation.validate(invalidAdl)
 
-        assertThat(result.syntaxErrors).isNotEmpty
-        assertThat(result.syntaxErrors.any { it.message.contains("Unclosed") }).isTrue
+        assertThat(result.syntaxErrors).isNotEmpty()
+        assertThat(result.syntaxErrors.any { it.message.contains("Unclosed") }).isTrue()
     }
 
     @Test
@@ -77,7 +78,7 @@ class AdlValidationMutationTest {
         val result = mutation.validate(adl)
 
         assertThat(result.references).contains("usecase1", "usecase2")
-        assertThat(result.references.any { it.contains("example.com") }).isTrue
+        assertThat(result.references.any { it.contains("example.com") }).isTrue()
     }
 
     @Test
@@ -92,8 +93,8 @@ class AdlValidationMutationTest {
 
         val result = mutation.validate(adl)
 
-        assertThat(result.syntaxErrors).isNotEmpty
-        assertThat(result.syntaxErrors.any { it.message.contains("quote") }).isTrue
+        assertThat(result.syntaxErrors).isNotEmpty()
+        assertThat(result.syntaxErrors.any { it.message.contains("quote") }).isTrue()
     }
 
     @Test
@@ -109,7 +110,7 @@ class AdlValidationMutationTest {
         val result = mutation.validate(malformedAdl)
 
         // Should have syntax errors
-        assertThat(result.syntaxErrors).isNotEmpty
+        assertThat(result.syntaxErrors).isNotEmpty()
         // But should still extract tools and references
         assertThat(result.usedTools).contains("extract_tool")
         assertThat(result.references).contains("some_usecase")
@@ -137,8 +138,7 @@ class AdlValidationMutationTest {
 
         val result = mutation.validate(adl)
 
-        assertThat(result.syntaxErrors).isNotEmpty
-        assertThat(result.syntaxErrors.any { it.message.contains("Mixed tabs and spaces") }).isTrue
+        assertThat(result.syntaxErrors).isNotEmpty()
+        assertThat(result.syntaxErrors.any { it.message.contains("Mixed tabs and spaces") }).isTrue()
     }
 }
-

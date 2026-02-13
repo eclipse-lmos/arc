@@ -23,6 +23,9 @@ data class Adl(
     @GraphQLDescription("Examples included in the ADL")
     val examples: List<String> = emptyList(),
 
+    @GraphQLDescription("The output template defined.")
+    val output: String? = null,
+
     @GraphQLDescription("Relevance score")
     val relevance: Double? = null,
 

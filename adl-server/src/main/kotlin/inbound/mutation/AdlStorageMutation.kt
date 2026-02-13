@@ -30,10 +30,11 @@ class AdlStorageMutation(
         @GraphQLDescription("Tags associated with the ADL") tags: List<String>,
         @GraphQLDescription("Timestamp when the ADL was created") createdAt: String? = null,
         @GraphQLDescription("Examples") examples: List<String>,
+        @GraphQLDescription("The output template") output: String? = null,
     ): StorageResult {
         log.info("Storing ADL with id: {} with {} examples", id, examples.size)
         val allExamples = content.toUseCases().flatMap { it.examples.split("\n") }.filter { it.isNotBlank() } + examples
-        adlStorage.store(Adl(id, content.trim(), tags, createdAt ?: now().toString(), allExamples))
+        adlStorage.store(Adl(id, content.trim(), tags, createdAt ?: now().toString(), allExamples, output = output))
         val storedCount = useCaseStore.storeUtterances(id, allExamples)
         log.debug("Successfully stored ADL with id: {}. Generated {} embeddings.", id, storedCount)
         return StorageResult(
@@ -56,6 +57,23 @@ class AdlStorageMutation(
         return StorageResult(
             storedExamplesCount = existingAdl.examples.size,
             message = "Tags successfully updated",
+        )
+    }
+
+    @GraphQLDescription("Updates the output template of an existing ADL.")
+    suspend fun updateOutput(
+        @GraphQLDescription("The unique ID of the ADL") id: String,
+        @GraphQLDescription("The new output template") output: String,
+    ): StorageResult {
+        log.info("Updating output for ADL with id: {}", id)
+        val existingAdl = adlStorage.get(id) ?: throw IllegalArgumentException("ADL with id $id not found")
+
+        val updatedAdl = existingAdl.copy(output = output.takeIf { it.isNotBlank() })
+        adlStorage.store(updatedAdl)
+
+        return StorageResult(
+            storedExamplesCount = existingAdl.examples.size,
+            message = "Output successfully updated",
         )
     }
 

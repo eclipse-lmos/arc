@@ -1,4 +1,9 @@
 <!DOCTYPE html>
+<!--
+SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -567,6 +572,10 @@ docker run -p 8080:8080 \
                             class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
                         Conversation Flows
                     </button>
+                    <button onclick="scrollToFeature('styled-output')"
+                            class="px-3 py-1 rounded-full text-xs font-medium bg-nature-page text-nature-primary border border-nature-border hover:bg-nature-primary hover:text-white transition">
+                        Styled Output
+                    </button>
                 </div>
 
                 <div class="flex overflow-x-auto gap-8 pb-6 snap-x relative" id="features-scroll-container">
@@ -724,7 +733,7 @@ docker run -p 8080:8080 \
                             the brackets.</p>
                     </div>
 
-                    <div class="min-w-[600px] snap-start">
+                    <div class="min-w-[600px] snap-start border-r border-nature-border pr-8">
                         <h4 id="conversation-flows" class="font-bold text-nature-dark mb-2">Conversation flows</h4>
 
 
@@ -863,6 +872,34 @@ docker run -p 8080:8080 \
                                 </svg>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="min-w-[500px] snap-start">
+                        <h4 id="styled-output" class="font-bold text-nature-dark mb-2">Styled Output</h4>
+                        <div class="bg-nature-dark p-3 rounded-lg text-xs border border-stone-800 h-fit">
+                            <div class="text-nature-accent font-bold mb-1">UseCase: current_news</div>
+                            <div class="text-nature-light font-bold mb-1">Description</div>
+                            <div class="text-stone-300 pl-2 border-l border-stone-700 mb-1">
+                                Customer asks for the current news.
+                            </div>
+                            <div class="text-nature-light font-bold mb-1">Solution</div>
+                            <div class="text-stone-300 pl-2 border-l border-stone-700 mb-2">
+                                Return the top article from <span class="text-nature-sky">http://news.com</span> using <span class="text-nature-accent">@get_new()</span>.
+                            </div>
+                            <div class="text-xs font-mono text-stone-400 bg-stone-900/50 p-2 rounded border border-stone-700/50 mt-2 whitespace-pre-wrap"><span class="text-stone-500">```html</span><br>
+&lt;!-- news.title - The title of the new article --&gt;<br />
+&lt;div class="bg-blue-500 p-4 rounded-lg shadow-md max-w-md mx-auto"&gt;
+&lt;h2 class="text-xl font-semibold text-gray-800 mb-2"&gt;{{news.title}}&lt;/h2&gt;<br />&lt;/div&gt;
+<span class="text-stone-500">```</span>
+                            </div>
+                        </div>
+                        <br>
+                        <p class="text-sm text-stone-600 mb-2">HTML templates can be defined in the UseCase, allowing you to create rich, styled responses that go beyond plain text.
+                            By using placeholders for dynamic content, you can ensure that your agents deliver visually appealing and contextually relevant information.</p>
+                        <p class="text-sm text-stone-600 mb-2">In the example above, the agent will return a styled HTML snippet with the title of the top news article. The placeholder <code class="bg-nature-page px-1 rounded text-nature-primary font-mono text-xs">&lt;news.title&gt;</code> will be replaced with the actual title retrieved by the <code class="bg-nature-page px-1 rounded text-nature-accent font-mono text-xs">@get_news()</code> tool.</p>
+                        <p class="text-sm text-stone-600 mb-2">Clients displaying this content should support Tailwind CSS to render the styles correctly.</p>
+                        <p class="text-sm text-stone-600 mb-2">The template language Mustache is used for placeholders, allowing for simple variable interpolation. </p>
+                        <p class="text-sm text-stone-600 mb-2">Html comments can be used to inform the system how to extract the variables form the generated output. </p>
                     </div>
                 </div>
             </div>

@@ -36,12 +36,8 @@ class ConversationEvaluator(
 
             if (actual.role != expected.role) {
                 reasons.add("Message $i: Role mismatch. Expected ${expected.role}, got ${actual.role}.")
-                // Using 0 similarity for this message as role mismatch is significant
-                continue
-            }
-
-            if(expected.role == "user") {
-                // User messages should always match exactly
+                compared++
+                lowestSimilarity = 0.0
                 continue
             }
 
@@ -65,9 +61,7 @@ class ConversationEvaluator(
             }
         }
 
-        // If one is empty
-        // val finalScore = if (compared > 0) (totalSimilarity / compared) * 100 else 0.0
-        val finalScore = lowestSimilarity * 100
+        val finalScore = if (compared > 0) lowestSimilarity * 100 else 0.0
         val verdict = if (finalScore >= 90) "pass" else if (finalScore >= 60) "partial" else "fail"
 
         return EvalOutput(
