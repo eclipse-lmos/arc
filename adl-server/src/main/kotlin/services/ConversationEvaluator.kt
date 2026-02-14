@@ -7,7 +7,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel
 import dev.langchain4j.store.embedding.CosineSimilarity
 import org.eclipse.lmos.adl.server.agents.EvalEvidence
 import org.eclipse.lmos.adl.server.agents.EvalOutput
-import org.eclipse.lmos.adl.server.inbound.SimpleMessage
+import org.eclipse.lmos.adl.server.models.SimpleMessage
 import kotlin.math.roundToInt
 
 class ConversationEvaluator(
@@ -19,8 +19,10 @@ class ConversationEvaluator(
         failureThreshold: Double = 0.8,
     ): EvalOutput {
         val n = minOf(conversation.size, expectedConversation.size)
+        var compared = 0
 
         var totalSimilarity = 0.0
+        var lowestSimilarity = 1.0
         val reasons = mutableListOf<String>()
         val evidence = mutableListOf<EvalEvidence>()
 
@@ -38,11 +40,19 @@ class ConversationEvaluator(
                 continue
             }
 
+            if(expected.role == "user") {
+                // User messages should always match exactly
+                continue
+            }
+
+            compared++
+
             val actualEmb = embeddingModel.embed(actual.content).content()
             val expectedEmb = embeddingModel.embed(expected.content).content()
             val similarity = CosineSimilarity.between(actualEmb, expectedEmb)
 
             totalSimilarity += similarity
+            lowestSimilarity = minOf(lowestSimilarity, similarity)
 
             if (similarity < failureThreshold) {
                 reasons.add("Message $i: Content similarity is low (${(similarity * 100).roundToInt()}%).")
@@ -56,7 +66,8 @@ class ConversationEvaluator(
         }
 
         // If one is empty
-        val finalScore = if (n > 0) (totalSimilarity / n) * 100 else 0.0
+        // val finalScore = if (compared > 0) (totalSimilarity / compared) * 100 else 0.0
+        val finalScore = lowestSimilarity * 100
         val verdict = if (finalScore >= 90) "pass" else if (finalScore >= 60) "partial" else "fail"
 
         return EvalOutput(

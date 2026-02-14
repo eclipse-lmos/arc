@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

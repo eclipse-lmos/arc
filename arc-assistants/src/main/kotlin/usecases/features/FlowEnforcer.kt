@@ -69,6 +69,7 @@ suspend fun processFlow(
     model: String? = null,
     noMatchResponse: String? = null,
     optionsAnalyserPrompt: String? = null,
+    optionsAnalyser: OptionsAnalyser? = null,
 ): String {
     val flowStart = extractFlowOptions(content)
 
@@ -105,7 +106,13 @@ suspend fun processFlow(
             //
             // Match the user reply to one of the options.
             //
-            val matchedOption = evalUserReply(updatedFlowPosition, context, optionsAnalyserPrompt, model)
+            val messages = context.get<Conversation>().transcript.takeLast(4)
+            val userMessage = messages.last().content
+            val matchedOption = (if (optionsAnalyser != null) optionsAnalyser.pickOption(
+                userMessage,
+                updatedFlowPosition
+            ) else evalUserReply(updatedFlowPosition, context, optionsAnalyserPrompt, model))
+                ?: updatedFlowPosition.options.firstOrNull { it.option == "else" }
             if (matchedOption != null) {
                 //
                 // The command "RESET" is a special command that clears the current flow progress.
@@ -142,8 +149,11 @@ suspend fun processFlow(
 
                         // Check if the instruction is to use static text.
                         val instructions = referenceUseCase.toInstructions(conditions)
-                        if (instructions.trim().startsWith(">>>")) {
-                            context.breakWith(instructions.substringAfter(">>>"), reason = "Following flow option.")
+                        if (instructions.trim().startsWith("\"") && instructions.trim().endsWith("\"")) {
+                            context.breakWith(
+                                instructions.substringAfter("\"")
+                                    .substringBeforeLast("\""), reason = "Following flow option."
+                            )
                         }
 
                         // Update the instructions to those of the referenced use case.
@@ -296,4 +306,8 @@ data class FlowProgress(val useCaseId: String, val steps: List<String>)
  */
 suspend fun DSLContext.getCurrentFlowProgress(): FlowProgress? {
     return getLocal(MEMORY_KEY) as? FlowProgress? ?: memory<FlowProgress>(MEMORY_KEY)
+}
+
+fun interface OptionsAnalyser {
+    fun pickOption(userInput: String, options: FlowOptions): FlowOption?
 }
