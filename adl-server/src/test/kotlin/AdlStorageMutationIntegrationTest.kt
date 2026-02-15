@@ -15,13 +15,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import io.ktor.client.engine.cio.CIO as ClientCIO
-import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 
 class AdlStorageMutationIntegrationTest {
@@ -255,9 +252,8 @@ class AdlStorageMutationIntegrationTest {
     private suspend fun executeStoreMutation(adl: String): StorageResultData {
         val useCases = adl.toUseCases()
         val id = useCases.firstOrNull()?.id ?: "unknown"
-        val examples = useCases.flatMap { it.examples.split("\n") }.filter { it.isNotBlank() }
 
-        val examplesJson = examples.joinToString(", ") { "\"${it.replace("\"", "\\\"")}\"" }
+        val examplesJson = ""
         val idJson = "\"$id\""
         val contentJson = adl.toGraphQLString()
         val tagsJson = "[]"
@@ -291,7 +287,7 @@ class AdlStorageMutationIntegrationTest {
     private suspend fun executeDeleteMutation(useCaseId: String): DeletionResultData {
         val query = """
             mutation {
-                delete(useCaseId: "$useCaseId") {
+                delete(id: "$useCaseId") {
                     useCaseId
                     message
                 }

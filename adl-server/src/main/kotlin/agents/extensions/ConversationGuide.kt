@@ -68,7 +68,6 @@ class ConversationGuider(private val retryMax: Int = 4, private val model: Strin
 
     override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage? {
         if (!message.content.contains("?")) return message
-        if (context.getCurrentUseCases()?.currentUseCase()?.steps?.isEmpty() == true) return message
 
         log.debug("Checking Agent response: ${message.content}")
         val conversation = context.get<Conversation>()
