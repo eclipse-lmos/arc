@@ -41,6 +41,7 @@ import org.eclipse.lmos.arc.core.getOrThrow
 import java.io.StringWriter
 import com.github.mustachejava.DefaultMustacheFactory
 import org.eclipse.lmos.adl.server.agents.filters.ConvertToWidget
+import org.eclipse.lmos.adl.server.agents.filters.SolutionCompliance
 import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
 import org.eclipse.lmos.arc.agents.dsl.extensions.system
 import java.io.StringReader
@@ -87,6 +88,7 @@ fun createAssistantAgent(
                     outputMessage = outputMessage.update(solution.substringAfter("\"").substringBeforeLast("\""))
                 }
             }
+            +SolutionCompliance(embeddingModel)
             +ConvertToWidget(widgetRepository)
             +UnresolvedDetector { "UNRESOLVED" }
         }

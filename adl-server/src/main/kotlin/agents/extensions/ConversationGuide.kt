@@ -10,7 +10,6 @@ import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.SystemMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
-import org.eclipse.lmos.arc.agents.dsl.AgentDefinition
 import org.eclipse.lmos.arc.agents.dsl.AgentInputFilter
 import org.eclipse.lmos.arc.agents.dsl.AgentOutputFilter
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
