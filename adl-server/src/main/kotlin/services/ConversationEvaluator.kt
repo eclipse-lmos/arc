@@ -41,6 +41,11 @@ class ConversationEvaluator(
                 continue
             }
 
+            if(expected.role == "user") {
+                // User messages should always match exactly
+                continue
+            }
+
             compared++
 
             val actualEmb = embeddingModel.embed(actual.content).content()

@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.static)
     implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.sse)
     implementation(libs.graphql.kotlin.ktor)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
 
@@ -124,7 +125,8 @@ dependencies {
     // Embeddings
     implementation("dev.langchain4j:langchain4j:1.9.1")
     implementation("dev.langchain4j:langchain4j-embeddings:1.9.1-beta17")
-    implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.9.1-beta17")
+   // implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.11.0-beta19")
+    implementation("dev.langchain4j:langchain4j-embeddings-bge-small-en-v15-q:1.11.0-beta19")
 
     // OpenTelemetry dependencies
     implementation(platform("io.opentelemetry:opentelemetry-bom:1.55.0"))
@@ -140,6 +142,7 @@ dependencies {
     implementation("org.bouncycastle:bctls-jdk18on:1.78.1")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+    implementation("io.ktor:ktor-server-sse:3.3.3")
 
     // Test dependencies
     testImplementation(libs.ktor.client.core)

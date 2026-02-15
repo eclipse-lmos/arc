@@ -4,71 +4,74 @@
 
 package org.eclipse.lmos.adl.server
 
+// import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel
 import com.expediagroup.graphql.server.ktor.GraphQL
 import com.expediagroup.graphql.server.ktor.defaultGraphQLStatusPages
 import com.expediagroup.graphql.server.ktor.graphQLPostRoute
 import com.expediagroup.graphql.server.ktor.graphiQLRoute
-import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel
-import io.ktor.http.ContentType
+import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.http.content.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.routing.routing
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.server.http.content.staticResources
-import io.ktor.server.response.respondText
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sse.*
 import kotlinx.coroutines.runBlocking
 import org.eclipse.lmos.adl.server.agents.createAssistantAgent
 import org.eclipse.lmos.adl.server.agents.createEvalAgent
 import org.eclipse.lmos.adl.server.agents.createExampleAgent
-import org.eclipse.lmos.adl.server.agents.createWidgetCreatorAgent
 import org.eclipse.lmos.adl.server.agents.createImprovementAgent
 import org.eclipse.lmos.adl.server.agents.createSpellingAgent
 import org.eclipse.lmos.adl.server.agents.createTestCreatorAgent
 import org.eclipse.lmos.adl.server.agents.createTestVariantCreatorAgent
+import org.eclipse.lmos.adl.server.agents.createWidgetCreatorAgent
+import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlAssistantMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlCompilerMutation
-import org.eclipse.lmos.adl.server.inbound.mutation.WidgetsMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlEvalMutation
-import org.eclipse.lmos.adl.server.inbound.query.WidgetQuery
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryWidgetRepository
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlExampleMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlStorageMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.AdlValidationMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.McpMutation
+import org.eclipse.lmos.adl.server.inbound.mutation.RolePromptMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.SpellingMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.SystemPromptMutation
-import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
-import org.eclipse.lmos.adl.server.inbound.query.UserSettingsQuery
 import org.eclipse.lmos.adl.server.inbound.mutation.TestCreatorMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.UseCaseImprovementMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.UserSettingsMutation
-import org.eclipse.lmos.adl.server.inbound.GlobalExceptionHandler
+import org.eclipse.lmos.adl.server.inbound.mutation.WidgetsMutation
+import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
+import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
+import org.eclipse.lmos.adl.server.inbound.query.RolePromptQuery
 import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
+import org.eclipse.lmos.adl.server.inbound.query.UserSettingsQuery
+import org.eclipse.lmos.adl.server.inbound.query.WidgetQuery
+import org.eclipse.lmos.adl.server.inbound.rest.clientEvents
+import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
+import org.eclipse.lmos.adl.server.model.Adl
+import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
+import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryRolePromptRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUserSettingsRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryWidgetRepository
+import org.eclipse.lmos.adl.server.services.ClientEventPublisher
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.adl.server.services.TestExecutor
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryRolePromptRepository
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUserSettingsRepository
-import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
-import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
-import org.eclipse.lmos.adl.server.repositories.AdlRepository
-import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
-import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
-import org.eclipse.lmos.adl.server.inbound.query.RolePromptQuery
-import org.eclipse.lmos.adl.server.inbound.rest.openAICompletions
-import org.eclipse.lmos.adl.server.model.Adl
-import org.eclipse.lmos.adl.server.models.RolePrompt
-import org.eclipse.lmos.adl.server.inbound.mutation.RolePromptMutation
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.time.Instant.now
+import io.ktor.server.sse.*
+import io.ktor.sse.*
 
 fun startServer(
     wait: Boolean = true,
@@ -79,7 +82,8 @@ fun startServer(
     // Dependencies
     val templateLoader = TemplateLoader()
     val sessions = InMemorySessions()
-    val embeddingModel = AllMiniLmL6V2EmbeddingModel()
+    // val embeddingModel = AllMiniLmL6V2EmbeddingModel()
+    val embeddingModel = BgeSmallEnV15QuantizedEmbeddingModel()
     // val useCaseStore: UseCaseEmbeddingsRepository = QdrantUseCaseEmbeddingsStore(embeddingModel, qdrantConfig)
     val embeddingStore: UseCaseEmbeddingsRepository = InMemoryUseCaseEmbeddingsStore(embeddingModel)
     val adlStorage: AdlRepository = InMemoryAdlRepository()
@@ -88,6 +92,7 @@ fun startServer(
     val testCaseRepository = InMemoryTestCaseRepository()
     val userSettingsRepository = InMemoryUserSettingsRepository()
     val widgetRepository = InMemoryWidgetRepository()
+    val clientEventPublisher = ClientEventPublisher()
 
     // Agents
     val exampleAgent = createExampleAgent()
@@ -101,7 +106,8 @@ fun startServer(
             adlStorage,
             embeddingModel,
             widgetRepository,
-            rolePromptRepository
+            rolePromptRepository,
+            clientEventPublisher
         )
     val testCreatorAgent = createTestCreatorAgent()
     val conversationEvaluator = ConversationEvaluator(embeddingModel)
@@ -171,7 +177,13 @@ fun startServer(
                     SpellingMutation(spellingAgent),
                     AdlEvalMutation(evalAgent, conversationEvaluator),
                     AdlExampleMutation(exampleAgent),
-                    TestCreatorMutation(testCreatorAgent, testCaseRepository, testExecutor, adlStorage, testVariantAgent),
+                    TestCreatorMutation(
+                        testCreatorAgent,
+                        testCaseRepository,
+                        testExecutor,
+                        adlStorage,
+                        testVariantAgent
+                    ),
                     AdlValidationMutation(),
                     AdlAssistantMutation(assistantAgent, adlStorage),
                     WidgetsMutation(facesAgent, widgetRepository),
@@ -190,8 +202,11 @@ fun startServer(
             defaultGraphQLStatusPages()
         }
 
+        install(SSE)
+
         routing {
             openAICompletions(assistantAgent)
+            clientEvents(clientEventPublisher)
             graphiQLRoute()
             graphQLPostRoute()
 

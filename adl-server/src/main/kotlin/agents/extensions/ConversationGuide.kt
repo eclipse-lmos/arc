@@ -17,11 +17,13 @@ import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentAgent
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
+import org.eclipse.lmos.arc.agents.dsl.extensions.warn
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.retry
+import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.result
@@ -45,13 +47,19 @@ class ConversationGuider(private val retryMax: Int = 4, private val model: Strin
     private fun system() =
         """
     ## Goal
-    You are an AI assistant designed to answer questions by referencing information previously shared in this conversation.
+    You are an AI assistant designed to answer questions by referencing information previously shared in the conversation history.
+    The conversation history is provided as part of the input.
     
     ## Instructions 
+    - Answer the provided question or return "$noAnswerReturn" if the answer can be found in the conversation history.
     - You *must* only use information explicitly stated in the conversation history to formulate your answer.
+    - Information counts as usable only if it appears verbatim or as a clearly stated fact in the conversation history.
+    - Implicit implications, logical deductions, or background assumptions are not allowed.
+    - Do not infer, extrapolate, generalize, or interpret beyond the exact wording in the conversation history.
+    - Do not use world knowledge, background knowledge, or common sense.
     - Do not introduce new external information or make assumptions.
     - If the answer cannot be derived from the conversation history, return "$noAnswerReturn".
-    - Formulate your response so that it is clear what information you are using from the conversation history.
+    - If there is any uncertainty about whether the answer is fully supported by the conversation history, return "$noAnswerReturn".
         
       Use the following format in your response:
     
@@ -65,7 +73,7 @@ class ConversationGuider(private val retryMax: Int = 4, private val model: Strin
 
   """
 
-    override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage? {
+    override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage {
         if (!message.content.contains("?")) return message
 
         log.debug("Checking Agent response: ${message.content}")
@@ -75,8 +83,12 @@ class ConversationGuider(private val retryMax: Int = 4, private val model: Strin
             context.callLLM(
                 buildList {
                     add(SystemMessage(system()))
-                    conversation.transcript.forEach { add(it) }
-                    add(UserMessage(cleanOutputMessage))
+                    add(UserMessage("""
+                    Conversation History:    
+                    ${conversation.transcript.joinToString { "${it.javaClass.simpleName}: ${it.content} \n" }}
+                     
+                    Question: $cleanOutputMessage
+                    """.trimIndent()))
                 },
             )
 
@@ -85,11 +97,12 @@ class ConversationGuider(private val retryMax: Int = 4, private val model: Strin
             return message
         }
 
-        val output = result.getOrNull()?.content?.substringAfter(outputDivider) ?: return message
+        val output = result.getOrNull()?.content ?: return message
+        if (!output.contains(outputDivider)) return message
         val agentName = context.getCurrentAgent()?.name ?: return message
-        if (!output.contains(noAnswerReturn, ignoreCase = true)) {
+        if (!output.contains(noAnswerReturn, ignoreCase = true) && !output.endsWith("?")) {
             val previousHistory = context.getOptional<RetrySignal>()?.details ?: emptyMap()
-            val newHistory = mapOf(cleanOutputMessage to output)
+            val newHistory = mapOf(cleanOutputMessage to output.substringAfter(outputDivider))
             log.info("Retrying $agentName...")
             context.retry(max = retryMax, details = previousHistory + newHistory, reason = RESPONSE_GUIDE_RETRY_REASON)
         }
@@ -131,5 +144,26 @@ class InputHintProvider : AgentInputFilter {
         } else {
             message
         }
+    }
+}
+
+/**
+ * Filter to validate that the input contains a use case id and if not,
+ * retry the agent with a hint to include a use case id in the response.
+ */
+class UseCaseIdValidator(private val retryMax: Int = 3) : AgentOutputFilter {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage? {
+        val (_, useCaseId) = extractUseCaseId(message.content)
+        if (useCaseId == null) {
+            log.warn("Message does not contain a valid use case id. Message: $message")
+            context.retry(
+                max = retryMax,
+                details = mapOf("error" to "UseCase ID must be included in the response!"),
+                reason = RESPONSE_GUIDE_RETRY_REASON
+            )
+        }
+        return message
     }
 }

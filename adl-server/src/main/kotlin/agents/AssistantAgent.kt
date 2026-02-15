@@ -16,7 +16,7 @@ import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.WidgetRepository
 import org.eclipse.lmos.adl.server.services.McpService
-import org.eclipse.lmos.adl.server.templates.TemplateLoader
+import org.eclipse.lmos.adl.server.services.ClientEventPublisher
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
 import org.eclipse.lmos.arc.agents.conversation.Conversation
@@ -25,7 +25,6 @@ import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.addTool
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.info
-import org.eclipse.lmos.arc.agents.dsl.extensions.llm
 import org.eclipse.lmos.arc.agents.dsl.extensions.local
 import org.eclipse.lmos.arc.agents.dsl.extensions.processUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.time
@@ -37,14 +36,11 @@ import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.features.processFlow
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
-import org.eclipse.lmos.arc.core.getOrThrow
-import java.io.StringWriter
-import com.github.mustachejava.DefaultMustacheFactory
+import org.eclipse.lmos.adl.server.agents.extensions.UseCaseIdValidator
 import org.eclipse.lmos.adl.server.agents.filters.ConvertToWidget
 import org.eclipse.lmos.adl.server.agents.filters.SolutionCompliance
 import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
 import org.eclipse.lmos.arc.agents.dsl.extensions.system
-import java.io.StringReader
 
 
 /**
@@ -66,9 +62,10 @@ fun createAssistantAgent(
     adlRepository: AdlRepository,
     embeddingModel: EmbeddingModel,
     widgetRepository: WidgetRepository,
-    rolePromptRepository: RolePromptRepository
+    rolePromptRepository: RolePromptRepository,
+    clientEventPublisher: ClientEventPublisher
 ): ConversationAgent = agents(
-    handlers = listOf(LoggingEventHandler()),
+    handlers = listOf(LoggingEventHandler(), clientEventPublisher),
     functionLoaders = listOf(mcpService)
 ) {
     agent {
@@ -80,6 +77,7 @@ fun createAssistantAgent(
         filterOutput {
             -"```json"
             -"```"
+            +UseCaseIdValidator()
             +UseCaseResponseHandler()
             +ConversationGuider()
             getCurrentUseCases()?.processedUseCaseMap?.get(getCurrentUseCases()?.currentUseCaseId)?.let { uc ->
@@ -109,7 +107,7 @@ fun createAssistantAgent(
             val message = get<Conversation>().latest<UserMessage>()?.content
             val otherUseCases = embeddingsRepository.search(message!!, limit = 40, scoreThreshold = 0.7f)
                 .distinctBy { it.adlId }
-                .flatMap { adlRepository.getAsUseCases(it.adlId)}
+                .flatMap { adlRepository.getAsUseCases(it.adlId) }
             info("Loaded ${otherUseCases.size} additional use cases from embeddings store.")
             val baseUseCases = local("base_use_cases.md")?.toUseCases() ?: emptyList()
 
