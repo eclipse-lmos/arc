@@ -36,9 +36,9 @@ dependencies {
     implementation("com.google.protobuf:protobuf-java:4.33.2")
 
     // Embeddings
-    implementation("dev.langchain4j:langchain4j:1.9.1")
-    implementation("dev.langchain4j:langchain4j-embeddings:1.9.1-beta17")
-    implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.9.1-beta17")
+    implementation("dev.langchain4j:langchain4j:1.11.0")
+    implementation("dev.langchain4j:langchain4j-embeddings:1.11.0-beta17")
+    implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.11.0-beta17")
 
     // OpenTelemetry dependencies
     implementation(platform("io.opentelemetry:opentelemetry-bom:1.55.0"))
