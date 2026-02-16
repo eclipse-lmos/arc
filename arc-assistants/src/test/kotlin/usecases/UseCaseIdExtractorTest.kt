@@ -75,4 +75,21 @@ class UseCaseIdExtractorTest {
         assertThat(filteredMessage).contains("This is a reply from the LLM with <Dummy Data>")
         assertThat(useCaseId).isEqualTo("use_case01")
     }
+
+    @Test
+    fun `test usecase variant extraction`(): Unit = runBlocking {
+        val variants = listOf(
+            "<usecase:abc123> Message.",
+            "<UseCase:abc123> Message.",
+            "<use_case:abc123> Message.",
+            "<Use_Case:abc123> Message.",
+            "<USECASE:abc123> Message.",
+            "<USE_CASE:abc123> Message."
+        )
+        for (msg in variants) {
+            val (filteredMessage, useCaseId) = extractUseCaseId(msg)
+            assertThat(filteredMessage).contains("Message.")
+            assertThat(useCaseId).isEqualTo("abc123")
+        }
+    }
 }
