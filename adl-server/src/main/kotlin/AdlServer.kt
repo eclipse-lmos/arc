@@ -45,6 +45,7 @@ import org.eclipse.lmos.adl.server.inbound.mutation.UseCaseImprovementMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.UserSettingsMutation
 import org.eclipse.lmos.adl.server.inbound.mutation.WidgetsMutation
 import org.eclipse.lmos.adl.server.inbound.query.AdlQuery
+import org.eclipse.lmos.adl.server.inbound.query.DashboardQuery
 import org.eclipse.lmos.adl.server.inbound.query.McpToolsQuery
 import org.eclipse.lmos.adl.server.inbound.query.RolePromptQuery
 import org.eclipse.lmos.adl.server.inbound.query.TestCaseQuery
@@ -58,6 +59,7 @@ import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
 import org.eclipse.lmos.adl.server.repositories.UseCaseEmbeddingsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryAdlRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryRolePromptRepository
+import org.eclipse.lmos.adl.server.repositories.impl.InMemoryStatisticsRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryTestCaseRepository
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUseCaseEmbeddingsStore
 import org.eclipse.lmos.adl.server.repositories.impl.InMemoryUserSettingsRepository
@@ -93,7 +95,7 @@ fun startServer(
     val widgetRepository = InMemoryWidgetRepository()
     val clientEventPublisher = ClientEventPublisher()
     val completerProvider = UserDefinedCompleterProvider()
-    val conversationEvaluator = ConversationEvaluator(embeddingModel)
+    val statisticsRepository = InMemoryStatisticsRepository()
 
     // Agents
     val exampleAgent = createExampleAgent(completerProvider)
@@ -111,12 +113,12 @@ fun startServer(
             clientEventPublisher,
             completerProvider
         )
+    val conversationEvaluator = ConversationEvaluator(embeddingModel)
     val testCreatorAgent = createTestCreatorAgent(completerProvider)
     val improvementAgent = createImprovementAgent(completerProvider)
     val spellingAgent = createSpellingAgent(completerProvider)
     val testVariantAgent = createTestVariantCreatorAgent(completerProvider)
 
-    // Test services
     val testExecutor =
         TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
 
@@ -169,13 +171,14 @@ fun startServer(
                     UserSettingsQuery(userSettingsRepository),
                     WidgetQuery(widgetRepository),
                     RolePromptQuery(rolePromptRepository),
+                    DashboardQuery(adlStorage, statisticsRepository)
                 )
                 mutations = listOf(
                     AdlCompilerMutation(),
                     SystemPromptMutation(sessions, templateLoader, rolePromptRepository),
                     AdlStorageMutation(embeddingStore, adlStorage),
                     McpMutation(mcpService),
-                    UserSettingsMutation(userSettingsRepository),
+                    UserSettingsMutation(userSettingsRepository, completerProvider),
                     UseCaseImprovementMutation(improvementAgent),
                     SpellingMutation(spellingAgent),
                     AdlEvalMutation(evalAgent, conversationEvaluator),
@@ -188,7 +191,7 @@ fun startServer(
                         testVariantAgent
                     ),
                     AdlValidationMutation(),
-                    AdlAssistantMutation(assistantAgent, adlStorage),
+                    AdlAssistantMutation(assistantAgent, adlStorage, statisticsRepository),
                     WidgetsMutation(facesAgent, widgetRepository),
                     RolePromptMutation(rolePromptRepository),
                 )

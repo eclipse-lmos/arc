@@ -8,6 +8,7 @@ import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Mutation
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.adl.server.repositories.AdlRepository
+import org.eclipse.lmos.adl.server.repositories.StatisticsRepository
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.User
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -16,6 +17,7 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
+import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
@@ -27,10 +29,12 @@ import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import java.time.Duration
+import java.time.Instant
 
 class AdlAssistantMutation(
     private val assistantAgent: ConversationAgent,
     private val adlStorage: AdlRepository,
+    private val statisticsRepository: StatisticsRepository
 ) : Mutation {
 
     private val log = org.slf4j.LoggerFactory.getLogger(this.javaClass)
@@ -62,14 +66,21 @@ class AdlAssistantMutation(
             ),
         )
 
-        val responseTime = Duration.ofNanos(System.nanoTime() - start).toMillis() / 1000.0
+        val responseTime = Duration.ofNanos(System.nanoTime() - start)
+        statisticsRepository.recordResponseTime(responseTime)
+        val responseTimeSeconds = responseTime.toMillis() / 1000.0
+
+        outputContext.map()["useCase"]?.let { id ->
+            statisticsRepository.incrementUseCaseCount(id,  outputContext.map()["compliance"]?.toIntOrNull() )
+        }
+
         return when (result) {
             is Success -> {
                 val outputMessage = result.value.latest<AssistantMessage>()
                 AgentResult(
                     status = result.value.classification.toString(),
                     type = MESSAGE,
-                    responseTime = responseTime,
+                    responseTime = responseTimeSeconds,
                     messages = listOf(outputMessage.toMessage()),
                     context = outputContext.map().map { (key, value) -> ContextEntry(key, value) },
                     toolCalls = outputMessage?.toolCalls?.map { ToolCall(it.name, it.arguments) },
