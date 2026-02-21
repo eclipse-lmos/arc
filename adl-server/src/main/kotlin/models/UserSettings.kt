@@ -12,6 +12,8 @@ data class UserSettings(
     val apiKey: String,
 
     @GraphQLDescription("The model name")
-    val modelName: String
-)
+    val modelName: String,
 
+    @GraphQLDescription("The URL of the model")
+    val modelUrl: String? = null
+)

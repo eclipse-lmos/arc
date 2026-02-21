@@ -25,12 +25,16 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.time
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
 import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 
-fun createSpellingAgent(): ConversationAgent = agents() {
+/**
+ * Creates the agent that checks for spelling and grammar errors.
+ */
+fun createSpellingAgent(chatCompleterProvider: ChatCompleterProvider? = null): ConversationAgent = agents(chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "spelling_agent"
         settings = { ChatCompletionSettings(temperature = 0.0, seed = 42) }

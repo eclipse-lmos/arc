@@ -9,6 +9,7 @@ import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agent.ask
 import org.eclipse.lmos.arc.agents.agents
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Result
 
@@ -24,7 +25,7 @@ import org.eclipse.lmos.arc.core.Result
  *
  * @return A configured [FacesAgent] ready to generate UI widgets based on user prompts.
  */
-fun createWidgetCreatorAgent(): FacesAgent = agents(handlers = listOf(LoggingEventHandler())) {
+fun createWidgetCreatorAgent(chatCompleterProvider: ChatCompleterProvider? = null): FacesAgent = agents(handlers = listOf(LoggingEventHandler()), chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "faces_agent"
         settings = { ChatCompletionSettings(temperature = 0.0, seed = 42) }

@@ -66,12 +66,11 @@ import org.eclipse.lmos.adl.server.services.ClientEventPublisher
 import org.eclipse.lmos.adl.server.services.ConversationEvaluator
 import org.eclipse.lmos.adl.server.services.McpService
 import org.eclipse.lmos.adl.server.services.TestExecutor
+import org.eclipse.lmos.adl.server.services.UserDefinedCompleterProvider
 import org.eclipse.lmos.adl.server.sessions.InMemorySessions
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import java.time.Instant.now
-import io.ktor.server.sse.*
-import io.ktor.sse.*
 
 fun startServer(
     wait: Boolean = true,
@@ -93,11 +92,13 @@ fun startServer(
     val userSettingsRepository = InMemoryUserSettingsRepository()
     val widgetRepository = InMemoryWidgetRepository()
     val clientEventPublisher = ClientEventPublisher()
+    val completerProvider = UserDefinedCompleterProvider()
+    val conversationEvaluator = ConversationEvaluator(embeddingModel)
 
     // Agents
-    val exampleAgent = createExampleAgent()
-    val evalAgent = createEvalAgent()
-    val facesAgent = createWidgetCreatorAgent()
+    val exampleAgent = createExampleAgent(completerProvider)
+    val evalAgent = createEvalAgent(completerProvider)
+    val facesAgent = createWidgetCreatorAgent(completerProvider)
     val assistantAgent =
         createAssistantAgent(
             mcpService,
@@ -107,13 +108,15 @@ fun startServer(
             embeddingModel,
             widgetRepository,
             rolePromptRepository,
-            clientEventPublisher
+            clientEventPublisher,
+            completerProvider
         )
-    val testCreatorAgent = createTestCreatorAgent()
-    val conversationEvaluator = ConversationEvaluator(embeddingModel)
-    val improvementAgent = createImprovementAgent()
-    val spellingAgent = createSpellingAgent()
-    val testVariantAgent = createTestVariantCreatorAgent()
+    val testCreatorAgent = createTestCreatorAgent(completerProvider)
+    val improvementAgent = createImprovementAgent(completerProvider)
+    val spellingAgent = createSpellingAgent(completerProvider)
+    val testVariantAgent = createTestVariantCreatorAgent(completerProvider)
+
+    // Test services
     val testExecutor =
         TestExecutor(assistantAgent, adlStorage, testCaseRepository, conversationEvaluator)
 

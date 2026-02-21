@@ -31,6 +31,7 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.time
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
 import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
@@ -63,10 +64,12 @@ fun createAssistantAgent(
     embeddingModel: EmbeddingModel,
     widgetRepository: WidgetRepository,
     rolePromptRepository: RolePromptRepository,
-    clientEventPublisher: ClientEventPublisher
+    clientEventPublisher: ClientEventPublisher,
+    chatCompleterProvider: ChatCompleterProvider? = null
 ): ConversationAgent = agents(
     handlers = listOf(LoggingEventHandler(), clientEventPublisher),
-    functionLoaders = listOf(mcpService)
+    functionLoaders = listOf(mcpService),
+    chatCompleterProvider = chatCompleterProvider
 ) {
     agent {
         name = "assistant_agent"

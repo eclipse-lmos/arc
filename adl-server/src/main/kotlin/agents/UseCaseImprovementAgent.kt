@@ -1,4 +1,3 @@
-
 // SPDX-FileCopyrightText: 2025 Deutsche Telekom AG and others
 //
 // SPDX-License-Identifier: Apache-2.0
@@ -13,8 +12,13 @@ import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
 import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
 import org.eclipse.lmos.arc.assistants.support.usecases.UseCase
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 
-fun createImprovementAgent(): ConversationAgent = agents {
+/**
+ * Creates the agent that improves use cases based on an evaluation.
+ */
+fun createImprovementAgent(chatCompleterProvider: ChatCompleterProvider? = null): ConversationAgent = agents(chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "improvement_agent"
         filterOutput {

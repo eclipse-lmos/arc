@@ -8,8 +8,12 @@ import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
 import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
 import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 
-fun createTestCreatorAgent(): ConversationAgent = agents {
+/**
+ * Creates the agent that generates tests from use cases.
+ */
+fun createTestCreatorAgent(chatCompleterProvider: ChatCompleterProvider? = null): ConversationAgent = agents(chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "test_creator_agent"
         filterOutput {
