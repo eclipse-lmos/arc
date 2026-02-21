@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong
 class InMemoryStatisticsRepository : StatisticsRepository {
 
     private val useCaseCounts = ConcurrentHashMap<String, AtomicLong>()
+    private val useCaseCompilanceScores = ConcurrentHashMap<String, MutableList<Int>>()
     private val totalResponseTimeMillis = AtomicLong(0)
     private val requestCount = AtomicLong(0)
 
@@ -21,6 +22,11 @@ class InMemoryStatisticsRepository : StatisticsRepository {
     override suspend fun recordResponseTime(duration: Duration) {
         totalResponseTimeMillis.addAndGet(duration.toMillis())
         requestCount.incrementAndGet()
+    }
+
+    override suspend fun recordComplianceScore(useCaseId: String, score: Int) {
+        useCaseCompilanceScores.computeIfAbsent(useCaseId) { java.util.Collections.synchronizedList(ArrayList()) }
+            .add(score)
     }
 
     override suspend fun getMostUsedUseCase(): List<Pair<String, Int>> {
@@ -37,5 +43,12 @@ class InMemoryStatisticsRepository : StatisticsRepository {
             0.0
         }
     }
-}
 
+    override suspend fun getComplianceScores(useCaseId: String): Pair<Int, Int>? {
+        val scores = useCaseCompilanceScores[useCaseId] ?: return null
+        synchronized(scores) {
+            if (scores.isEmpty()) return null
+            return scores.min() to scores.max()
+        }
+    }
+}

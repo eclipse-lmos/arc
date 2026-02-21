@@ -17,8 +17,6 @@ import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.latest
 import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
-import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
-import org.eclipse.lmos.arc.agents.events.LoggingEventHandler
 import org.eclipse.lmos.arc.api.AgentRequest
 import org.eclipse.lmos.arc.api.AgentResult
 import org.eclipse.lmos.arc.api.AgentResultType.MESSAGE
@@ -29,7 +27,6 @@ import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
 import java.time.Duration
-import java.time.Instant
 
 class AdlAssistantMutation(
     private val assistantAgent: ConversationAgent,
@@ -71,7 +68,11 @@ class AdlAssistantMutation(
         val responseTimeSeconds = responseTime.toMillis() / 1000.0
 
         outputContext.map()["useCase"]?.let { id ->
-            statisticsRepository.incrementUseCaseCount(id,  outputContext.map()["compliance"]?.toIntOrNull() )
+            statisticsRepository.incrementUseCaseCount(id)
+            outputContext.map()["compliance"]?.let { complianceScore ->
+                val score = complianceScore.toIntOrNull()
+                score?.let { statisticsRepository.recordComplianceScore(id, it) }
+            }
         }
 
         return when (result) {

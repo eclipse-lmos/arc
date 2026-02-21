@@ -21,7 +21,10 @@ class DashboardQuery(
 
         return DashboardStats(
             numberOfAdls = totalAdls,
-            mostUsedUseCase = mostUsed.map { UseCaseStats(it.first, it.second) },
+            mostUsedUseCase = mostUsed.map {
+                 val scores = statisticsRepository.getComplianceScores(it.first)
+                 UseCaseStats(it.first, it.second, scores?.first, scores?.second)
+            },
             averageResponseTime = averageResponseTime
         )
     }
@@ -35,5 +38,7 @@ data class DashboardStats(
 
 data class UseCaseStats(
     val useCaseId: String,
-    val count: Int
+    val count: Int,
+    val minComplianceScore: Int? = null,
+    val maxComplianceScore: Int? = null
 )

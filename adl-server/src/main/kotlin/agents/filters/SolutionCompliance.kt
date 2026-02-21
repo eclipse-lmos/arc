@@ -12,13 +12,9 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.slf4j.LoggerFactory
 import dev.langchain4j.model.embedding.EmbeddingModel
 import dev.langchain4j.store.embedding.CosineSimilarity
-import org.eclipse.lmos.adl.server.agents.extensions.ConversationGuider
+import org.eclipse.lmos.adl.server.repositories.StatisticsRepository
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
-import org.eclipse.lmos.arc.agents.conversation.Conversation
-import org.eclipse.lmos.arc.agents.conversation.SystemMessage
-import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
-import org.eclipse.lmos.arc.agents.dsl.extensions.OutputContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.outputContext
 import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
@@ -33,8 +29,11 @@ import kotlin.math.roundToInt
 /**
  * Filter that checks if the output matches the solution of the current use case.
  */
-class SolutionCompliance(private val embeddingModel: EmbeddingModel, private val threshold: Int = 72) :
-    AgentOutputFilter {
+class SolutionCompliance(
+    private val embeddingModel: EmbeddingModel,
+    private val threshold: Int = 72,
+    private val statisticsRepository: StatisticsRepository? = null
+) : AgentOutputFilter {
 
     private val log = LoggerFactory.getLogger(this::class.java)
     private val solutionNotApplicable = "SOLUTION_NOT_APPLICABLE"
@@ -90,6 +89,9 @@ class SolutionCompliance(private val embeddingModel: EmbeddingModel, private val
         var output: AssistantMessage? = null
 
         context.outputContext("compliance", score.toString())
+        context.getCurrentUseCases()?.currentUseCaseId?.let { useCaseId ->
+             statisticsRepository?.recordComplianceScore(useCaseId, score)
+        }
 
         if (score < threshold) {
             log.warn("Output message compliance score $score is below threshold $threshold!. \nSolution: $solution\nOutput: ${message.content}")
