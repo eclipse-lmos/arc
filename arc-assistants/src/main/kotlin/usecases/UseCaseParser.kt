@@ -6,7 +6,16 @@ package org.eclipse.lmos.arc.assistants.support.usecases
 
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.dsl.extensions.then
-import org.eclipse.lmos.arc.assistants.support.usecases.Section.*
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.ALTERNATIVE_SOLUTION
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.DESCRIPTION
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.EXAMPLES
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.FALLBACK_SOLUTION
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.GOAL
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.NONE
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.OUTPUT
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.SOLUTION
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.STEPS
+import org.eclipse.lmos.arc.assistants.support.usecases.Section.SUB_START
 import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
@@ -46,6 +55,7 @@ fun String.toUseCases(): List<UseCase> {
                     line.contains("# Fallback") -> FALLBACK_SOLUTION
                     line.contains("# Step") -> STEPS
                     line.contains("# Example") -> EXAMPLES
+                    line.contains("# Output") -> OUTPUT
                     else -> error("Unknown UseCase section: ${line.trim()}")
                 }
                 return@forEachLine
@@ -60,6 +70,10 @@ fun String.toUseCases(): List<UseCase> {
 
             GOAL -> currentUseCase?.copy(
                 goal = (currentUseCase?.goal ?: emptyList()) + line.asConditional(),
+            )
+
+            OUTPUT -> currentUseCase?.copy(
+                output = (currentUseCase?.output ?: emptyList()) + line.asConditional(),
             )
 
             STEPS -> currentUseCase?.copy(steps = (currentUseCase?.steps ?: emptyList()) + line.asConditional())
@@ -202,6 +216,7 @@ enum class Section {
     FALLBACK_SOLUTION,
     STEPS,
     EXAMPLES,
+    OUTPUT,
 }
 
 @Serializable
@@ -219,6 +234,7 @@ data class UseCase(
     val goal: List<Conditional> = emptyList(),
     val subUseCase: Boolean = false,
     val category: String? = null,
+    val output: List<Conditional> = emptyList(),
 ) {
     fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
@@ -294,20 +310,20 @@ fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean
         conditions
     }
     return isEmpty() || (
-        positiveConditionals().all { allConditions.contains(it) } &&
-            negativeConditionals().none { allConditions.contains(it) } &&
-            orConditionals().all { ors ->
-                ors.any {
-                    if (it.startsWith("!")) {
-                        !allConditions.contains(
-                            it.removePrefix("!").trim(),
-                        )
-                    } else {
-                        allConditions.contains(it.trim())
+            positiveConditionals().all { allConditions.contains(it) } &&
+                    negativeConditionals().none { allConditions.contains(it) } &&
+                    orConditionals().all { ors ->
+                        ors.any {
+                            if (it.startsWith("!")) {
+                                !allConditions.contains(
+                                    it.removePrefix("!").trim(),
+                                )
+                            } else {
+                                allConditions.contains(it.trim())
+                            }
+                        }
                     }
-                }
-            }
-        )
+            )
 }
 
 /**

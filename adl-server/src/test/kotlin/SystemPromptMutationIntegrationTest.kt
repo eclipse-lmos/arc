@@ -13,36 +13,18 @@ import io.ktor.server.engine.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.qdrant.QdrantContainer
 import io.ktor.client.engine.cio.CIO as ClientCIO
 
-@Testcontainers
 class SystemPromptMutationIntegrationTest {
 
     companion object {
-        @Container
-        @JvmStatic
-        val qdrantContainer = QdrantContainer("qdrant/qdrant:v1.7.4")
-
-        @BeforeAll
-        @JvmStatic
-        fun startContainer() {
-            qdrantContainer.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stopContainer() {
-            qdrantContainer.stop()
-        }
     }
 
     private val testPort = 18080
@@ -57,8 +39,8 @@ class SystemPromptMutationIntegrationTest {
     @BeforeEach
     fun setUp() {
         val qdrantConfig = QdrantConfig(
-            host = qdrantContainer.host,
-            port = qdrantContainer.grpcPort,
+            host = "localhost",
+            port = 6333,
         )
         server = startServer(wait = false, port = testPort, qdrantConfig = qdrantConfig)
         client = HttpClient(ClientCIO)
