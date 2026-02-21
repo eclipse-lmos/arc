@@ -52,13 +52,18 @@ import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
-import sh.ondr.koja.Schema
-import sh.ondr.koja.toJsonElement
-import sh.ondr.koja.toSchema
+import com.openai.client.OpenAIClientAsync
+import com.openai.models.FunctionDefinition
+import com.openai.models.FunctionParameters
+import com.openai.models.ResponseFormatJsonObject
+import com.openai.models.chat.completions.*
+import com.openai.models.embeddings.EmbeddingCreateParams
+import com.openai.models.embeddings.EmbeddingModel
 import kotlin.collections.map
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
+import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -67,7 +72,7 @@ import kotlin.time.measureTime
  */
 class AzureAIClient(
     private val config: AIClientConfig,
-    private val client: OpenAIAsyncClient,
+    private val client: OpenAIClientAsync,
     private val globalEventPublisher: EventPublisher? = null,
     private val tracer: AgentTracer? = null,
 ) : ChatCompleter {
@@ -101,11 +106,11 @@ class AzureAIClient(
             result failWith { it }
         }
 
-    private fun ChatCompletions.getFirstAssistantMessage(
+    private fun ChatCompletion.getFirstAssistantMessage(
         sensitive: Boolean = false,
         settings: ChatCompletionSettings?,
-        toolCalls: Map<String, org.eclipse.lmos.arc.client.azure.ToolCall>,
-    ) = choices.first().message.content.let {
+        toolCalls: Map<String, ToolCall>,
+    ) = choices().first().message().content().getOrNull().let {
         AssistantMessage(
             it ?: "",
             sensitive = sensitive,
@@ -173,7 +178,7 @@ class AzureAIClient(
         settings: ChatCompletionSettings?,
         inputMessages: List<ChatRequestMessage>,
         functionCallHandler: FunctionCallHandler,
-        fn: suspend ((ChatCompletions) -> Unit) -> T,
+        fn: suspend ((ChatCompletion) -> Unit) -> T,
     ): T {
         contract {
             callsInPlace(fn, EXACTLY_ONCE)
@@ -199,14 +204,13 @@ class AzureAIClient(
     }
 
     private suspend fun doChatCompletions(
-        chatCompletionsOptions: ChatCompletionsOptions,
+        chatCompletionsOptions: ChatCompletionCreateParams,
         deploymentOrModelName: String,
-    ): Pair<Result<ChatCompletions, ArcException>, Duration> {
-        val result: Result<ChatCompletions, ArcException>
+    ): Pair<Result<ChatCompletion, ArcException>, Duration> {
+        val result: Result<ChatCompletion, ArcException>
         val duration = measureTime {
-            result = result<ChatCompletions, ArcException> {
-                client.getChatCompletions(deploymentOrModelName, chatCompletionsOptions).awaitFirst()
-                client.chat().completions().create(params).await()
+            result = result<ChatCompletion, ArcException> {
+                client.chat().completions().create(chatCompletionsOptions).await()
             }.mapFailure {
                 log.error("Calling Azure OpenAI failed!", it)
                 mapOpenAIException(it)
@@ -226,7 +230,7 @@ class AzureAIClient(
         messages: List<ChatRequestMessage>,
         openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
         settings: ChatCompletionSettings?,
-    ) = ChatCompletionsOptions(messages)
+    ) = ChatCompletionCreateParams.builder().messages(messages)
         .apply {
             settings?.outputSchema?.let { jsonSchema ->
                 val schema = jsonSchema.toSchema()
@@ -239,8 +243,8 @@ class AzureAIClient(
                 )
             }
             settings?.temperature?.let { temperature = it }
-            settings?.topP?.let { topP = it }
-            settings?.seed?.let { seed = it }
+            settings?.topP?.let { topP(it) }
+            settings?.seed?.let { seed(it) }
             settings?.n?.let { n = it }
             settings?.model?.let { model = it }
             settings?.reasoningEffort?.let {
