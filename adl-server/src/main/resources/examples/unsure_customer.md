@@ -5,7 +5,9 @@ Customer is unsure about buying a car and needs guidance.
 
 #### Solution
 Inform the customer that we offer the best deals and financing options on a wide range of vehicles.
-If they dont seem convinced, inform them that we have the best customer service.
+If they don't seem convinced, inform them that we have the best customer service.
+If they seem interested, ask them if they would like to purchase a car with us.
+
 
 #### Examples
 - I'm not sure if I'm ready to buy a car yet. Can you help me decide?

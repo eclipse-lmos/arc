@@ -133,8 +133,15 @@ fun startServer(
         listOf("buy_a_car.md", "greeting.md", "unsure_customer.md").forEach { name ->
             val content = this::class.java.classLoader.getResource("examples/$name")!!.readText()
             val id = name.substringBeforeLast(".")
-            val examples = content.toUseCases().flatMap { it.examples.split("\n") }.filter { it.isNotBlank() }
-            adlStorage.store(Adl(id, content.trim(), listOf(), now().toString(), examples))
+            val examples = content.toUseCases()
+                .flatMap { it.examples.split("\n") }
+                .filterNot { it.isBlank() }
+                .map { it.removePrefix("- ") }
+            var contentWithoutExamples = content.replace("#### Examples", "")
+            examples.forEach {
+                contentWithoutExamples = contentWithoutExamples.replace("- $it", "")
+            }
+            adlStorage.store(Adl(id, contentWithoutExamples.trim(), listOf(), now().toString(), examples))
             if (examples.isNotEmpty()) embeddingStore.storeUtterances(id, examples)
         }
     }
@@ -237,6 +244,10 @@ fun startServer(
                     )
                     if (requestedPath.startsWith("assistant")) call.respondText(
                         text = this::class.java.classLoader.getResource("static/assistant.html")!!.readText(),
+                        contentType = ContentType.Text.Html,
+                    )
+                    if (requestedPath.startsWith("analytics")) call.respondText(
+                        text = this::class.java.classLoader.getResource("static/analytics.html")!!.readText(),
                         contentType = ContentType.Text.Html,
                     )
                 }

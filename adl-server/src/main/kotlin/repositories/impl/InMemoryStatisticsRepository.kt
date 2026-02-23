@@ -15,7 +15,7 @@ class InMemoryStatisticsRepository : StatisticsRepository {
     private val totalResponseTimeMillis = AtomicLong(0)
     private val requestCount = AtomicLong(0)
 
-    override suspend fun incrementUseCaseCount(useCaseId: String, complianceScore: Int?) {
+    override suspend fun incrementUseCaseCount(useCaseId: String) {
         useCaseCounts.computeIfAbsent(useCaseId) { AtomicLong(0) }.incrementAndGet()
     }
 
