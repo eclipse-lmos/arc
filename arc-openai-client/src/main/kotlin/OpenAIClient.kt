@@ -6,16 +6,19 @@ package org.eclipse.lmos.arc.client.openai
 
 
 import com.openai.core.JsonValue
+import com.openai.models.chat.completions.ChatCompletion
+import com.openai.models.chat.completions.ChatCompletionCreateParams
+import com.openai.models.chat.completions.ChatCompletionMessageParam
+import com.openai.models.chat.completions.ChatCompletionTool
+import com.openai.models.chat.completions.ChatCompletionUserMessageParam
+import com.openai.models.chat.completions.ChatCompletionSystemMessageParam
 import com.openai.models.chat.completions.ChatCompletionAssistantMessageParam
 import com.openai.models.chat.completions.ChatCompletionDeveloperMessageParam
-import com.openai.models.chat.completions.ChatCompletionMessageParam
-import com.openai.models.chat.completions.ChatCompletionSystemMessageParam
-import com.openai.models.chat.completions.ChatCompletionUserMessageParam
+import com.openai.models.FunctionDefinition
+import com.openai.models.ResponseFormatJsonObject
+import com.openai.models.embeddings.EmbeddingCreateParams
+import com.openai.client.OpenAIClientAsync
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.serializer
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.MissingModelNameException
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
@@ -33,8 +36,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompleter
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
-import org.eclipse.lmos.arc.agents.llm.OutputSchema
-import org.eclipse.lmos.arc.agents.llm.ReasoningEffort
 import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.HIGH
 import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.LOW
 import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.MEDIUM
@@ -52,13 +53,6 @@ import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
-import com.openai.client.OpenAIClientAsync
-import com.openai.models.FunctionDefinition
-import com.openai.models.FunctionParameters
-import com.openai.models.ResponseFormatJsonObject
-import com.openai.models.chat.completions.*
-import com.openai.models.embeddings.EmbeddingCreateParams
-import com.openai.models.embeddings.EmbeddingModel
 import kotlin.collections.map
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
@@ -67,15 +61,18 @@ import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
+// import sh.ondr.koja.Schema
+// import sh.ondr.koja.toSchema
+
 /**
  * Calls the OpenAI endpoints and automatically handles LLM function calls.
  */
-class AzureAIClient(
+class OpenAIClient(
     private val config: AIClientConfig,
     private val client: OpenAIClientAsync,
     private val globalEventPublisher: EventPublisher? = null,
     private val tracer: AgentTracer? = null,
-) : ChatCompleter {
+) : ChatCompleter, TextEmbedder {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -123,15 +120,15 @@ class AzureAIClient(
     }
 
     private suspend fun getChatCompletions(
-        messages: List<ChatRequestMessage>,
-        openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
+        messages: List<ChatCompletionMessageParam>,
+        openAIFunctions: List<ChatCompletionTool>? = null,
         functionCallHandler: FunctionCallHandler,
         settings: ChatCompletionSettings?,
         llmEventPublisher: LLMEventPublisher,
     ): Result<AssistantMessage, ArcException> {
         val chatCompletionsOptions = toCompletionsOptions(messages, openAIFunctions, settings)
 
-        var chatCompletionsResult: Result<ChatCompletions, ArcException>
+        var chatCompletionsResult: Result<ChatCompletion, ArcException>
         var duration: Duration
         val result = withLLMSpan(settings, messages, functionCallHandler) { tag ->
             val pair = doChatCompletions(
@@ -146,7 +143,7 @@ class AzureAIClient(
                 it.getFirstAssistantMessage(
                     sensitive = functionCallHandler.calledSensitiveFunction(),
                     settings = settings,
-                    toolCalls = functionCallHandler.calledFunctions,
+                    toolCalls = functionCallHandler.calledFunctions.mapValues { ToolCall(it.value.name, it.value.arguments) },
                 )
             }
         }
@@ -155,10 +152,11 @@ class AzureAIClient(
 
         return withLogContext(useCase?.let { mapOf("use_case" to useCase) } ?: emptyMap()) {
             chatCompletionsResult.getOrNull()?.let { chatCompletions ->
-                log.debug("ChatCompletions: ${chatCompletions.choices[0].finishReason} (${chatCompletions.choices.size})")
+                log.debug("ChatCompletions: ${chatCompletions.choices().get(0).finishReason()} (${chatCompletions.choices().size})")
                 val newMessages = functionCallHandler.handle(chatCompletions).getOrThrow()
                 if (newMessages.isNotEmpty()) {
                     // tool was called, continue the cycle
+                    // functionCallHandler.handle returns List<ChatCompletionMessageParam>
                     return@withLogContext getChatCompletions(
                         messages + newMessages,
                         openAIFunctions,
@@ -176,7 +174,7 @@ class AzureAIClient(
     @OptIn(ExperimentalContracts::class)
     private suspend fun <T> withLLMSpan(
         settings: ChatCompletionSettings?,
-        inputMessages: List<ChatRequestMessage>,
+        inputMessages: List<ChatCompletionMessageParam>,
         functionCallHandler: FunctionCallHandler,
         fn: suspend ((ChatCompletion) -> Unit) -> T,
     ): T {
@@ -185,7 +183,6 @@ class AzureAIClient(
         }
         return (tracer ?: DefaultAgentTracer()).withSpan("llm") { tags, _ ->
             fn({ completions ->
-                // TODO
                 val spec = System.getenv("OTEL_SPEC")
                 if ("GEN_AI" == spec) {
                     GenAITags.applyAttributes(tags, config, settings, completions, inputMessages)
@@ -219,75 +216,99 @@ class AzureAIClient(
         return result to duration
     }
 
-    @OptIn(InternalSerializationApi::class)
-    private fun OutputSchema.toSchema(): String {
-        return (type.serializer().descriptor.toSchema() as Schema.ObjectSchema).copy(
-            additionalProperties = JsonPrimitive(false),
-        ).toJsonElement().toString()
-    }
+//    @OptIn(InternalSerializationApi::class)
+//    private fun OutputSchema.toSchema(): String {
+//        return (type.serializer().descriptor.toSchema() as Schema.ObjectSchema).copy(
+//            additionalProperties = JsonPrimitive(false),
+//        ).toJsonElement().toString()
+//    }
 
     private fun toCompletionsOptions(
-        messages: List<ChatRequestMessage>,
-        openAIFunctions: List<ChatCompletionsFunctionToolDefinition>? = null,
+        messages: List<ChatCompletionMessageParam>,
+        openAIFunctions: List<ChatCompletionTool>? = null,
         settings: ChatCompletionSettings?,
-    ) = ChatCompletionCreateParams.builder().messages(messages)
-        .apply {
-            settings?.outputSchema?.let { jsonSchema ->
-                val schema = jsonSchema.toSchema()
-                log.debug("Using output schema: $schema")
-                responseFormat = ChatCompletionsJsonSchemaResponseFormat(
-                    ChatCompletionsJsonSchemaResponseFormatJsonSchema(jsonSchema.name)
-                        .setStrict(true)
-                        .setDescription(jsonSchema.description)
-                        .setSchema(fromString(schema)),
-                )
-            }
-            settings?.temperature?.let { temperature = it }
-            settings?.topP?.let { topP(it) }
-            settings?.seed?.let { seed(it) }
-            settings?.n?.let { n = it }
-            settings?.model?.let { model = it }
-            settings?.reasoningEffort?.let {
-                reasoningEffort = when (it) {
-                    LOW -> ReasoningEffortValue.LOW
-                    MEDIUM -> ReasoningEffortValue.MEDIUM
-                    HIGH -> ReasoningEffortValue.HIGH
+    ): ChatCompletionCreateParams {
+        val builder = ChatCompletionCreateParams.builder()
+            .messages(messages)
+            .model(config.modelName ?: settings?.deploymentNameOrModel() ?: throw MissingModelNameException())
+
+//        settings?.outputSchema?.let { jsonSchema ->
+//            val schema = jsonSchema.toSchema()
+//            log.debug("Using output schema: $schema")
+//            builder.responseFormat(
+//                ResponseFormatJsonSchema.builder()
+//                    .type(ResponseFormatJsonSchema.Type.JSON_SCHEMA)
+//                    .jsonSchema(
+//                        ResponseFormatJsonSchema.JsonSchema.builder()
+//                            .name(jsonSchema.name)
+//                            .strict(true)
+//                            .description(jsonSchema.description)
+//                            .schema(JsonValue.from(mapOf("schema" to schema))) // adjustable
+//                            .build()
+//                    )
+//                    .build()
+//            )
+//        }
+        settings?.temperature?.let { builder.temperature(it) }
+        settings?.topP?.let { builder.topP(it) }
+        settings?.seed?.let { builder.seed(it) }
+        settings?.n?.let { builder.n(it.toLong()) }
+        settings?.model?.let { builder.model(it) }
+        settings?.reasoningEffort?.let {
+            builder.reasoningEffort(
+                when (it) {
+                    LOW -> com.openai.models.ReasoningEffort.LOW
+                    MEDIUM -> com.openai.models.ReasoningEffort.MEDIUM
+                    HIGH -> com.openai.models.ReasoningEffort.HIGH
                 }
-            }
-            settings?.maxTokens?.let { maxTokens = it }
-            settings?.format?.takeIf { JSON == it }?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
-            if (openAIFunctions != null) tools = openAIFunctions
+            )
+        }
+        settings?.maxTokens?.let { builder.maxTokens(it.toLong()) }
+
+        if (settings?.format == JSON) {
+             builder.responseFormat(
+                 ResponseFormatJsonObject.builder()
+                     .type(JsonValue.from("json_object"))
+                     .build()
+             )
         }
 
+        if (openAIFunctions != null) {
+            builder.tools(openAIFunctions)
+        }
+
+        return builder.build()
+    }
+
     private fun mapOpenAIException(ex: Exception): ArcException = when (ex) {
-        is ClientAuthenticationException -> ArcException(ex.message ?: "Unexpected error!", ex)
+        // is ClientAuthenticationException -> ArcException(ex.message ?: "Unexpected error!", ex) // Check correct exception class
         else -> ArcException(ex.message ?: "Unexpected error!", ex)
     }
 
-    private fun toOpenAIMessages(messages: List<ConversationMessage>) = messages.map { msg ->
+    private fun toOpenAIMessages(messages: List<ConversationMessage>): List<ChatCompletionMessageParam> = messages.map { msg ->
         when (msg) {
             is UserMessage -> ChatCompletionMessageParam.ofUser(
                 ChatCompletionUserMessageParam.builder()
                     .role(JsonValue.from("user"))
-                    .content(msg.content).build(),
+                    .content(ChatCompletionUserMessageParam.Content.ofText(msg.content)).build(),
             )
 
             is SystemMessage -> ChatCompletionMessageParam.ofSystem(
                 ChatCompletionSystemMessageParam.builder()
                     .role(JsonValue.from("system"))
-                    .content(msg.content).build(),
+                    .content(ChatCompletionSystemMessageParam.Content.ofText(msg.content)).build(),
             )
 
             is AssistantMessage -> ChatCompletionMessageParam.ofAssistant(
                 ChatCompletionAssistantMessageParam.builder()
                     .role(JsonValue.from("assistant"))
-                    .content(msg.content).build(),
+                    .content(ChatCompletionAssistantMessageParam.Content.ofText(msg.content)).build(),
             )
 
             is DeveloperMessage -> ChatCompletionMessageParam.ofDeveloper(
                 ChatCompletionDeveloperMessageParam.builder()
                     .role(JsonValue.from("developer"))
-                    .content(msg.content).build(),
+                    .content(ChatCompletionDeveloperMessageParam.Content.ofText(msg.content)).build(),
             )
         }
     }
@@ -297,19 +318,37 @@ class AzureAIClient(
      * Converts functions to openai functions.
      */
     private fun toOpenAIFunctions(functions: List<LLMFunction>) = functions.map { fn ->
-        ChatCompletionsFunctionToolDefinition(
-            ChatCompletionsFunctionToolDefinitionFunction(fn.name).apply {
-                description = fn.description
-                parameters = fromObject(fn.parameters.toJsonMap())
-            },
-        )
+        val jsonObject = fn.parameters.toJsonMap() // Assuming toJsonMap returns Map<String, Any>
+        ChatCompletionTool.builder()
+            .type(JsonValue.from("function"))
+            .function(
+                FunctionDefinition.builder()
+                    .name(fn.name)
+                    .description(fn.description)
+                    .parameters(JsonValue.from(jsonObject))
+//                    .parameters(
+//                        FunctionParameters.builder()
+//                             // TODO: deeply convert map to FunctionParameters or use JsonValue if supported
+//                             // Native client uses JsonValue for parameters? No, FunctionParameters builder
+//                            .build()
+//                    )
+                    .build()
+            )
+            .build()
     }.takeIf { it.isNotEmpty() }
 
     override suspend fun embed(texts: List<String>) = result<TextEmbeddings, Exception> {
-        val embedding = client.getEmbeddings(config.modelName, EmbeddingsOptions(texts)).awaitFirst().let { result ->
-            result.data.map { e -> TextEmbedding(texts[e.promptIndex], e.embedding.map { it.toDouble() }) }
+         val result = client.embeddings().create(
+             EmbeddingCreateParams.builder()
+                 .model(config.modelName ?: "text-embedding-3-small") // Fallback or throw
+                 .input(EmbeddingCreateParams.Input.ofArrayOfStrings(texts))
+                 .build()
+         ).await()
+
+        val embeddings = result.data().mapIndexed { index, embedding ->
+            TextEmbedding(texts[index], embedding.embedding().map { it.toDouble() })
         }
-        TextEmbeddings(embedding)
+        TextEmbeddings(embeddings)
     }.mapFailure { ArcException("Failed to create text embeddings!", it) }
 
     override fun toString(): String {

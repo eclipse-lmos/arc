@@ -4,15 +4,9 @@
 
 package org.eclipse.lmos.arc.client.openai
 
-import com.azure.ai.openai.models.ChatCompletions
-import com.azure.ai.openai.models.ChatCompletionsFunctionToolCall
-import com.azure.ai.openai.models.ChatRequestAssistantMessage
-import com.azure.ai.openai.models.ChatRequestMessage
-import com.azure.ai.openai.models.ChatRequestSystemMessage
-import com.azure.ai.openai.models.ChatRequestToolMessage
-import com.azure.ai.openai.models.ChatRequestUserMessage
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.openai.models.chat.completions.ChatCompletion
+import com.openai.models.chat.completions.ChatCompletionMessageParam
+import com.openai.models.chat.completions.ChatCompletionMessageToolCall
 import org.eclipse.lmos.arc.agents.ArcException
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.toJsonString
@@ -22,6 +16,7 @@ import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.getOrNull
 import org.slf4j.MDC
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * Helper object to apply attributes to the tags following the OpenInference spec.
@@ -33,18 +28,18 @@ object OpenInferenceTags {
         tags: Tags,
         config: AIClientConfig,
         settings: ChatCompletionSettings?,
-        completions: ChatCompletions,
-        inputMessages: List<ChatRequestMessage>,
+        completions: ChatCompletion,
+        inputMessages: List<ChatCompletionMessageParam>,
         functionCallHandler: FunctionCallHandler,
     ) {
         tags.tag("openinference.span.kind", "LLM")
         tags.tag("llm.model_name", config.modelName ?: settings?.deploymentNameOrModel() ?: "unknown")
         tags.tag("llm.provider", "azure")
         tags.tag("llm.system", "openai")
-        if (completions.choices.isNotEmpty()) {
+        if (completions.choices().isNotEmpty()) {
             tags.tag(
                 "finish_reason",
-                completions.choices[0].finishReason?.value ?: "unknown",
+                completions.choices()[0].finishReason().toString(),
             )
         }
         settings?.let {
@@ -58,14 +53,22 @@ object OpenInferenceTags {
 
         tags.tag("input.mime_type", "text/plain")
         inputMessages.forEachIndexed { i, message ->
-            val content = when (message) {
-                is ChatRequestUserMessage -> message.content
-                is ChatRequestAssistantMessage -> message.content
-                is ChatRequestSystemMessage -> message.content
-                is ChatRequestToolMessage -> message.content
+            val content: Any? = when {
+                message.isUser() -> message.asUser().content().text().getOrNull()
+                message.isAssistant() -> message.asAssistant().content().getOrNull()?.text()?.getOrNull()
+                message.isSystem() -> message.asSystem().content().text().getOrNull()
+                message.isTool() -> message.asTool().content().text().getOrNull()
                 else -> null
             }
-            tags.tag("llm.input_messages.$i.message.role", message.role.toString())
+            val role = when {
+                message.isUser() -> "user"
+                message.isAssistant() -> "assistant"
+                message.isSystem() -> "system"
+                message.isTool() -> "tool"
+                else -> "unknown"
+            }
+
+            tags.tag("llm.input_messages.$i.message.role", role)
             if (content != null) {
                 tags.tag("llm.input_messages.$i.message.content", content.toString())
             }
@@ -73,18 +76,20 @@ object OpenInferenceTags {
                 tags.tag("input.value", content.toString())
             }
         }
-        completions.choices.filter { it?.message != null }.forEachIndexed { i, choice ->
-            tags.tag("llm.output_messages.$i.message.role", choice.message.role.toString())
-            if (choice.message.content != null) {
-                tags.tag("llm.output_messages.$i.message.content", choice.message.content)
+        completions.choices().forEachIndexed { i, choice ->
+            tags.tag("llm.output_messages.$i.message.role", choice.message()._role().convert(String::class.java) ?: "unknown")
+            if (choice.message().content().isPresent) {
+                tags.tag("llm.output_messages.$i.message.content", choice.message().content().get())
             }
-            choice.message.toolCalls?.forEachIndexed { y, call ->
-                val toolCall = call as ChatCompletionsFunctionToolCall
-                tags.tag("llm.output_messages.$i.message.tool_calls.$y.tool_call.function.name", toolCall.function.name)
-                tags.tag(
-                    "llm.output_messages.$i.message.tool_calls.$y.tool_call.function.arguments",
-                    toolCall.function.arguments,
-                )
+            choice.message().toolCalls().ifPresent { toolCalls ->
+                toolCalls.forEachIndexed { y, call ->
+                    val toolCall = call
+                    tags.tag("llm.output_messages.$i.message.tool_calls.$y.tool_call.function.name", toolCall.function().name())
+                    tags.tag(
+                        "llm.output_messages.$i.message.tool_calls.$y.tool_call.function.arguments",
+                        toolCall.function().arguments(),
+                    )
+                }
             }
         }
         functionCallHandler.functions.forEachIndexed { i, tool ->
@@ -98,21 +103,24 @@ object OpenInferenceTags {
             )
         }
 
-        tags.tag("output.value", completions.choices.firstOrNull()?.message?.content ?: "")
+        tags.tag("output.value", completions.choices().firstOrNull()?.message()?.content()?.orElse("") ?: "")
         tags.tag("output.mime_type", "text/plain") // TODO
-        tags.tag("llm.token_count.prompt", completions.usage.promptTokens.toLong())
-        tags.tag("llm.token_count.completion", completions.usage.completionTokens.toLong())
-        tags.tag("llm.token_count.total", completions.usage.totalTokens.toLong())
+        val usage = completions.usage()
+        if (usage.isPresent) {
+            tags.tag("llm.token_count.prompt", usage.get().promptTokens())
+            tags.tag("llm.token_count.completion", usage.get().completionTokens())
+            tags.tag("llm.token_count.total", usage.get().totalTokens())
+        }
     }
 
     fun applyToolAttributes(
         functionName: String,
-        toolCall: ChatCompletionsFunctionToolCall,
+        toolCall: ChatCompletionMessageToolCall,
         tags: Tags,
     ) {
-        val functionArguments = toolCall.function.arguments
+        val functionArguments = toolCall.function().arguments()
         tags.tag("openinference.span.kind", "TOOL")
-        tags.tag("tool_call.id", toolCall.id)
+        tags.tag("tool_call.id", toolCall.id())
         tags.tag("tool_call.function.name", functionName)
         tags.tag("tool_call.function.arguments", functionArguments)
         tags.tag("input.value", functionArguments)
@@ -139,8 +147,5 @@ object OpenInferenceTags {
     }
 }
 
-@Serializable
-data class InputMessage(
-    @SerialName("message.role") val role: String,
-    @SerialName("message.content") val content: String,
-)
+
+
