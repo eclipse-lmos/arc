@@ -7,7 +7,6 @@ package org.eclipse.lmos.adl.server.agents.filters
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.mustachejava.DefaultMustacheFactory
-import org.eclipse.lmos.adl.server.repositories.AdlRepository
 import org.eclipse.lmos.adl.server.repositories.WidgetRepository
 import org.eclipse.lmos.adl.server.templates.TemplateLoader
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
@@ -66,10 +65,11 @@ class ConvertToWidget(
                 ).getOrThrow().content
                 val dataMap = mapper.readValue(data, mapType)
 
-                if (dataMap.isNullOrEmpty() || dataMap.all {
-                        it.value == null || (it.value is List<*> && (it.value as List<*>).isEmpty()) || (it.value is Array<*> && (it.value as Array<*>).isEmpty())
-                    }) {
-                    return message // Don't render the widget if all values are null
+                log.info("Widget data for widget [$widgetName]: $dataMap")
+
+                if (!hasDataValues(dataMap)) {
+                    // Don't render the widget if all values are null
+                    return message
                 }
 
                 val m = mustacheFactory.compile(StringReader(widget.html), "widget")
@@ -84,5 +84,23 @@ class ConvertToWidget(
                 return message
             }
         } ?: message
+    }
+
+    private fun hasDataValues(data: Map<*, *>?): Boolean {
+        if (data.isNullOrEmpty()) return false
+        return data.any { (_, value) ->
+            when (value) {
+                null -> false
+                is Map<*, *> -> hasDataValues(value)
+                is Collection<*> -> value.isNotEmpty() && value.any { item ->
+                    item != null && (item !is Map<*, *> || hasDataValues(item))
+                }
+                is Array<*> -> value.isNotEmpty() && value.any { item ->
+                    item != null && (item !is Map<*, *> || hasDataValues(item))
+                }
+                is String -> value.isNotBlank()
+                else -> true
+            }
+        }
     }
 }

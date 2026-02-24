@@ -40,6 +40,8 @@ import org.eclipse.lmos.arc.assistants.support.usecases.features.processFlow
 import org.eclipse.lmos.arc.assistants.support.usecases.toUseCases
 import org.eclipse.lmos.adl.server.agents.extensions.UseCaseIdValidator
 import org.eclipse.lmos.adl.server.agents.filters.ConvertToWidget
+import org.eclipse.lmos.adl.server.agents.filters.MustFeature
+import org.eclipse.lmos.adl.server.agents.filters.Rephraser
 import org.eclipse.lmos.adl.server.agents.filters.SolutionCompliance
 import org.eclipse.lmos.adl.server.repositories.RolePromptRepository
 import org.eclipse.lmos.arc.agents.dsl.extensions.system
@@ -76,6 +78,7 @@ fun createAssistantAgent(
         name = "assistant_agent"
         settings = { ChatCompletionSettings(temperature = 0.0, seed = 42) }
         filterInput {
+            +Rephraser()
             +InputHintProvider()
         }
         filterOutput {
@@ -92,6 +95,7 @@ fun createAssistantAgent(
             }
             +SolutionCompliance(embeddingModel)
             +ConvertToWidget(widgetRepository)
+            +MustFeature()
             +UnresolvedDetector { "UNRESOLVED" }
         }
         prompt {
