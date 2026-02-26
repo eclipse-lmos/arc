@@ -6,11 +6,12 @@ package org.eclipse.lmos.adl.server.agents
 
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 
 /**
  * Creates the example agent that generates examples for ADL use cases.
  */
-fun createExampleAgent(): ConversationAgent = agents {
+fun createExampleAgent(chatCompleterProvider: ChatCompleterProvider? = null): ConversationAgent = agents(chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "example_agent"
         prompt {

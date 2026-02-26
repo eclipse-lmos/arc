@@ -8,8 +8,12 @@ import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
 import org.eclipse.lmos.arc.assistants.support.filters.UnresolvedDetector
 import org.eclipse.lmos.arc.assistants.support.filters.UseCaseResponseHandler
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 
-fun createTestCreatorAgent(): ConversationAgent = agents {
+/**
+ * Creates the agent that generates tests from use cases.
+ */
+fun createTestCreatorAgent(chatCompleterProvider: ChatCompleterProvider? = null): ConversationAgent = agents(chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "test_creator_agent"
         filterOutput {
@@ -28,7 +32,8 @@ fun createTestCreatorAgent(): ConversationAgent = agents {
                Use Cases define the expected behaviour of an assistant that is meant to help users with their issues.
 
                ### Task
-               Analyze the "UseCase" provided below and generate a JSON array of test cases. Each test case must validate a specific path (happy path, edge case, or error handling) of the solution.
+               Analyze the "UseCase" provided below and generate a JSON array of test cases. 
+               Each test case must validate a specific path (happy path, edge case, or error handling) of the solution.
 
                ### Requirements for Each Test Case:
                1. **Title:** Concise and descriptive (e.g., "Successful login with valid credentials").
@@ -38,13 +43,14 @@ fun createTestCreatorAgent(): ConversationAgent = agents {
                    * The "Happy Path" (standard successful flow).
                    * Edge cases (boundary conditions).
                    * Negative scenarios (invalid inputs or system errors).
+               5. **Complete:** Each conversation must be a complete interaction from start to finish.
 
                ### Output Format
                Return ONLY a valid JSON array. Do not include introductory text or Markdown code blocks unless requested. Follow this structure:
 
                [
                  {
-                   "title": "String",
+                   "name": "String",
                    "description": "String",
                    "expected_conversation": [
                      {"role": "user", "content": [Action] },

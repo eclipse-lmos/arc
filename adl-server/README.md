@@ -37,6 +37,35 @@ The server can be configured using the following environment variables:
 
 By default, the server listens on port `8080`. You can override the port by setting the environment variable `ADL_SERVER_PORT`.
 
+### Docker
+
+You can also run the server using Docker.
+
+#### Build the Docker Image
+
+Run the following command from the root of the repository:
+
+```sh
+docker build -f adl-server/Dockerfile -t adl-server .
+```
+
+#### Run via GitHub Container Registry
+
+To pull and run the latest image from the GitHub Container Registry:
+
+1.  **Login to GitHub Container Registry** (if required):
+    Follow the instructions here: [Working with the Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+
+2.  **Run the container**:
+
+    ```bash
+    docker run -p 8080:8080 \
+      -e ARC_AI_KEY=[OPENAI_API_KEY] \
+      -e ARC_MODEL=gpt-4o \
+      -e ARC_CLIENT=openai \
+      ghcr.io/eclipse-lmos/adl-server:latest
+    ```
+
 ### GraphQL Endpoint
 
 The main endpoint is available at:

@@ -8,8 +8,14 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.agents
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
+import org.eclipse.lmos.arc.agents.llm.ReasoningEffort
 
-fun createEvalAgent(): ConversationAgent = agents {
+/**
+ * Creates the agent that evaluates conversations.
+ */
+fun createEvalAgent(chatCompleterProvider: ChatCompleterProvider? = null): ConversationAgent = agents(chatCompleterProvider = chatCompleterProvider) {
     agent {
         name = "eval_agent"
 

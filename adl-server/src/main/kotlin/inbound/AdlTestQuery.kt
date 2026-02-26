@@ -6,6 +6,7 @@ package org.eclipse.lmos.adl.server.inbound
 
 import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import com.expediagroup.graphql.server.operations.Query
+import org.eclipse.lmos.adl.server.models.TestCase
 import org.eclipse.lmos.adl.server.repositories.TestCaseRepository
 
 /**
@@ -15,10 +16,10 @@ class AdlTestQuery(
     private val testCaseRepository: TestCaseRepository,
 ) : Query {
 
-    @GraphQLDescription("Retrieves test cases associated with a specific Use Case ID.")
+    @GraphQLDescription("Retrieves test cases associated with a ADL.")
     suspend fun getTests(
-        @GraphQLDescription("The ID of the Use Case") useCaseId: String,
+        @GraphQLDescription("The ADL identifier") id: String,
     ): List<TestCase> {
-        return testCaseRepository.findByUseCaseId(useCaseId)
+        return testCaseRepository.findByADLId(id)
     }
 }
