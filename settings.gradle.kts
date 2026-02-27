@@ -27,9 +27,9 @@ include("arc-openai-api-spring-boot-starter")
 include("arc-memory-redis")
 include("arc-mcp")
 include("arc-server")
+include("adl-kotlin-runner")
 
 // MOVED TO ADL PROJECT
-//include("adl-kotlin-runner")
 //include("adl-server")
 
 include("examples")
