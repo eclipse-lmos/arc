@@ -50,7 +50,7 @@ subprojects {
     tasks.withType<KotlinJvmCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.addAll(listOf("-Xcontext-parameters", "-Xjsr305=strict"))
-            jvmTarget = JvmTarget.fromTarget("21")
+            jvmTarget = JvmTarget.fromTarget("25")
         }
     }
 
