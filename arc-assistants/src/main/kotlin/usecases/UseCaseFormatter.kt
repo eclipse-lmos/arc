@@ -61,6 +61,10 @@ suspend fun List<UseCase>.formatToString(
             temp.append("#### Solution\n")
             useCase.fallbackSolution.output(allConditions, temp, codeBlockProcessor)
         }
+        if (outputOptions.outputSolution != false && useCase.context.isNotEmpty()) {
+            temp.append("#### Context\n")
+            useCase.context.output(allConditions, temp, codeBlockProcessor)
+        }
         if (useCase.examples.isNotEmpty() && outputOptions.outputExamples != false) {
             temp.append("#### Examples\n")
             useCase.examples.split("\n").take(exampleLimit).forEach { example ->

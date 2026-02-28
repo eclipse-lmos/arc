@@ -46,6 +46,7 @@ fun String.toUseCases(): List<UseCase> {
                     line.contains("# Fallback") -> FALLBACK_SOLUTION
                     line.contains("# Step") -> STEPS
                     line.contains("# Example") -> EXAMPLES
+                    line.contains("# Context") -> CONTEXT
                     else -> error("Unknown UseCase section: ${line.trim()}")
                 }
                 return@forEachLine
@@ -60,6 +61,10 @@ fun String.toUseCases(): List<UseCase> {
 
             GOAL -> currentUseCase?.copy(
                 goal = (currentUseCase?.goal ?: emptyList()) + line.asConditional(),
+            )
+
+            CONTEXT -> currentUseCase?.copy(
+                context = (currentUseCase?.context ?: emptyList()) + line.asConditional(),
             )
 
             STEPS -> currentUseCase?.copy(steps = (currentUseCase?.steps ?: emptyList()) + line.asConditional())
@@ -202,6 +207,7 @@ enum class Section {
     FALLBACK_SOLUTION,
     STEPS,
     EXAMPLES,
+    CONTEXT,
 }
 
 @Serializable
@@ -219,6 +225,7 @@ data class UseCase(
     val goal: List<Conditional> = emptyList(),
     val subUseCase: Boolean = false,
     val category: String? = null,
+    val context: List<Conditional> = emptyList(),
 ) {
     fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
@@ -294,20 +301,20 @@ fun Set<String>.matches(conditions: Set<String>, input: String? = null): Boolean
         conditions
     }
     return isEmpty() || (
-        positiveConditionals().all { allConditions.contains(it) } &&
-            negativeConditionals().none { allConditions.contains(it) } &&
-            orConditionals().all { ors ->
-                ors.any {
-                    if (it.startsWith("!")) {
-                        !allConditions.contains(
-                            it.removePrefix("!").trim(),
-                        )
-                    } else {
-                        allConditions.contains(it.trim())
+            positiveConditionals().all { allConditions.contains(it) } &&
+                    negativeConditionals().none { allConditions.contains(it) } &&
+                    orConditionals().all { ors ->
+                        ors.any {
+                            if (it.startsWith("!")) {
+                                !allConditions.contains(
+                                    it.removePrefix("!").trim(),
+                                )
+                            } else {
+                                allConditions.contains(it.trim())
+                            }
+                        }
                     }
-                }
-            }
-        )
+            )
 }
 
 /**
