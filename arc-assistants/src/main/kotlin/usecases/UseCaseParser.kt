@@ -20,7 +20,7 @@ fun String.toUseCases(): List<UseCase> {
 
     forEachLine { line ->
         if (line.trimStart().startsWith("#")) {
-            if (line.contains("# UseCase") || line.contains("# Case")) {
+            if (line.contains("# UseCase") || line.contains("# Case") || line.contains("# Skill")) {
                 currentUseCase?.let { useCases.add(it) }
                 val (lineWithoutConditions, conditions) = line.parseConditions()
                 val useCaseHeader = lineWithoutConditions.substringAfter(":").trim()
