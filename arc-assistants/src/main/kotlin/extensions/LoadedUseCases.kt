@@ -17,4 +17,11 @@ data class LoadedUseCases(
     val processedUseCaseMap: Map<String, String>,
     val currentStep: String? = null,
     val currentUseCaseId: String? = null,
-)
+) {
+    /**
+     * Retrieves the current UseCase based on the currentUseCaseId.
+     */
+    fun currentUseCase(): UseCase? {
+        return useCases.find { it.id == currentUseCaseId }
+    }
+}

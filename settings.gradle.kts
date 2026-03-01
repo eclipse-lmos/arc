@@ -28,5 +28,8 @@ include("arc-memory-redis")
 include("arc-mcp")
 include("arc-server")
 include("adl-kotlin-runner")
-include("adl-server")
+
+// MOVED TO ADL PROJECT
+//include("adl-server")
+
 include("examples")
