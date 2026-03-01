@@ -4,7 +4,6 @@
 
 package org.eclipse.lmos.arc.assistants.support.filters
 
-import org.eclipse.lmos.adl.server.agents.extensions.RESPONSE_GUIDE_RETRY_REASON
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentOutputFilter
@@ -12,14 +11,13 @@ import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.llm
 import org.eclipse.lmos.arc.agents.dsl.get
-import org.eclipse.lmos.arc.agents.retry
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.slf4j.LoggerFactory
 
 /**
  * An [AgentOutputFilter] that extracts "MUST" instructions from processed use cases and verifies compliance.
  */
-class MustFeature(private val keyword: String = "MUST", private val retryMax: Int = 3) : AgentOutputFilter {
+class MustFeature(private val keyword: String = "MUST") : AgentOutputFilter {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -144,7 +142,7 @@ class MustFeature(private val keyword: String = "MUST", private val retryMax: In
             return message
         }
 
-        log.warn("MustFeature verification failed: $verificationResult")
+        log.warn("MustFeature verification failed for: ${message.content}")
         val fixedResponse = verificationResult.substringAfter("Fixed Response:")
             .trim()
             .replace("```", "")
@@ -154,12 +152,6 @@ class MustFeature(private val keyword: String = "MUST", private val retryMax: In
             log.info("Updating response with fixed version from verification: $fixedResponse")
             return message.update(fixedResponse)
         }
-
-        context.retry(
-            max = retryMax,
-            details = mapOf("error" to "The following instructions must be followed: $instructionsText"),
-            reason = RESPONSE_GUIDE_RETRY_REASON
-        )
 
         return message
     }
