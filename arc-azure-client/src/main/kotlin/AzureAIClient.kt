@@ -19,6 +19,8 @@ import com.azure.ai.openai.models.ChatRequestUserMessage
 import com.azure.ai.openai.models.EmbeddingsOptions
 import com.azure.ai.openai.models.ReasoningEffortValue
 import com.azure.core.exception.ClientAuthenticationException
+import com.azure.core.http.HttpHeaderName
+import com.azure.core.http.rest.RequestOptions
 import com.azure.core.util.BinaryData.fromObject
 import com.azure.core.util.BinaryData.fromString
 import kotlinx.coroutines.reactive.awaitFirst
@@ -42,7 +44,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.LLMStartedEvent
 import org.eclipse.lmos.arc.agents.llm.OutputFormat.JSON
 import org.eclipse.lmos.arc.agents.llm.OutputSchema
-import org.eclipse.lmos.arc.agents.llm.ReasoningEffort
 import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.HIGH
 import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.LOW
 import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.MEDIUM
@@ -63,6 +64,7 @@ import org.slf4j.LoggerFactory
 import sh.ondr.koja.Schema
 import sh.ondr.koja.toJsonElement
 import sh.ondr.koja.toSchema
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
@@ -213,13 +215,30 @@ class AzureAIClient(
         val result: Result<ChatCompletions, ArcException>
         val duration = measureTime {
             result = result<ChatCompletions, ArcException> {
-                client.getChatCompletions(deploymentOrModelName, chatCompletionsOptions).awaitFirst()
+                val requestOptions = getCustomRequestOptions(chatCompletionsOptions)
+                if (requestOptions != null) {
+                    client.getChatCompletionsWithResponse(deploymentOrModelName, chatCompletionsOptions, requestOptions)
+                        .awaitFirst().getValue()
+                } else {
+                    client.getChatCompletions(deploymentOrModelName, chatCompletionsOptions).awaitFirst()
+                }
             }.mapFailure {
                 log.error("Calling Azure OpenAI failed!", it)
                 mapOpenAIException(it)
             }
         }
         return result to duration
+    }
+
+    private fun getCustomRequestOptions(chatCompletionsOptions: ChatCompletionsOptions): RequestOptions? {
+        val customHeaders =
+            AzureOpenAICustomHeaders.getCustomHeaders(chatCompletionsOptions).takeIf { it.isNotEmpty() } ?: return null
+        log.debug("Adding custom headers: $customHeaders")
+        val requestOptions = RequestOptions()
+        customHeaders.forEach { key, value ->
+            requestOptions.addHeader(HttpHeaderName.fromString(key), value)
+        }
+        return requestOptions
     }
 
     @OptIn(InternalSerializationApi::class)
@@ -258,7 +277,8 @@ class AzureAIClient(
                 }
             }
             settings?.maxTokens?.let { maxTokens = it }
-            settings?.format?.takeIf { JSON == it }?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
+            settings?.format?.takeIf { JSON == it && responseFormat == null }
+                ?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
             if (openAIFunctions != null) tools = openAIFunctions
         }
 
@@ -311,4 +331,19 @@ fun String.extractUseCaseId(): String? {
     } catch (ex: Exception) {
         null
     }
+}
+
+/**
+ * Provides a way to set custom headers for Azure OpenAI requests.
+ */
+object AzureOpenAICustomHeaders {
+
+    private val customHeaderProvider = AtomicReference<(ChatCompletionsOptions) -> Map<String, String>> { emptyMap() }
+
+    fun setCustomHeaderProvider(provider: (ChatCompletionsOptions) -> Map<String, String>) {
+        customHeaderProvider.set(provider)
+    }
+
+    fun getCustomHeaders(chatCompletionsOptions: ChatCompletionsOptions): Map<String, String> =
+        customHeaderProvider.get().invoke(chatCompletionsOptions)
 }
