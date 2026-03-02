@@ -50,6 +50,7 @@ import org.eclipse.lmos.arc.agents.llm.ReasoningEffort.MEDIUM
 import org.eclipse.lmos.arc.agents.llm.TextEmbedder
 import org.eclipse.lmos.arc.agents.llm.TextEmbedding
 import org.eclipse.lmos.arc.agents.llm.TextEmbeddings
+import org.eclipse.lmos.arc.agents.schema.JsonSchemaConverter
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.DefaultAgentTracer
 import org.eclipse.lmos.arc.agents.withLogContext
@@ -61,9 +62,6 @@ import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.mapFailure
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
-import sh.ondr.koja.Schema
-import sh.ondr.koja.toJsonElement
-import sh.ondr.koja.toSchema
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
@@ -243,9 +241,7 @@ class AzureAIClient(
 
     @OptIn(InternalSerializationApi::class)
     private fun OutputSchema.toSchema(): String {
-        return (type.serializer().descriptor.toSchema() as Schema.ObjectSchema).copy(
-            additionalProperties = JsonPrimitive(false),
-        ).toJsonElement().toString()
+        return JsonSchemaConverter.generate(type)
     }
 
     private fun toCompletionsOptions(
