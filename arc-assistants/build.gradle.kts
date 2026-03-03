@@ -6,6 +6,7 @@ dependencies {
     api(project(":arc-result"))
     api(project(":arc-agents"))
     implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("com.github.spullara.mustache.java:compiler:0.9.14")
 
     testImplementation(project(":adl-kotlin-runner"))
 }
