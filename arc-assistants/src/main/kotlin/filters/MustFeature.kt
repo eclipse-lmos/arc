@@ -129,17 +129,9 @@ class MustFeature(private val keyword: String = "MUST") : AgentOutputFilter {
                 - Fixed Response: [The final answer from the Assistant rephrased to comply with the MUST instructions so that it can be to sent to the user.]
                 ```
                 
-                **Important*: You must operate under a ZERO-ASSUMPTION policy when generating the Fixed Response:
-                - Do NOT infer missing information.
-                - Do NOT assume intent.
-                - Do NOT use external knowledge.
-                - Do NOT use prior training data.
-                - Do NOT enrich, expand, reinterpret, or improve content beyond what is explicitly provided.
-                - If something is not explicitly stated, treat it as NOT present.
+                **Important*: The Fixed Response MUST be ready to be sent directly to the user. 
                 - It MUST match the tone, style, and format requirements specified in the MUST instructions.
                 - The Fixed Response should not include any explanations, apologies, or meta commentary. 
-                
-                Return Fixed Response: NONE if the response cannot be fixed without violating the ZERO-ASSUMPTION policy.
                 
             """.trimIndent(),
             user = "Verify the response."
@@ -156,7 +148,7 @@ class MustFeature(private val keyword: String = "MUST") : AgentOutputFilter {
             .replace("```", "")
             .replace(""""""", "")
 
-        if (fixedResponse.isNotEmpty() && !fixedResponse.contains("NONE", ignoreCase = true)) {
+        if (fixedResponse.isNotEmpty()) {
             log.info("Updating response with fixed version from verification: $fixedResponse")
             return message.update(fixedResponse)
         }
