@@ -5,4 +5,5 @@
 dependencies {
     api(project(":arc-result"))
     implementation(libs.slf4j.api)
+    implementation(kotlin("reflect"))
 }
