@@ -226,6 +226,7 @@ data class UseCase(
     val subUseCase: Boolean = false,
     val category: String? = null,
     val context: List<Conditional> = emptyList(),
+    val metadata: Map<String, String> = emptyMap(),
 ) {
     fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
