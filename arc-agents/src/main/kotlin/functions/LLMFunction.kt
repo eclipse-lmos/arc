@@ -53,4 +53,10 @@ data class ParameterSchema(
     val required: List<String>? = null,
     @Transient val isRequired: Boolean = true,
     val enum: List<String>? = null,
+    val anyOf : List<ParameterSchema>? = null,
+    val maxLength: Int? = null,
+    val minLength: Int? = null,
+    val multipleOf: Int? = null,
+    val minimum: Int? = null,
+    val maximum: Int? = null,
 )

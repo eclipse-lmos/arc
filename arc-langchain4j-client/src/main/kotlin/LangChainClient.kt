@@ -13,6 +13,7 @@ import dev.langchain4j.data.message.TextContent
 import dev.langchain4j.data.message.VideoContent
 import dev.langchain4j.model.chat.ChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
+import dev.langchain4j.model.chat.request.json.JsonAnyOfSchema
 import dev.langchain4j.model.chat.request.json.JsonArraySchema
 import dev.langchain4j.model.chat.request.json.JsonBooleanSchema
 import dev.langchain4j.model.chat.request.json.JsonEnumSchema
@@ -164,7 +165,7 @@ class LangChainClient(
                     if (it.binaryData.isNotEmpty()) {
                         dev.langchain4j.data.message.UserMessage.from(
                             listOf(TextContent.from(it.content)) +
-                                it.binaryData.map { data -> data.toContent() },
+                                    it.binaryData.map { data -> data.toContent() },
                         )
                     } else {
                         dev.langchain4j.data.message.UserMessage(it.content)
@@ -207,6 +208,13 @@ class LangChainClient(
 
     private fun ParameterSchema.toJsonElement(): JsonSchemaElement {
         if (enum != null) return JsonEnumSchema.builder().description(description).enumValues(enum).build()
+
+        if (anyOf != null) {
+            return JsonAnyOfSchema.builder().description(description).anyOf(
+                anyOf!!.map { it.toJsonElement() },
+            ).build()
+        }
+
         return when (type) {
             "string" -> JsonStringSchema.builder().description(description).build()
             "integer" -> JsonIntegerSchema.builder().description(description).build()

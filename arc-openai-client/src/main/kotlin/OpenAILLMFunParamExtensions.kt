@@ -27,7 +27,11 @@ fun ParametersSchema.toOpenAISchemaAsMap() = jsonObjectToMap(toOpenAIObject())
  * Extension functions for ParameterSchema to convert it to OpenAPI JSON format.
  */
 private fun ParameterSchema.toOpenAIObject(): JsonObject = buildJsonObject {
-    put("type", JsonPrimitive(type))
+    if (type != null) put("type", JsonPrimitive(type))
+
+    if (anyOf != null) {
+        put("anyOf", JsonArray(anyOf!!.map { it.toOpenAIObject() }))
+    }
 
     description?.takeIf { it.isNotEmpty() }?.let {
         put("description", JsonPrimitive(it))
@@ -62,16 +66,20 @@ fun jsonObjectToMap(jsonObject: JsonObject): Map<String, Any?> = jsonObject.mapV
             value.isString -> value.content
             else -> value.booleanOrNull ?: value.intOrNull ?: value.floatOrNull ?: value.doubleOrNull
         }
+
         is JsonArray -> value.map { jsonElement ->
             when (jsonElement) {
                 is JsonObject -> jsonObjectToMap(jsonElement)
                 is JsonPrimitive -> when {
                     jsonElement.isString -> jsonElement.content
-                    else -> jsonElement.booleanOrNull ?: jsonElement.intOrNull ?: jsonElement.floatOrNull ?: jsonElement.doubleOrNull
+                    else -> jsonElement.booleanOrNull ?: jsonElement.intOrNull ?: jsonElement.floatOrNull
+                    ?: jsonElement.doubleOrNull
                 }
+
                 else -> null
             }
         }
+
         is JsonObject -> jsonObjectToMap(value)
         else -> null
     }
