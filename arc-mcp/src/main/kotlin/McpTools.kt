@@ -89,7 +89,7 @@ class ToolWrapper(
     override val version: String? = null
     override val outputDescription: String? = null
     override val parameters = parameters(tool)
-    override val description: String = tool.description
+    override val description: String = tool.description ?: ""
     override val group: String = "MCP"
     override val isSensitive: Boolean = false
     override val metadata: Map<String, Any> get() = tool.meta()

@@ -13,17 +13,17 @@ import org.eclipse.lmos.arc.agents.functions.ParametersSchema
 fun parameters(tool: Tool): ParametersSchema {
     return ParametersSchema(
         required = tool.inputSchema.required,
-        type = tool.inputSchema.type,
-        properties = tool.inputSchema.properties.mapValues { (_, v) ->
+        type = tool.inputSchema.type ?: "object",
+        properties = tool.inputSchema.properties?.mapValues { (_, v) ->
             val type = v as Map<String, Any>
             mapProperties(type)
-        },
+        } ?: emptyMap(),
     )
 }
 
 private fun mapProperties(type: Map<String, Any>): ParameterSchema {
     return ParameterSchema(
-        type = type["type"] as String,
+        type = type["type"] as String?,
         description = type["description"] as String?,
         name = type["name"] as String?,
         required = type["required"] as List<String>?,

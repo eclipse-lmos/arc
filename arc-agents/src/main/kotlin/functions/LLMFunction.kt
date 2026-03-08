@@ -45,7 +45,7 @@ data class ParametersSchema(
  */
 @Serializable
 data class ParameterSchema(
-    val type: String,
+    val type: String?,
     @Transient val name: String? = null,
     val description: String? = null,
     val items: ParameterSchema? = null,
