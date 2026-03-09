@@ -4,6 +4,7 @@
 package org.eclipse.lmos.arc.assistants.support.filters
 
 import org.eclipse.lmos.arc.agents.HallucinationDetectedException
+import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.AgentOutputFilter
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
@@ -20,7 +21,11 @@ class HallucinationDetector(private val returnValue: String? = null) : AgentOutp
         Regex("""([a-zA-Z0-9.!#${'$'}%&'*+/=?^_`{|}~-]+)@([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}""")
 
     override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage {
-        val data = context.getData()?.joinToString { it.data } ?: return message
+        val dataFromContext = context.getData()?.joinToString { it.data } ?: return message
+        val earlierAssistantResponses = context.input.transcript
+            .filterIsInstance<AssistantMessage>()
+            .joinToString { it.content }
+        val data = listOf(dataFromContext, earlierAssistantResponses).filter { it.isNotEmpty() }.joinToString(" ")
         val urlList = extract(message.content, urlPattern)
         val ibanList = extract(message.content, ibanRegex)
         val emailList = extract(message.content, emailPattern)
