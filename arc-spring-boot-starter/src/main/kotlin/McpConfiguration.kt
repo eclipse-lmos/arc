@@ -9,6 +9,7 @@ import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper
 import io.modelcontextprotocol.server.McpServerFeatures
 import io.modelcontextprotocol.spec.McpSchema
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.eclipse.lmos.arc.agents.dsl.BasicDSLContext
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference
 @ConditionalOnClass(ToolCallbackProvider::class)
 class McpConfiguration {
 
-    private val scope = CoroutineScope(SupervisorJob())
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val log = LoggerFactory.getLogger(McpConfiguration::class.java)
 
     private val mcpMapper = JacksonMcpJsonMapper(ObjectMapper())
@@ -75,7 +76,7 @@ class McpConfiguration {
                             val result = AtomicReference<McpSchema.CallToolResult>()
                             val wait = Semaphore(0)
                             scope.launch {
-                                log.warn("Calling MCP function: $req")
+                                log.info("Calling MCP function: $req")
                                 val args = req.arguments
                                 try {
                                     val compositeBeanProvider = CompositeBeanProvider(
