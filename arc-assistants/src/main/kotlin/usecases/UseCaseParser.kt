@@ -7,6 +7,7 @@ package org.eclipse.lmos.arc.assistants.support.usecases
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.agents.dsl.extensions.then
 import org.eclipse.lmos.arc.assistants.support.usecases.Section.*
+import org.eclipse.lmos.arc.assistants.support.usecases.features.output
 import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
@@ -47,6 +48,7 @@ fun String.toUseCases(): List<UseCase> {
                     line.contains("# Step") -> STEPS
                     line.contains("# Example") -> EXAMPLES
                     line.contains("# Context") -> CONTEXT
+                    line.contains("# Output") -> OUTPUT
                     else -> error("Unknown UseCase section: ${line.trim()}")
                 }
                 return@forEachLine
@@ -65,6 +67,10 @@ fun String.toUseCases(): List<UseCase> {
 
             CONTEXT -> currentUseCase?.copy(
                 context = (currentUseCase?.context ?: emptyList()) + line.asConditional(),
+            )
+
+            OUTPUT -> currentUseCase?.copy(
+                output = (currentUseCase?.output ?: emptyList()) + line.asConditional(),
             )
 
             STEPS -> currentUseCase?.copy(steps = (currentUseCase?.steps ?: emptyList()) + line.asConditional())
@@ -208,6 +214,7 @@ enum class Section {
     STEPS,
     EXAMPLES,
     CONTEXT,
+    OUTPUT,
 }
 
 @Serializable
@@ -227,6 +234,7 @@ data class UseCase(
     val category: String? = null,
     val context: List<Conditional> = emptyList(),
     val metadata: Map<String, String> = emptyMap(),
+    val output: List<Conditional> = emptyList(),
 ) {
     fun matches(allConditions: Set<String>, input: String? = null): Boolean = conditions.matches(allConditions, input)
 
