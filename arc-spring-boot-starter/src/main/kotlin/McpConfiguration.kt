@@ -76,7 +76,7 @@ class McpConfiguration {
                             val result = AtomicReference<McpSchema.CallToolResult>()
                             val wait = Semaphore(0)
                             scope.launch {
-                                log.info("Calling MCP function: $req")
+                                log.info("Calling MCP function: ${req.name}")
                                 val args = req.arguments
                                 try {
                                     val compositeBeanProvider = CompositeBeanProvider(
