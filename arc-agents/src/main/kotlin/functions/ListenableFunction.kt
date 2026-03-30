@@ -17,7 +17,7 @@ class ListenableFunction(
 ) :
     LLMFunction by fn {
 
-    override suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException> {
-        return fn.execute(input).also { if (it is Success) listener(it.value) }
+    override suspend fun execute(input: Map<String, Any?>): Result<Any, LLMFunctionException> {
+        return fn.execute(input).also { if (it is Success) listener(it.value.toStringResult()) }
     }
 }

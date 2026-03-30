@@ -18,11 +18,13 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionStartedEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.functions.toStringResult
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.Tags
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
+import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -118,7 +120,7 @@ class FunctionCallHandler(
             log.debug("Calling LLMFunction $function with $functionArguments...")
             _calledFunctions[functionName] = ToolCall(functionName, function, toolCall.function.arguments)
             OpenInferenceTags.applyToolAttributes(function, tags)
-            function.execute(functionArguments) failWith {
+            function.execute(functionArguments).map { it.toStringResult() } failWith {
                 tags.error(it)
                 ArcException(cause = it.cause)
             }

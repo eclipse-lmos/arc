@@ -13,6 +13,7 @@ import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.toJsonMap
+import org.eclipse.lmos.arc.agents.functions.toStringResult
 import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Success
@@ -36,7 +37,7 @@ class ToolMutation(private val functionProvider: LLMFunctionProvider, private va
         }
 
         return when (result) {
-            is Success -> ToolExecutionResult(result = result.value)
+            is Success -> ToolExecutionResult(result = result.value.toStringResult())
             is Failure -> ToolExecutionResult(error = result.reason.message ?: "Unknown error")
             else -> ToolExecutionResult(error = "Unknown error")
         }

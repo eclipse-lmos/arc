@@ -12,7 +12,7 @@ import org.eclipse.lmos.arc.core.onFailure
 class TraceableLLMFunction(private val tracer: AgentTracer, private val function: LLMFunction) :
     LLMFunction by function {
 
-    override suspend fun execute(input: Map<String, Any?>): Result<String, LLMFunctionException> {
+    override suspend fun execute(input: Map<String, Any?>): Result<Any, LLMFunctionException> {
         return tracer.withSpan(
             "tool $name",
             mapOf(
@@ -24,7 +24,7 @@ class TraceableLLMFunction(private val tracer: AgentTracer, private val function
         ) { tags, _ ->
             function.execute(input).also { result ->
                 tags.tag("input", input.toString())
-                result.getOrNull()?.let { tags.tag("result", it) }
+                result.getOrNull()?.let { tags.tag("result", it.toStringResult()) }
                 result.onFailure { tags.tag("error", it.message ?: "unknown error") }
             }
         }

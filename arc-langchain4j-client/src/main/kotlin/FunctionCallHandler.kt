@@ -14,10 +14,12 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionCalledEvent
 import org.eclipse.lmos.arc.agents.functions.convertToJsonMap
+import org.eclipse.lmos.arc.agents.functions.toStringResult
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrNull
+import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -95,7 +97,7 @@ class FunctionCallHandler(
     private suspend fun callFunction(function: LLMFunction, functionArguments: Map<String, Any?>) =
         result<String, ArcException> {
             log.debug("Calling LLMFunction $function with $functionArguments...")
-            function.execute(functionArguments) failWith { ArcException(cause = it.cause) }
+            function.execute(functionArguments).map { it.toStringResult() } failWith { ArcException(cause = it.cause) }
         }
 
     private fun String.toJson() = result<Map<String, Any?>, HallucinationDetectedException> {
