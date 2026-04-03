@@ -26,17 +26,27 @@ import org.slf4j.LoggerFactory
  * An output filter that handles responses from the LLM that contain a use case id.
  * For example, "<ID:useCaseId>"
  */
-class UseCaseResponseHandler : AgentOutputFilter {
+class UseCaseResponseHandler(enforceUseCase: Boolean = false, model: String) : AgentOutputFilter {
 
     private val log = LoggerFactory.getLogger(this.javaClass)
+    private val useMatcher = if (enforceUseCase) UseCaseMatcher(model) else null
 
     override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage =
         with(context) {
             val (messageWithoutStep, stepId) = extractUseCaseStepId(message.content)
-            val (cleanMessage, useCaseId) = extractUseCaseId(messageWithoutStep)
+            var (cleanMessage, useCaseId) = extractUseCaseId(messageWithoutStep)
 
             // Store the current step in memory
             setUseCaseStep(stepId)
+
+            // Try to match missing Use Case ids.
+            if (useCaseId == null && useMatcher != null) {
+                log.info("No use case identified in message '${message.content}'. Attempting to classify...")
+                useCaseId = useMatcher.matchUseCase(message.content)?.let {
+                    log.info("Use case identified by matcher: $it.")
+                    it
+                }
+            }
 
             // Store the identified use case.
             if (useCaseId != null) {
