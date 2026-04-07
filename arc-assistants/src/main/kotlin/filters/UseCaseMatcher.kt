@@ -4,10 +4,7 @@
 
 package org.eclipse.lmos.arc.assistants.support.filters
 
-import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
-import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
-import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.llm
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
 import org.eclipse.lmos.arc.core.getOrNull
