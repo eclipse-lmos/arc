@@ -6,7 +6,6 @@ package org.eclipse.lmos.arc.assistants.support.filters
 
 import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.llm
-import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
 import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.onFailure
 import org.slf4j.LoggerFactory
@@ -115,8 +114,12 @@ class UseCaseMatcher(private val model: String? = null) {
         ).onFailure {
             log.warn("Failure while matching UseCase: $it")
         }.getOrNull() ?: return null
-
-        log.info("Matched UseCase: $result")
-        return extractUseCaseId(result.content).second
+        log.debug("Matched UseCase: $result")
+        val useCase = result.content.substringAfter("<", missingDelimiterValue = "")
+            .substringBefore(">", missingDelimiterValue = "")
+        if (useCase.isBlank()) return null
+        if (!useCases.contains(useCase)) return null
+        log.info("Matched UseCase found: $result")
+        return useCase
     }
 }
