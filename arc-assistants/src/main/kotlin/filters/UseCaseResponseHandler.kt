@@ -41,7 +41,7 @@ class UseCaseResponseHandler(enforceUseCase: Boolean = false, model: String? = n
 
             // Try to match missing Use Case ids.
             val processedUseCases = getCurrentUseCases()?.processedUseCases
-            if (useCaseId == null && useMatcher != null && processedUseCases != null) {
+            if (useCaseId == null && useMatcher != null && processedUseCases != null && !message.content.contains("NO_ANSWER")) {
                 log.info("No use case identified in message '${message.content}'. Attempting to classify...")
                 useCaseId = useMatcher.matchUseCase(message.content, processedUseCases, context)?.let {
                     log.info("Use case identified by matcher: $it.")
