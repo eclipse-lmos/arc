@@ -267,7 +267,7 @@ class ChatAgent(
     }
 
     private suspend fun getFunctions(
-        tools: List<String>,
+        tools: Set<String>,
         beanProvider: BeanProvider,
         context: DSLContext,
     ): List<LLMFunction> {
