@@ -89,7 +89,7 @@ suspend fun withDSLContext(beans: Set<Any> = emptySet(), block: suspend DSLConte
  */
 class ToolsDSLContext(private val context: DSLContext) : DSLContext by context {
 
-    val tools = mutableListOf<String>()
+    val tools = mutableSetOf<String>()
 
     override operator fun String.unaryPlus() {
         tools.add(this)
