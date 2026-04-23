@@ -14,7 +14,11 @@ import java.time.DateTimeException
 class McpToolsByEnvironmentTest : TestBase() {
 
     private val originalProperties = mutableMapOf<String, String?>()
-    private val testProperties = listOf("ARC_MCP_TOOLS_URLS", "ARC_MCP_TOOLS_CACHE_DURATION")
+    private val testProperties = listOf(
+        "ARC_MCP_TOOLS_URLS",
+        "ARC_MCP_TOOLS_CACHE_DURATION",
+        "ARC_MCP_TOOLS_TRANSPORT",
+    )
 
     @LocalServerPort
     private var port: Int = 0

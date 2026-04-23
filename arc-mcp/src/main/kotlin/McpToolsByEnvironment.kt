@@ -22,9 +22,11 @@ class McpToolsByEnvironment : LLMFunctionLoader {
     private val tools: List<McpTools> by lazy {
         val urls = getEnvironmentValue("ARC_MCP_TOOLS_URLS")?.split(",") ?: return@lazy emptyList()
         val cacheDuration = getEnvironmentValue("ARC_MCP_TOOLS_CACHE_DURATION")?.let { Duration.parse(it) }
-        log.info("Loading MCP tools from URLs: $urls")
+        val transport = getEnvironmentValue("ARC_MCP_TOOLS_TRANSPORT")?.let { McpClientTransport.fromConfiguration(it) }
+            ?: McpClientTransport.SSE
+        log.info("Loading MCP tools from URLs: $urls (transport=$transport)")
         urls.map { url ->
-            McpTools(url.trim(), cacheDuration)
+            McpTools(url.trim(), cacheDuration, transport)
         }
     }
 

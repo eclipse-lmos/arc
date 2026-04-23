@@ -30,11 +30,15 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * An instance of [LLMFunctionLoader] that loads functions from the Model Context Protocol (MCP) server.
  */
-class McpTools(private val url: String, private val cacheDuration: Duration?) :
+class McpTools(
+    private val url: String,
+    private val cacheDuration: Duration?,
+    private val transport: McpClientTransport = McpClientTransport.SSE,
+) :
     LLMFunctionLoader, Closeable {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val clientBuilder = McpClientBuilder(url)
+    private val clientBuilder = McpClientBuilder(url, transport)
     private val toolCache = AtomicReference<ToolCacheEntry>()
     private val defaultCacheDuration = Duration.ofMinutes(1)
 
