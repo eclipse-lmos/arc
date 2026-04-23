@@ -21,10 +21,13 @@ import java.io.Closeable
 /**
  * PromptRetriever that uses the MCP client to fetch prompts.
  */
-class McpPromptRetriever(private val url: String) : PromptRetriever, Closeable {
+class McpPromptRetriever(
+    private val url: String,
+    private val transport: McpClientTransport = McpClientTransport.SSE,
+) : PromptRetriever, Closeable {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val clientBuilder = McpClientBuilder(url)
+    private val clientBuilder = McpClientBuilder(url, transport)
 
     override suspend fun fetchPromptText(name: String, args: Map<String, Any?>): Result<String, PromptException> =
         clientBuilder.execute { client, url ->

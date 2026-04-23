@@ -21,6 +21,7 @@ import org.eclipse.lmos.arc.agents.functions.LLMFunctionLoader
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.memory.InMemoryMemory
 import org.eclipse.lmos.arc.agents.memory.Memory
+import org.eclipse.lmos.arc.mcp.McpClientTransport
 import org.eclipse.lmos.arc.mcp.McpPromptRetriever
 import org.eclipse.lmos.arc.mcp.McpTools
 import org.eclipse.lmos.arc.spring.clients.ClientsConfiguration
@@ -59,7 +60,10 @@ open class ArcAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty("arc.mcp.prompts.url")
-    open fun mcpPromptRetriever(@Value("\${arc.mcp.prompts.url}") url: String): PromptRetriever = McpPromptRetriever(url)
+    open fun mcpPromptRetriever(
+        @Value("\${arc.mcp.prompts.url}") url: String,
+        @Value("\${arc.mcp.tools.transport:sse}") transportRaw: String,
+    ): PromptRetriever = McpPromptRetriever(url, McpClientTransport.fromConfiguration(transportRaw))
 
     @Bean
     open fun eventPublisher(eventHandlers: List<EventHandler<*>>) = BasicEventPublisher().apply {
@@ -92,9 +96,12 @@ open class ArcAutoConfiguration {
         functions: List<LLMFunction>,
         @Value("\${arc.mcp.tools.urls:}") urls: List<String>? = null,
         @Value("\${arc.mcp.tools.cache.duration:}") cacheDuration: Duration? = null,
+        @Value("\${arc.mcp.tools.transport:sse}") transportRaw: String,
     ): LLMFunctionProvider =
         CompositeLLMFunctionProvider(
-            loaders + (urls?.map { url -> McpTools(url, cacheDuration) } ?: emptyList()),
+            loaders + (urls?.map { url ->
+                McpTools(url, cacheDuration, McpClientTransport.fromConfiguration(transportRaw))
+            } ?: emptyList()),
             functions,
         )
 
