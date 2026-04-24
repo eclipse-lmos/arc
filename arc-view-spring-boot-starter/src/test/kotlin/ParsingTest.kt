@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ParsingTest {
     @Autowired
     lateinit var restTemplate: TestRestTemplate
@@ -32,7 +32,7 @@ class ParsingTest {
 
         val response = restTemplate.postForEntity("/arc/usecases", data, String::class.java).body
         assertThat(response).isEqualTo(
-            """{"useCases":[{"id":"usecase","description":"The description of the use case 2.\n\n","steps":[],"solution":[{"text":"Primary Solution","conditions":[],"functions":[],"useCaseRefs":[],"endConditional":false},{"text":"Some condition","conditions":["Conditional"],"functions":[],"useCaseRefs":[],"endConditional":false}],"alternativeSolution":[],"fallbackSolution":[],"examples":"","conditions":[],"goal":[],"subUseCase":false}],"useCaseCount":1,"errors":[]}""",
+            """{"useCases":[{"id":"usecase","description":"The description of the use case 2.\n\n","steps":[],"solution":[{"text":"Primary Solution","conditions":[],"functions":[],"useCaseRefs":[],"endConditional":false},{"text":"Some condition","conditions":["Conditional"],"functions":[],"useCaseRefs":[],"endConditional":false}],"alternativeSolution":[],"fallbackSolution":[],"examples":"","conditions":[],"goal":[],"subUseCase":false,"context":[],"metadata":{},"output":[]}],"useCaseCount":1,"errors":[]}""",
         )
     }
 }
