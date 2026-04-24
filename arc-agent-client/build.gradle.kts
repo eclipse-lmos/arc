@@ -17,6 +17,21 @@ dependencies {
     testImplementation(project(":arc-agents"))
     testImplementation(project(":arc-graphql-spring-boot-starter"))
     testImplementation(project(":arc-spring-boot-starter"))
-    testImplementation(libs.spring.boot.starter.test)
-    testImplementation(libs.spring.boot.starter)
+    // Aligned with arc-graphql-spring-boot-starter: graphql-kotlin 8.5.0 is incompatible
+    // with Spring Boot 4.0 (JacksonAutoConfiguration was removed/relocated). Pin to 3.5.0 for tests.
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
+    testImplementation("org.springframework.boot:spring-boot-starter:3.5.0")
 }
+
+// Force Spring Boot 3.5.0 across the test runtime classpath because graphql-kotlin 8.5.0
+// (transitively pulled in via arc-graphql-spring-boot-starter) references the
+// pre-Spring-Boot-4 location of JacksonAutoConfiguration.
+configurations.matching { it.name.startsWith("test") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.springframework.boot") {
+            useVersion("3.5.0")
+            because("graphql-kotlin 8.5.0 requires the Spring Boot 3.x JacksonAutoConfiguration")
+        }
+    }
+}
+
