@@ -25,7 +25,11 @@ suspend fun List<UseCase>.formatToString(
     input: String? = null,
     formatter: suspend (String, UseCase, List<UseCase>?, List<String>) -> String = { s, _, _, _ -> s },
 ): String = buildString {
-    this@formatToString.filter { !it.subUseCase }.filter { it.matches(conditions, input) }.forEach { useCase ->
+    this@formatToString
+        .filter { !it.subUseCase }
+        .filter { it.matches(conditions, input) }
+        .selectBestUseCasePerId(conditions, input)
+        .forEach { useCase ->
         val useAlternative = useAlternatives.contains(useCase.id) && useCase.alternativeSolution.isNotEmpty()
         val useFallback = useFallbacks.contains(useCase.id) && useCase.fallbackSolution.isNotEmpty()
         val allConditions =
