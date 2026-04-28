@@ -8,8 +8,11 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.lmos.arc.agents.agent.AgentToolAssigner
 import org.eclipse.lmos.arc.agents.conversation.*
 import org.eclipse.lmos.arc.agents.dsl.AllTools
+import org.eclipse.lmos.arc.agents.dsl.DSLContext
+import org.eclipse.lmos.arc.agents.dsl.get
 import org.eclipse.lmos.arc.agents.dsl.extensions.breakWith
 import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
@@ -91,6 +94,41 @@ class ChatAgentTest : TestBase() {
 
         executeAgent(agent, "question?")
         coVerify { functionProvider.provideAll(any()) }
+    }
+
+    @Test
+    fun `test agent tool assigner adds tools`(): Unit = runBlocking {
+        val agent = agent {
+            name = "agent"
+            systemPrompt = { "does stuff" }
+            tools = listOf("configuredTool")
+        } as ChatAgent
+        val providedToolNames = mutableListOf<String>()
+        val toolAssigner = object : AgentToolAssigner {
+            var agentName: String? = null
+            var currentTools: Set<String>? = null
+
+            override suspend fun assignTools(
+                agentName: String,
+                currentTools: Set<String>,
+                context: DSLContext,
+            ): Set<String> {
+                this.agentName = agentName
+                this.currentTools = currentTools
+                assertThat(context.get<ChatCompleterProvider>()).isSameAs(chatCompleterProvider)
+                return currentTools + "assignedTool"
+            }
+        }
+
+        coEvery { functionProvider.provide(capture(providedToolNames), any()) } answers {
+            Success(TestFunction(providedToolNames.last()))
+        }
+
+        executeAgent(agent, "question?", context = contextBeans + toolAssigner)
+
+        assertThat(toolAssigner.agentName).isEqualTo("agent")
+        assertThat(toolAssigner.currentTools).containsExactly("configuredTool")
+        assertThat(providedToolNames).containsExactly("configuredTool", "assignedTool")
     }
 
     @Test

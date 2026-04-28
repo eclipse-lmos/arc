@@ -5,6 +5,7 @@
 package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
+import org.eclipse.lmos.arc.agents.agent.AgentToolAssigner
 import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
@@ -250,11 +251,13 @@ class ChatAgent(
 
     private suspend fun functions(context: DSLContext, beanProvider: BeanProvider): List<LLMFunction>? {
         val toolsContext = ToolsDSLContext(context)
-        val tools = toolsProvider.invoke(toolsContext).let { toolsContext.tools } + (
+        val configuredTools = toolsProvider.invoke(toolsContext).let { toolsContext.tools } + (
             context.getLocal(
                 ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY,
             ) as? Set<String>? ?: emptySet()
             )
+        val tools = beanProvider.provideOptional<AgentToolAssigner>()?.assignTools(name, configuredTools, context)
+            ?: configuredTools
         return if (tools.isNotEmpty()) {
             getFunctions(tools, beanProvider, context).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn
