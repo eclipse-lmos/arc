@@ -91,7 +91,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
                             log.debug("Ignoring message with unexpected id: ${next.id}")
                             continue
                         }
-                        emit(next.payload.data.agent)
+                        send(next.payload.data.agent)
                     }
 
                     is CompleteMessage -> break
