@@ -18,6 +18,7 @@ import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agent.client.AgentClient
 import org.eclipse.lmos.arc.agent.client.AgentException
@@ -80,24 +81,26 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
                 }
             }
         }) {
-            initConnection()
-            sendSubscription(opId, agentRequest, agentName)
-            while (closing.get().not()) {
-                when (val next = nextMessage()) {
-                    is NextMessage -> {
-                        if (next.id != opId) {
-                            log.debug("Ignoring message with unexpected id: ${next.id}")
-                            continue
+            withContext(Dispatchers.IO) {
+                initConnection()
+                sendSubscription(opId, agentRequest, agentName)
+                while (closing.get().not()) {
+                    when (val next = nextMessage()) {
+                        is NextMessage -> {
+                            if (next.id != opId) {
+                                log.debug("Ignoring message with unexpected id: ${next.id}")
+                                continue
+                            }
+                            emit(next.payload.data.agent)
                         }
-                        emit(next.payload.data.agent)
-                    }
 
-                    is CompleteMessage -> break
-                    is ErrorMessage -> throw AgentException("Error received for $opId! Error:[$next]")
-                    else -> {}
+                        is CompleteMessage -> break
+                        is ErrorMessage -> throw AgentException("Error received for $opId! Error:[$next]")
+                        else -> {}
+                    }
                 }
+                close()
             }
-            close()
         }
     }.flowOn(Dispatchers.IO)
 
