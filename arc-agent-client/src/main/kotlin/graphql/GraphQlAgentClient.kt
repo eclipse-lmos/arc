@@ -16,6 +16,7 @@ import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapSetter
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -61,7 +62,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
         agentName: String?,
         url: String?,
         requestHeaders: Map<String, Any>,
-    ) = flow {
+    ) = channelFlow {
         if (url == null && defaultUrl == null) error("Agent Url not provided!")
         val opId = UUID.randomUUID().toString()
         client.webSocket(url ?: defaultUrl!!, {
@@ -90,7 +91,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
                             log.debug("Ignoring message with unexpected id: ${next.id}")
                             continue
                         }
-                        withContext(Dispatchers.IO) { emit(next.payload.data.agent) }
+                        emit(next.payload.data.agent)
                     }
 
                     is CompleteMessage -> break
@@ -100,7 +101,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
             }
             close()
         }
-    }.flowOn(Dispatchers.IO)
+    }
 
     private suspend fun DefaultClientWebSocketSession.initConnection() {
         sendMessage(InitConnectionMessage)
