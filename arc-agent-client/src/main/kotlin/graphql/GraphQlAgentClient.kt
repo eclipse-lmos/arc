@@ -15,7 +15,9 @@ import io.opentelemetry.api.trace.Span
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapSetter
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import org.eclipse.lmos.arc.agent.client.AgentClient
 import org.eclipse.lmos.arc.agent.client.AgentException
@@ -97,7 +99,7 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
             }
             close()
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     private suspend fun DefaultClientWebSocketSession.initConnection() {
         sendMessage(InitConnectionMessage)
