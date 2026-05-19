@@ -81,26 +81,24 @@ class GraphQlAgentClient(private val defaultUrl: String? = null) : AgentClient, 
                 }
             }
         }) {
-            withContext(Dispatchers.IO) {
-                initConnection()
-                sendSubscription(opId, agentRequest, agentName)
-                while (closing.get().not()) {
-                    when (val next = nextMessage()) {
-                        is NextMessage -> {
-                            if (next.id != opId) {
-                                log.debug("Ignoring message with unexpected id: ${next.id}")
-                                continue
-                            }
-                            emit(next.payload.data.agent)
+            initConnection()
+            sendSubscription(opId, agentRequest, agentName)
+            while (closing.get().not()) {
+                when (val next = nextMessage()) {
+                    is NextMessage -> {
+                        if (next.id != opId) {
+                            log.debug("Ignoring message with unexpected id: ${next.id}")
+                            continue
                         }
-
-                        is CompleteMessage -> break
-                        is ErrorMessage -> throw AgentException("Error received for $opId! Error:[$next]")
-                        else -> {}
+                        withContext(Dispatchers.IO) { emit(next.payload.data.agent) }
                     }
+
+                    is CompleteMessage -> break
+                    is ErrorMessage -> throw AgentException("Error received for $opId! Error:[$next]")
+                    else -> {}
                 }
-                close()
             }
+            close()
         }
     }.flowOn(Dispatchers.IO)
 
