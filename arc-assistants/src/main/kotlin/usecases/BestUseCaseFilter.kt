@@ -28,7 +28,7 @@ fun List<UseCase>.selectBestUseCasePerId(conditions: Set<String>, input: String?
 
             if (highestRanked.size > 1) {
                 highestRanked.drop(1).forEach { (removedUseCase, _) ->
-                    log.error(
+                    log.warn(
                         "Removed duplicate use case '{}' after tie on matching conditions; kept first occurrence.",
                         removedUseCase.id,
                     )
