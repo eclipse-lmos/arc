@@ -16,7 +16,9 @@ import org.eclipse.lmos.arc.agents.dsl.extensions.getCurrentUseCases
 import org.eclipse.lmos.arc.agents.dsl.extensions.memory
 import org.eclipse.lmos.arc.agents.dsl.extensions.outputContext
 import org.eclipse.lmos.arc.agents.dsl.extensions.setCurrentUseCases
+import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.tracing.Tags
+import org.eclipse.lmos.arc.assistants.support.extensions.UseCaseMatcherSettingsProvider
 import org.eclipse.lmos.arc.assistants.support.events.UseCaseEvent
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseId
 import org.eclipse.lmos.arc.assistants.support.usecases.extractUseCaseStepId
@@ -26,10 +28,12 @@ import org.slf4j.LoggerFactory
  * An output filter that handles responses from the LLM that contain a use case id.
  * For example, "<ID:useCaseId>"
  */
-class UseCaseResponseHandler(enforceUseCase: Boolean = false, model: String? = null) : AgentOutputFilter {
+class UseCaseResponseHandler(
+    private val enforceUseCase: Boolean = false,
+    private val model: String? = null,
+) : AgentOutputFilter {
 
     private val log = LoggerFactory.getLogger(this.javaClass)
-    private val useMatcher = if (enforceUseCase) UseCaseMatcher(model) else null
 
     override suspend fun filter(message: ConversationMessage, context: OutputFilterContext): ConversationMessage =
         with(context) {
@@ -41,9 +45,12 @@ class UseCaseResponseHandler(enforceUseCase: Boolean = false, model: String? = n
 
             // Try to match missing Use Case ids.
             val processedUseCases = getCurrentUseCases()?.processedUseCases
-            if (useCaseId == null && useMatcher != null && processedUseCases != null && !message.content.contains("NO_ANSWER")) {
+            if (useCaseId == null && enforceUseCase && processedUseCases != null && !message.content.contains("NO_ANSWER")) {
                 log.info("No use case identified in message '${message.content}'. Attempting to classify...")
-                useCaseId = useMatcher.matchUseCase(message.content, processedUseCases, context)?.let {
+                val transcript = input.transcript + message
+                val maxMessages = getOptional<UseCaseMatcherSettingsProvider>()?.maxMessages
+                    ?: UseCaseMatcher.DEFAULT_MAX_MESSAGES
+                useCaseId = UseCaseMatcher(model, maxMessages).matchUseCase(transcript, processedUseCases, context)?.let {
                     log.info("Use case identified by matcher: $it.")
                     it
                 }
