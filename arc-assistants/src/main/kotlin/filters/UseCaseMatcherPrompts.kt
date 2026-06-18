@@ -12,13 +12,14 @@ object UseCaseMatcherPrompts {
     const val TEMPLATE = """
     You are a classification system.
 
-    Your task is to match an assistant message to the most appropriate use case, 
-    based on the provided use case definitions and their solutions.
+    Your task is to match the latest assistant message to the most appropriate use case,
+    based on the provided use case definitions, their solutions, and the conversation history.
     
     ## Rules
     Each use case includes a Solution, describing the expected assistant behavior.
     Match based on semantic meaning, not exact wording.
-    Prefer the use case whose solution best aligns with the intent of the assistant message.
+    Use the full conversation context, especially the user's latest messages, to disambiguate similar use cases.
+    Prefer the use case whose solution best aligns with the intent of the latest assistant message.
     If no use case clearly matches, return <UNKNOWN>.
     Output must be only one label in angle brackets.
     
@@ -85,6 +86,24 @@ object UseCaseMatcherPrompts {
     Our office hours are Monday to Friday, 9am–5pm.
     
     Output: <UNKNOWN>
+    
+    ### Example 5 (Multi-turn Disambiguation)
+    UseCases
+    UseCase: umzug_beauftragen_mobilfunk
+    Solution
+    Guide the customer through submitting a mobile relocation order via the Business Service Portal.
+    
+    UseCase: umzug_beauftragen_festnetz
+    Solution
+    Direct the customer to submit a fixed-line relocation order via the relocation form.
+    
+    Conversation
+    User: ich will umziehen
+    Assistant: Geht es um Mobilfunk oder Festnetz?
+    User: festnetz
+    Assistant: Sie können Ihren Umzugsauftrag hier stellen: [Umzug beauftragen](https://example.com/umzug).
+    
+    Output: <umzug_beauftragen_festnetz>
     
     ----
     
