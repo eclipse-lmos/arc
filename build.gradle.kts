@@ -16,7 +16,7 @@ version = project.findProperty("version") as String
 val ignoreKtLint = setOf("arc-result", "arc-azure-client")
 
 plugins {
-    kotlin("jvm") version "2.2.21" apply false
+    kotlin("jvm") version "2.3.10" apply false
     kotlin("plugin.serialization") version "2.2.21" apply false
     id("org.jetbrains.dokka") version "2.1.0"
     id("org.cyclonedx.bom") version "2.3.1"
