@@ -74,7 +74,16 @@ class UseCaseResponseHandler(
 
                 val loadedUseCases = getCurrentUseCases()
                 val useCase = loadedUseCases?.useCases?.find { it.id == useCaseId }
-                emit(UseCaseEvent(useCaseId, stepId, version = useCase?.version, description = useCase?.description))
+                val useCaseContent = loadedUseCases?.processedUseCaseMap?.get(useCaseId)
+                emit(
+                    UseCaseEvent(
+                        useCaseId,
+                        stepId,
+                        version = useCase?.version,
+                        description = useCase?.description,
+                        content = useCaseContent,
+                    ),
+                )
                 loadedUseCases?.let {
                     setCurrentUseCases(
                         it.copy(
