@@ -15,4 +15,5 @@ data class UseCaseEvent(
     val step: String? = null,
     val version: String? = null,
     val description: String? = null,
+    val content: String? = null,
 ) : Event by BaseEvent()
