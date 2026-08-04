@@ -58,6 +58,7 @@ open class AgentGraphQLAutoConfiguration {
     fun toolMutation(functionProvider: LLMFunctionProvider, beans: BeanProvider) = ToolMutation(functionProvider, beans)
 
     @Bean
+    @ConditionalOnProperty("arc.tools.injection.enabled", havingValue = "true")
     fun injectToolsFromRequest(functionProvider: LLMFunctionProvider) = InjectToolsFromRequest(functionProvider)
 
     @Bean
