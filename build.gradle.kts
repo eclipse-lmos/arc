@@ -26,6 +26,11 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
+// Enable dependency locking, i.e. gradle lockfiles
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 subprojects {
     group = "org.eclipse.lmos"
 
@@ -35,6 +40,11 @@ subprojects {
     //if (!ignoreKtLint.contains(project.name)) apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "org.jetbrains.kotlinx.kover")
     apply(plugin = "com.vanniktech.maven.publish")
+
+    // Enable dependency locking, i.e. gradle lockfiles
+    dependencyLocking {
+        lockAllConfigurations()
+    }
 
     java {
         sourceCompatibility = JavaVersion.VERSION_21
