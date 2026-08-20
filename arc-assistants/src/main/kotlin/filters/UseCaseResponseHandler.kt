@@ -46,7 +46,7 @@ class UseCaseResponseHandler(
             // Try to match missing or unknown Use Case ids.
             val processedUseCases = getCurrentUseCases()?.processedUseCases
             if (useCaseId != null && processedUseCases != null && !processedUseCases.contains(useCaseId)) {
-                log.warn("Invalid use case id:[$useCaseId] detected! Processed use cases: [$processedUseCases]")
+                log.warn("Invalid use case id:[$useCaseId] detected!")
                 useCaseId = null
             }
             if (useCaseId == null && enforceUseCase && processedUseCases != null && !message.content.contains("NO_ANSWER")) {
