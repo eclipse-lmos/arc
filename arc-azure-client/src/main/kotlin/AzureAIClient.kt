@@ -272,7 +272,14 @@ class AzureAIClient(
                     HIGH -> ReasoningEffortValue.HIGH
                 }
             }
-            settings?.maxTokens?.let { maxTokens = it }
+            settings?.maxTokens?.let { maxOutputTokens ->
+                val modelName = settings.deploymentNameOrModel() ?: config.modelName
+                if (requiresMaxCompletionTokens(modelName)) {
+                    maxCompletionTokens = maxOutputTokens
+                } else {
+                    maxTokens = maxOutputTokens
+                }
+            }
             settings?.format?.takeIf { JSON == it && responseFormat == null }
                 ?.let { responseFormat = ChatCompletionsJsonResponseFormat() }
             if (openAIFunctions != null) tools = openAIFunctions
