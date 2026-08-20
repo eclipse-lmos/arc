@@ -43,8 +43,12 @@ class UseCaseResponseHandler(
             // Store the current step in memory
             setUseCaseStep(stepId)
 
-            // Try to match missing Use Case ids.
+            // Try to match missing or unknown Use Case ids.
             val processedUseCases = getCurrentUseCases()?.processedUseCases
+            if (useCaseId != null && processedUseCases != null && !processedUseCases.contains(useCaseId)) {
+                log.warn("Invalid use case id:[$useCaseId] detected! Processed use cases: [$processedUseCases]")
+                useCaseId = null
+            }
             if (useCaseId == null && enforceUseCase && processedUseCases != null && !message.content.contains("NO_ANSWER")) {
                 log.info("No use case identified in message '${message.content}'. Attempting to classify...")
                 val transcript = input.transcript + message

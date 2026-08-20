@@ -18,6 +18,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +26,7 @@ import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.ParametersSchema
 import org.eclipse.lmos.arc.agents.llm.AIClientConfig
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.junit.jupiter.api.Test
@@ -46,6 +48,36 @@ class AzureAIClientTest {
 
         verify(exactly = 1) { azureClient.getChatCompletions(any(), any()) }
         assertThat(result.content).isEqualTo("answer")
+    }
+
+    @Test
+    fun `maps maxTokens to maxCompletionTokens for gpt-5 models`(): Unit = runBlocking {
+        val azureClient = mockk<OpenAIAsyncClient>()
+        val options = slot<com.azure.ai.openai.models.ChatCompletionsOptions>()
+        val gpt54 = AIClientConfig(client = "azure", endpoint = "url", apiKey = "apiKey", modelName = "GPT-5.4")
+        every { azureClient.getChatCompletions(gpt54.modelName, capture(options)) } returns finalChatCompletions()
+
+        AzureAIClient(gpt54, azureClient).complete(
+            listOf(UserMessage("Hello")),
+            settings = ChatCompletionSettings(maxTokens = 256),
+        ).getOrThrow()
+
+        assertThat(options.captured.getMaxCompletionTokens()).isEqualTo(256)
+    }
+
+    @Test
+    fun `keeps maxTokens for gpt-4o models`(): Unit = runBlocking {
+        val azureClient = mockk<OpenAIAsyncClient>()
+        val options = slot<com.azure.ai.openai.models.ChatCompletionsOptions>()
+        val gpt4o = AIClientConfig(client = "azure", endpoint = "url", apiKey = "apiKey", modelName = "GPT-4o")
+        every { azureClient.getChatCompletions(gpt4o.modelName, capture(options)) } returns finalChatCompletions()
+
+        AzureAIClient(gpt4o, azureClient).complete(
+            listOf(UserMessage("Hello")),
+            settings = ChatCompletionSettings(maxTokens = 256),
+        ).getOrThrow()
+
+        assertThat(options.captured.getMaxTokens()).isEqualTo(256)
     }
 
     @Test
