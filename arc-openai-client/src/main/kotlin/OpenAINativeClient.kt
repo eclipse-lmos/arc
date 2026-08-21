@@ -120,6 +120,7 @@ class OpenAINativeClient(
                 settings?.seed?.let { seed(it) }
                 settings?.n?.let { n(it.toLong()) }
                 settings?.maxTokens?.let { maxTokens(it.toLong()) }
+                settings?.serviceTier?.let { serviceTier(ChatCompletionCreateParams.ServiceTier.of(it)) }
                 settings?.format?.takeIf { JSON == it }?.let {
                     responseFormat(
                         ResponseFormatJsonObject.builder().type(JsonValue.from("json_object")).build(),

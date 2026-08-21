@@ -4,6 +4,8 @@
 
 package org.eclipse.lmos.arc.agents
 
+import org.eclipse.lmos.arc.agents.agent.AgentProxy
+import org.eclipse.lmos.arc.agents.agent.process
 import java.util.*
 
 /**
@@ -29,6 +31,41 @@ fun interface AgentLoader {
  * Returns the agent with the given name or null if no agent with that name exists.
  */
 fun AgentProvider.getAgentByName(name: String) = getAgents().firstOrNull { it.name == name }
+
+/**
+ * Returns a typed proxy for a conversation-based Agent matching [Input] and [Output].
+ *
+ * Input objects are serialized to JSON and Agent responses are deserialized to [Output].
+ * Both types must be serializable unless they are strings.
+ * If [name] is omitted, exactly one Agent must be registered for the requested type pair.
+ *
+ * @throws IllegalArgumentException if no matching Agent exists or the type pair is ambiguous.
+ */
+inline fun <reified Input : Any, reified Output : Any> AgentProvider.getAgent(
+    name: String? = null,
+): AgentProxy<Input, Output> {
+    val matches = getAgents().filterIsInstance<ConversationAgent>().filter { agent ->
+        val metadata = agent as? AgentTypeMetadata
+        metadata?.inputType == Input::class &&
+            metadata.outputType == Output::class &&
+            (name == null || agent.name == name)
+    }
+    val typePair = "${Input::class.simpleName} -> ${Output::class.simpleName}"
+    val agent = when (matches.size) {
+        1 -> matches.single()
+        0 -> throw IllegalArgumentException(
+            if (name == null) {
+                "No conversation agent registered for type pair $typePair"
+            } else {
+                "No conversation agent named '$name' registered for type pair $typePair"
+            },
+        )
+        else -> throw IllegalArgumentException(
+            "Multiple conversation agents registered for type pair $typePair; specify an agent name",
+        )
+    }
+    return AgentProxy { input -> agent.process<Input, Output>(input) }
+}
 
 /**
  * Implementation of the [AgentProvider] that combines multiple [AgentLoader]s and a list of [Agent]s.

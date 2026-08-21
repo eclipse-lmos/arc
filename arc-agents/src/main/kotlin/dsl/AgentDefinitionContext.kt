@@ -10,6 +10,7 @@ import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.agents.llm.OutputFormat
 import org.eclipse.lmos.arc.agents.llm.OutputSchema
+import kotlin.reflect.KClass
 
 @DslMarker
 annotation class AgentDefinitionContextMarker
@@ -17,7 +18,25 @@ annotation class AgentDefinitionContextMarker
 @AgentDefinitionContextMarker
 interface AgentDefinitionContext {
 
-    fun agent(agent: AgentDefinition.() -> Unit)
+    val agent: AgentDefinitionBuilder
+}
+
+class AgentDefinitionBuilder(private val register: (AgentDefinition.() -> Unit) -> Unit) {
+
+    operator fun invoke(configure: AgentDefinition.() -> Unit) {
+        register(configure)
+    }
+
+    @JvmName("invokeTyped")
+    inline operator fun <reified Input : Any, reified Output : Any> invoke(
+        noinline configure: AgentDefinition.() -> Unit,
+    ) {
+        invoke {
+            inputType = Input::class
+            output<Output>()
+            configure()
+        }
+    }
 }
 
 /**
@@ -29,9 +48,9 @@ class BasicAgentDefinitionContext(
 
     val agents = mutableListOf<Agent<*, *>>()
 
-    override fun agent(agent: AgentDefinition.() -> Unit) {
+    override val agent = AgentDefinitionBuilder { configure ->
         val agentDefinition = AgentDefinition()
-        agent.invoke(agentDefinition)
+        configure.invoke(agentDefinition)
         agents.add(agentFactory.createAgent(agentDefinition))
     }
 }
@@ -41,6 +60,8 @@ class AgentDefinition {
     var description: String = ""
     var version: String = "1.0.0"
     var activateOnFeatures: Set<String> = emptySet()
+    var inputType: KClass<*>? = null
+    var outputType: KClass<*>? = null
 
     var skills: suspend () -> List<Skill> = { emptyList() }
     fun skills(fn: suspend () -> List<Skill>) {
@@ -63,6 +84,7 @@ class AgentDefinition {
         temperature: Double? = null,
         seed: Long? = null,
     ) {
+        outputType = T::class
         val previous = settings
         settings = {
             (previous() ?: ChatCompletionSettings()).copy(

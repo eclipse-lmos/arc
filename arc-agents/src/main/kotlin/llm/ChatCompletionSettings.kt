@@ -18,6 +18,7 @@ data class ChatCompletionSettings(
     val deploymentName: String? = null,
     val outputSchema: OutputSchema? = null,
     val reasoningEffort: ReasoningEffort? = null,
+    val serviceTier: String? = null,
 ) {
     fun deploymentNameOrModel(): String? {
         return deploymentName ?: model

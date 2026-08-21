@@ -6,10 +6,12 @@ package org.eclipse.lmos.arc.agents.agent
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.eclipse.lmos.arc.agents.Agent
+import org.eclipse.lmos.arc.agents.AgentFailedException
 import org.eclipse.lmos.arc.agents.ConversationAgent
 import org.eclipse.lmos.arc.agents.conversation.Conversation
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
+import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.getOrThrow
 import java.lang.reflect.Proxy
 import kotlin.coroutines.Continuation
@@ -24,6 +26,14 @@ import kotlin.reflect.jvm.kotlinFunction
  */
 @PublishedApi
 internal val proxyJson = Json { encodeDefaults = true; ignoreUnknownKeys = true }
+
+/**
+ * A typed facade for calling a conversation-based Agent with an object and receiving an object.
+ */
+fun interface AgentProxy<I, O> {
+
+    suspend fun call(input: I): Result<O, AgentFailedException>
+}
 
 /**
  * Extension function to create a dynamic proxy for the Agents.

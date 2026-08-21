@@ -13,9 +13,12 @@ dependencies {
     val langchain4jVersion = "1.19.0"
     compileOnly("dev.langchain4j:langchain4j-core:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-bedrock:$langchain4jVersion")
+    compileOnly("dev.langchain4j:langchain4j-azure-open-ai:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-google-ai-gemini:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")
     compileOnly("dev.langchain4j:langchain4j-open-ai:$langchain4jVersion")
 
     testImplementation("dev.langchain4j:langchain4j-bedrock:$langchain4jVersion")
+    testRuntimeOnly("dev.langchain4j:langchain4j-azure-open-ai:$langchain4jVersion")
+    testRuntimeOnly("dev.langchain4j:langchain4j-open-ai:$langchain4jVersion")
 }

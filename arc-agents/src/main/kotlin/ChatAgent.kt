@@ -56,6 +56,7 @@ import org.eclipse.lmos.arc.core.recover
 import org.eclipse.lmos.arc.core.result
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.reflect.KClass
 import kotlin.time.measureTime
 
 const val AGENT_LOG_CONTEXT_KEY = "agent"
@@ -87,7 +88,9 @@ class ChatAgent(
     private val filterInput: suspend InputFilterContext.() -> Unit,
     private val onFail: suspend DSLContext.(Exception) -> AssistantMessage? = { null },
     val init: DSLContext.() -> Unit,
-) : ConversationAgent {
+    override val inputType: KClass<*>? = null,
+    override val outputType: KClass<*>? = null,
+) : ConversationAgent, AgentTypeMetadata {
 
     private val log = LoggerFactory.getLogger(javaClass)
 

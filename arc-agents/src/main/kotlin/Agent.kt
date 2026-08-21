@@ -6,6 +6,7 @@ package org.eclipse.lmos.arc.agents
 
 import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.core.Result
+import kotlin.reflect.KClass
 
 /**
  * The main Agent interface.
@@ -55,6 +56,14 @@ interface Agent<I, O> {
      * @return A Result containing either the successful output or an AgentFailedException.
      */
     suspend fun execute(input: I, context: Set<Any> = emptySet()): Result<O, AgentFailedException>
+}
+
+/**
+ * Optional runtime type metadata for an Agent's input and output objects.
+ */
+interface AgentTypeMetadata {
+    val inputType: KClass<*>?
+    val outputType: KClass<*>?
 }
 
 /**

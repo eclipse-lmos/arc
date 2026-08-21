@@ -30,4 +30,7 @@ This directory contains example applications demonstrating various features and 
 6. **ContextAgent.kt**
    - Demonstrates how to provide Agents with access to external beans / components.
 
-
+7. **TypedAgent.kt**
+   - Demonstrates how to define typed input and output objects for an Agent.
+   - Automatically configures JSON output and the output schema from the output type.
+   - Resolves a uniquely typed Agent with `getAgent<Input, Output>()`, without requiring its name.

@@ -7,18 +7,21 @@ package org.eclipse.lmos.arc.client.openai
 import com.openai.client.OpenAIClientAsync
 import com.openai.models.*
 import com.openai.models.chat.completions.ChatCompletion
+import com.openai.models.chat.completions.ChatCompletionCreateParams
 import com.openai.models.chat.completions.ChatCompletionMessage
 import com.openai.models.chat.completions.ChatCompletionMessageToolCall
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.lmos.arc.agents.conversation.UserMessage
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.ParametersSchema
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.junit.jupiter.api.Test
@@ -41,6 +44,20 @@ class OpenAINativeClientTest {
 
         verify(exactly = 1) { openAIClient.chat().completions().create(any()) }
         assertThat(result.content).isEqualTo("answer")
+    }
+
+    @Test
+    fun `maps service tier to OpenAI params`(): Unit = runBlocking {
+        val openAIClient = mockk<OpenAIClientAsync>()
+        val params = slot<ChatCompletionCreateParams>()
+        every { openAIClient.chat().completions().create(capture(params)) } returns finalChatCompletions()
+
+        OpenAINativeClient(testConfig, openAIClient).complete(
+            listOf(UserMessage("Hello")),
+            settings = ChatCompletionSettings(serviceTier = "flex"),
+        ).getOrThrow()
+
+        assertThat(params.captured.serviceTier().orElseThrow().asString()).isEqualTo("flex")
     }
 
     @Test

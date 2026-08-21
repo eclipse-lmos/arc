@@ -18,6 +18,7 @@ import com.azure.ai.openai.models.ChatRequestSystemMessage
 import com.azure.ai.openai.models.ChatRequestUserMessage
 import com.azure.ai.openai.models.EmbeddingsOptions
 import com.azure.ai.openai.models.ReasoningEffortValue
+import com.azure.ai.openai.models.ServiceTierOptions
 import com.azure.core.exception.ClientAuthenticationException
 import com.azure.core.http.HttpHeaderName
 import com.azure.core.http.rest.RequestOptions
@@ -265,6 +266,7 @@ class AzureAIClient(
             settings?.seed?.let { seed = it }
             settings?.n?.let { n = it }
             settings?.model?.let { model = it }
+            settings?.serviceTier?.let { serviceTierOptions = ServiceTierOptions.fromString(it) }
             settings?.reasoningEffort?.let {
                 reasoningEffort = when (it) {
                     LOW -> ReasoningEffortValue.LOW

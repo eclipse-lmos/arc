@@ -2,3 +2,5 @@ org.eclipse.lmos.arc.client.langchain4j.loaders.OllamaClientLoader
 org.eclipse.lmos.arc.client.langchain4j.loaders.GeminiClientLoader
 org.eclipse.lmos.arc.client.langchain4j.loaders.GroqClientLoader
 org.eclipse.lmos.arc.client.langchain4j.loaders.BedrockClientLoader
+org.eclipse.lmos.arc.client.langchain4j.loaders.OpenAiClientLoader
+org.eclipse.lmos.arc.client.langchain4j.loaders.AzureOpenAiClientLoader

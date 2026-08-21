@@ -81,6 +81,21 @@ class AzureAIClientTest {
     }
 
     @Test
+    fun `maps service tier to Azure options`(): Unit = runBlocking {
+        val azureClient = mockk<OpenAIAsyncClient>()
+        val options = slot<com.azure.ai.openai.models.ChatCompletionsOptions>()
+        every { azureClient.getChatCompletions(testLanguageModel.modelName, capture(options)) } returns
+            finalChatCompletions()
+
+        AzureAIClient(testLanguageModel, azureClient).complete(
+            listOf(UserMessage("Hello")),
+            settings = ChatCompletionSettings(serviceTier = "flex"),
+        ).getOrThrow()
+
+        assertThat(options.captured.getServiceTierOptions().toString()).isEqualTo("flex")
+    }
+
+    @Test
     fun `test multiple function calls in a single response`(): Unit = runBlocking {
         val testFunction = createTestFunctionMock()
 
