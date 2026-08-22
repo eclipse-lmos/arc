@@ -31,6 +31,7 @@ class ClientsConfiguration {
                     accessKey = config.accessKey,
                     accessSecret = config.accessSecret,
                     apiKey = config.apiKey,
+                    serviceTier = config.serviceTier,
                     modelAlias = config.id,
                     client = config.client,
                 )

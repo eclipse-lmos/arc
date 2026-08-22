@@ -108,6 +108,7 @@ fun loadConfigFromEnv(): List<AIClientConfig> = buildList {
         val apiKey = getEnvironmentValue("ARC_AI_KEY")
         val accessKey = getEnvironmentValue("ARC_AI_ACCESS_KEY")
         val accessSecret = getEnvironmentValue("ARC_AI_ACCESS_SECRET")
+        val serviceTier = getEnvironmentValue("ARC_AI_SERVICE_TIER")
         add(
             AIClientConfig(
                 modelAlias = modelAlias,
@@ -117,6 +118,7 @@ fun loadConfigFromEnv(): List<AIClientConfig> = buildList {
                 client = client,
                 accessKey = accessKey,
                 accessSecret = accessSecret,
+                serviceTier = serviceTier,
             ),
         )
     }
@@ -129,6 +131,7 @@ fun loadConfigFromEnv(): List<AIClientConfig> = buildList {
             val apiKey = getEnvironmentValue("ARC_AI_KEY[$i]")
             val accessKey = getEnvironmentValue("ARC_AI_ACCESS_KEY[$i]")
             val accessSecret = getEnvironmentValue("ARC_AI_ACCESS_SECRET[$i]")
+            val serviceTier = getEnvironmentValue("ARC_AI_SERVICE_TIER[$i]")
             add(
                 AIClientConfig(
                     modelAlias = modelAlias,
@@ -138,6 +141,7 @@ fun loadConfigFromEnv(): List<AIClientConfig> = buildList {
                     client = client,
                     accessKey = accessKey,
                     accessSecret = accessSecret,
+                    serviceTier = serviceTier,
                 ),
             )
         }

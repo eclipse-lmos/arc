@@ -12,6 +12,7 @@ data class AIClientConfig(
     val accessKey: String? = null,
     val accessSecret: String? = null,
     val region: String? = null,
+    val serviceTier: String? = null,
 ) {
 
     init {
@@ -24,6 +25,6 @@ data class AIClientConfig(
         val apiKeyMasked = apiKey?.let { "****" } ?: "null"
         val accessKeyMasked = accessKey?.let { "****" } ?: "null"
         val accessSecretMasked = accessSecret?.let { "****" } ?: "null"
-        return "AIClientConfig(id=$modelAlias, client=$client, modelName=$modelName, endpoint=$endpoint, apiKey=$apiKeyMasked, accessKey=$accessKeyMasked, accessSecret=$accessSecretMasked)"
+        return "AIClientConfig(id=$modelAlias, client=$client, modelName=$modelName, endpoint=$endpoint, apiKey=$apiKeyMasked, accessKey=$accessKeyMasked, accessSecret=$accessSecretMasked, serviceTier=$serviceTier)"
     }
 }
