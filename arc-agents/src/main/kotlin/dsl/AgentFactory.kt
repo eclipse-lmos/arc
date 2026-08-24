@@ -25,7 +25,7 @@ class ChatAgentFactory(private val beanProvider: BeanProvider) : AgentFactory<Ch
             description = agentDefinition.description,
             version = agentDefinition.version,
             activateOnFeatures = agentDefinition.activateOnFeatures,
-            skills = agentDefinition.skills,
+            skillsProvider = agentDefinition.skillsProvider,
             model = agentDefinition.model,
             agentDefinition.settings,
             beanProvider,

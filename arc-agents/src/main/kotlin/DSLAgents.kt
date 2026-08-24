@@ -7,11 +7,16 @@ package org.eclipse.lmos.arc.agents
 import org.eclipse.lmos.arc.agents.dsl.AgentDefinitionContext
 import org.eclipse.lmos.arc.agents.dsl.BasicAgentDefinitionContext
 import org.eclipse.lmos.arc.agents.dsl.BasicFunctionDefinitionContext
+import org.eclipse.lmos.arc.agents.dsl.BasicSkillDefinitionContext
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.ChatAgentFactory
 import org.eclipse.lmos.arc.agents.dsl.CompositeBeanProvider
 import org.eclipse.lmos.arc.agents.dsl.FunctionDefinitionContext
+import org.eclipse.lmos.arc.agents.dsl.SkillDefinitionContext
 import org.eclipse.lmos.arc.agents.dsl.beans
+import org.eclipse.lmos.arc.agents.agent.CompositeSkillProvider
+import org.eclipse.lmos.arc.agents.agent.FileClasspathSkillProvider
+import org.eclipse.lmos.arc.agents.agent.SkillProvider
 import org.eclipse.lmos.arc.agents.events.BasicEventPublisher
 import org.eclipse.lmos.arc.agents.events.Event
 import org.eclipse.lmos.arc.agents.events.EventHandler
@@ -60,6 +65,7 @@ class DSLAgents private constructor(
             memory: Memory? = null,
             tracer: AgentTracer? = null,
             functionLoaders: List<LLMFunctionLoader> = emptyList(),
+            skillProvider: SkillProvider? = null,
         ): DSLAgents {
             /**
              * Set up the event system.
@@ -83,6 +89,7 @@ class DSLAgents private constructor(
             val functionLoader = ListFunctionsLoader()
             val discoveredLoaders = LLMFunctionServiceLoader()
             val functionProvider = CompositeLLMFunctionProvider(functionLoaders + functionLoader + discoveredLoaders)
+            val configuredSkillProvider = skillProvider ?: FileClasspathSkillProvider()
 
             /**
              * Set up the loading of agents.
@@ -90,7 +97,7 @@ class DSLAgents private constructor(
             val agentLoader = ListAgentLoader()
             val agentProvider = CompositeAgentProvider(listOf(agentLoader), emptyList())
             val agentFactory =
-                ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider, agentProvider), beanProvider))
+                ChatAgentFactory(CompositeBeanProvider(setOf(functionProvider, agentProvider, configuredSkillProvider), beanProvider))
 
             return DSLAgents(
                 beanProvider,
@@ -174,12 +181,14 @@ fun DSLAgents.getChatAgent(name: String) = getAgents().find { it.name == name } 
  *
  * @param chatCompleterProvider The ChatCompleterProvider to use.
  * @param functionLoaders Additional function loaders to use.
+ * @param skillProvider Fallback provider for skills not declared inline.
  * @param memory The memory to use, default is InMemoryMemory.
  * @param eventPublisher The event publisher to use. If set then the handlers will be ignored.
  * @param tracer The tracer to use.
  * @param context A collection of beans to be accessed in the agent DSL.
  * @param handlers The list of event handlers that are assigned to the EventPublisher.
  * @param functions The function used to define tools.
+ * @param skills The function used to define in-memory skills.
  * @param builder The function used to define agents.
  */
 fun agents(
@@ -187,12 +196,15 @@ fun agents(
     eventPublisher: EventPublisher? = null,
     chatCompleterProvider: ChatCompleterProvider? = null,
     functionLoaders: List<LLMFunctionLoader> = emptyList(),
+    skillProvider: SkillProvider? = null,
     memory: Memory? = InMemoryMemory(),
     context: Set<Any> = emptySet(),
     handlers: List<EventHandler<out Event>> = emptyList(),
     functions: FunctionDefinitionContext.() -> Unit = {},
+    skills: SkillDefinitionContext.() -> Unit = {},
     builder: AgentDefinitionContext.() -> Unit = {},
 ): DSLAgents {
+    val skillsContext = BasicSkillDefinitionContext().also { skills.invoke(it) }
     return DSLAgents.init(
         chatCompleterProvider = chatCompleterProvider,
         beans = context,
@@ -201,6 +213,10 @@ fun agents(
         memory = memory,
         tracer = tracer,
         functionLoaders = functionLoaders,
+        skillProvider = CompositeSkillProvider(
+            skills = skillsContext.documents(),
+            fallback = skillProvider ?: FileClasspathSkillProvider(),
+        ),
     ).defineFunctions {
         functions()
     }.define {

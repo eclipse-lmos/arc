@@ -34,3 +34,7 @@ This directory contains example applications demonstrating various features and 
    - Demonstrates how to define typed input and output objects for an Agent.
    - Automatically configures JSON output and the output schema from the output type.
    - Resolves a uniquely typed Agent with `getAgent<Input, Output>()`, without requiring its name.
+
+8. **SkillAgent.kt**
+   - Demonstrates the `agents(skills = { skill { ... }; skill { ... } })` DSL, `$SKILLS`, and the automatic `activate_skill` tool.
+   - The default provider also resolves logical names from `skills/<name>/SKILL.md` on the classpath or filesystem.

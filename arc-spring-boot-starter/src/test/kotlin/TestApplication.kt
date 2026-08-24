@@ -65,4 +65,11 @@ open class TestApplication {
         The weather is good in Berlin. It is 20 degrees celsius.
     """
     }
+
+    @Bean
+    open fun writingSkill(skills: Skills) = skills {
+        name = "writing"
+        description = "Writes concise answers."
+        "Use short paragraphs and clear headings."
+    }
 }

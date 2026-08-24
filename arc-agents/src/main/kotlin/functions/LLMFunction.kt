@@ -9,7 +9,13 @@ import kotlinx.serialization.Transient
 import org.eclipse.lmos.arc.core.Result
 
 /**
+ * Describes a tool that can be passed to a Large Language Model.
+ */
+interface AITool : LLMFunction
+
+/**
  * Describes a function that can be passed to a Large Language Model.
+ * @Deprecated Use [AITool] instead.
  */
 interface LLMFunction {
     val name: String

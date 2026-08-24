@@ -8,15 +8,22 @@ import io.mockk.coEvery
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.eclipse.lmos.arc.agents.*
 import org.eclipse.lmos.arc.agents.agent.ask
+import org.eclipse.lmos.arc.agents.agent.Skill
+import org.eclipse.lmos.arc.agents.agent.SkillProvider
 import org.eclipse.lmos.arc.agents.conversation.AssistantMessage
 import org.eclipse.lmos.arc.agents.conversation.Conversation
+import org.eclipse.lmos.arc.agents.conversation.ConversationMessage
 import org.eclipse.lmos.arc.agents.conversation.toConversation
 import org.eclipse.lmos.arc.agents.events.BasicEventPublisher
 import org.eclipse.lmos.arc.agents.events.EventHandler
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.agents.functions.ParametersSchema
+import org.eclipse.lmos.arc.agents.llm.ChatCompleter
+import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
+import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
@@ -155,6 +162,68 @@ class AgentTest : TestBase() {
         executeAgent(agent as ChatAgent, "question")
 
         assertThat(functionGroup.captured).isEqualTo("myDynamicFunctions")
+    }
+
+    @Test
+    fun `test agent skills inject metadata and provide an activation tool`(): Unit = runBlocking {
+        var systemPrompt = ""
+        var loadedFunctions: List<LLMFunction>? = null
+        val completer = object : ChatCompleter {
+            override suspend fun complete(
+                messages: List<ConversationMessage>,
+                functions: List<LLMFunction>?,
+                settings: ChatCompletionSettings?,
+                eventPublisher: org.eclipse.lmos.arc.agents.events.EventPublisher?,
+            ): Result<AssistantMessage, ArcException> {
+                systemPrompt = messages.first().content
+                loadedFunctions = functions
+                return Success(AssistantMessage("answer"))
+            }
+        }
+        val agent = agent {
+            name = "name"
+            skills { +"writing" }
+            prompt { SKILLS }
+        } as ChatAgent
+
+        testBeanProvider.setContext(
+            setOf(
+                ChatCompleterProvider { completer },
+                SkillProvider { name ->
+                    if (name == "writing") {
+                        """
+                        ---
+                        name: writing
+                        description: Writes concise answers.
+                        ---
+
+                        Write concise answers.
+                        """.trimIndent()
+                    } else null
+                },
+            ),
+        ) {
+            agent.execute("question".toConversation(User("user"))).getOrThrow()
+        }
+
+        assertThat(systemPrompt).isEqualTo("Available skills:\n- name: writing\n  description: Writes concise answers.")
+        val skillTool = loadedFunctions.orEmpty().single { it.name == "activate_skill" }
+        assertThat(skillTool.execute(mapOf("name" to "writing")).getOrThrow()).isEqualTo("Write concise answers.")
+        val unknownSkill = skillTool.execute(mapOf("name" to "unknown"))
+        assertThatThrownBy { unknownSkill.getOrThrow() }
+            .hasMessageContaining("Could not load skill")
+    }
+
+    @Test
+    fun `test agent retains explicit skill metadata`(): Unit = runBlocking {
+        val skill = Skill(id = "writing", name = "Writing", description = "Writes answers")
+        val agent = agent {
+            name = "name"
+            skills { listOf(skill) }
+            prompt { "system" }
+        }
+
+        assertThat(agent.fetchSkills()).containsExactly(skill)
     }
 
     @Test

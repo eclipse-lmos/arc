@@ -6,7 +6,13 @@ package org.eclipse.lmos.arc.agents
 
 import kotlinx.coroutines.coroutineScope
 import org.eclipse.lmos.arc.agents.agent.AgentToolAssigner
+import org.eclipse.lmos.arc.agents.agent.FileClasspathSkillProvider
 import org.eclipse.lmos.arc.agents.agent.Skill
+import org.eclipse.lmos.arc.agents.agent.SkillDocument
+import org.eclipse.lmos.arc.agents.agent.SkillDocumentParser
+import org.eclipse.lmos.arc.agents.agent.SkillNotFoundException
+import org.eclipse.lmos.arc.agents.agent.SkillProvider
+import org.eclipse.lmos.arc.agents.agent.DuplicateSkillNameException
 import org.eclipse.lmos.arc.agents.agent.addResultTags
 import org.eclipse.lmos.arc.agents.agent.agentTracer
 import org.eclipse.lmos.arc.agents.agent.input
@@ -31,17 +37,22 @@ import org.eclipse.lmos.arc.agents.dsl.DSLContext
 import org.eclipse.lmos.arc.agents.dsl.Data
 import org.eclipse.lmos.arc.agents.dsl.InputFilterContext
 import org.eclipse.lmos.arc.agents.dsl.OutputFilterContext
+import org.eclipse.lmos.arc.agents.dsl.SkillsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.ToolsDSLContext
 import org.eclipse.lmos.arc.agents.dsl.addData
 import org.eclipse.lmos.arc.agents.dsl.getOptional
 import org.eclipse.lmos.arc.agents.dsl.provideOptional
 import org.eclipse.lmos.arc.agents.dsl.setSystemPrompt
 import org.eclipse.lmos.arc.agents.events.EventPublisher
+import org.eclipse.lmos.arc.agents.functions.AITool
 import org.eclipse.lmos.arc.agents.functions.FunctionWithContext
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
+import org.eclipse.lmos.arc.agents.functions.LLMFunctionException
 import org.eclipse.lmos.arc.agents.functions.LLMFunctionProvider
 import org.eclipse.lmos.arc.agents.functions.ListenableFunction
 import org.eclipse.lmos.arc.agents.functions.NoopFunctionProvider
+import org.eclipse.lmos.arc.agents.functions.ParameterSchema
+import org.eclipse.lmos.arc.agents.functions.ParametersSchema
 import org.eclipse.lmos.arc.agents.functions.toToolLoaderContext
 import org.eclipse.lmos.arc.agents.llm.ChatCompleterProvider
 import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
@@ -49,6 +60,8 @@ import org.eclipse.lmos.arc.agents.llm.assignDeploymentNameOrModel
 import org.eclipse.lmos.arc.agents.tracing.AgentTracer
 import org.eclipse.lmos.arc.agents.tracing.GenerateResponseTagger
 import org.eclipse.lmos.arc.core.Result
+import org.eclipse.lmos.arc.core.Failure
+import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.failWith
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.eclipse.lmos.arc.core.mapFailure
@@ -66,6 +79,7 @@ const val INPUT_LOG_CONTEXT_KEY = "input"
 const val AGENT_LOCAL_CONTEXT_KEY = "agent"
 const val TOOLS_LOCAL_CONTEXT_KEY = "__tools__"
 const val TOOL_CALLS_LOCAL_CONTEXT_KEY = "__tool_calls__"
+const val SKILLS_LOCAL_CONTEXT_KEY = "__skills__"
 const val AGENT_TAGS_LOCAL_CONTEXT_KEY = "agent-tags"
 
 val ADDITIONAL_TOOL_LOCAL_CONTEXT_KEY = "${ChatAgent::class.qualifiedName}_additional_tools"
@@ -78,7 +92,7 @@ class ChatAgent(
     override val description: String,
     override val version: String,
     override val activateOnFeatures: Set<String>?,
-    private val skills: suspend () -> List<Skill>? = { null },
+    private val skillsProvider: suspend SkillsDSLContext.() -> List<Skill>? = { null },
     private val model: suspend DSLContext.() -> String?,
     private val settings: suspend DSLContext.() -> ChatCompletionSettings?,
     private val beanProvider: BeanProvider,
@@ -98,7 +112,10 @@ class ChatAgent(
         init.invoke(BasicDSLContext(beanProvider))
     }
 
-    override suspend fun fetchSkills() = skills.invoke()
+    override suspend fun fetchSkills(): List<Skill> {
+        val skillsContext = SkillsDSLContext(BasicDSLContext(beanProvider))
+        return skillsProvider.invoke(skillsContext) ?: skillsContext.skills.map { Skill(id = it, name = it) }
+    }
 
     override suspend fun execute(input: Conversation, context: Set<Any>): Result<Conversation, AgentFailedException> {
         val compositeBeanProvider =
@@ -182,6 +199,9 @@ class ChatAgent(
                 }
             if (filteredInput.isEmpty()) failWith { AgentNotExecutedException("Input has been filtered") }
 
+            val skillDocuments = skillDocuments(dslContext, compositeBeanProvider)
+            dslContext.setLocal(SKILLS_LOCAL_CONTEXT_KEY, skillDocuments.map { it.toSkill() })
+
             //
             // Generate system prompt
             //
@@ -199,7 +219,7 @@ class ChatAgent(
             //
             // Load functions
             //
-            val functions = functions(dslContext, compositeBeanProvider)
+            val functions = functions(dslContext, compositeBeanProvider, skillDocuments)
             usedFunctions.set(functions)
             functions?.let { dslContext.setLocal(TOOLS_LOCAL_CONTEXT_KEY, it) }
 
@@ -252,7 +272,11 @@ class ChatAgent(
     private suspend fun BeanProvider.chatCompleter(model: String?) =
         provide(ChatCompleterProvider::class).provideByModel(model = model)
 
-    private suspend fun functions(context: DSLContext, beanProvider: BeanProvider): List<LLMFunction>? {
+    private suspend fun functions(
+        context: DSLContext,
+        beanProvider: BeanProvider,
+        skillDocuments: List<SkillDocument>,
+    ): List<LLMFunction>? {
         val toolsContext = ToolsDSLContext(context)
         val configuredTools = toolsProvider.invoke(toolsContext).let { toolsContext.tools } + (
             context.getLocal(
@@ -261,15 +285,55 @@ class ChatAgent(
             )
         val tools = beanProvider.provideOptional<AgentToolAssigner>()?.assignTools(name, configuredTools, context)
             ?: configuredTools
-        return if (tools.isNotEmpty()) {
+        val functions = if (tools.isNotEmpty()) {
             getFunctions(tools, beanProvider, context).map { fn ->
                 if (fn is FunctionWithContext) fn.withContext(context) else fn
             }.map { fn ->
                 ListenableFunction(fn) { context.addData(Data(fn.name, it)) }
             }
         } else {
-            null
+            emptyList()
         }
+        return (functions + skillTool(skillDocuments)).takeIf { it.isNotEmpty() }
+    }
+
+    private suspend fun skillDocuments(context: DSLContext, beanProvider: BeanProvider): List<SkillDocument> {
+        val skillsContext = SkillsDSLContext(context)
+        val sources = skillsProvider.invoke(skillsContext)?.map { it.id } ?: skillsContext.skills.toList()
+        if (sources.isEmpty()) return emptyList()
+        val provider = beanProvider.provideOptional<SkillProvider>() ?: FileClasspathSkillProvider()
+        val documents = sources.map { source ->
+            SkillDocumentParser.parse(source, provider.load(source) ?: throw SkillNotFoundException(source))
+        }
+        if (documents.map { it.name }.toSet().size != documents.size) {
+            throw DuplicateSkillNameException(documents.groupingBy { it.name }.eachCount().entries.first { it.value > 1 }.key)
+        }
+        return documents
+    }
+
+    private fun skillTool(skillDocuments: List<SkillDocument>): List<LLMFunction> {
+        if (skillDocuments.isEmpty()) return emptyList()
+        val skillsByName = skillDocuments.associateBy { it.name }
+        return listOf(object : AITool {
+            override val name = "activate_skill"
+            override val version = null
+            override val parameters = ParametersSchema(
+                properties = mapOf("name" to ParameterSchema("string", description = "Name of the skill to load")),
+                required = listOf("name"),
+            )
+            override val description = "Activates one available skill and returns its instructions."
+            override val group = "skills"
+            override val isSensitive = false
+            override val outputDescription = "The skill instructions"
+
+            override suspend fun execute(input: Map<String, Any?>) = try {
+                val name = input["name"] as? String
+                    ?: throw SkillNotFoundException("<missing name>")
+                Success(skillsByName[name]?.instructions ?: throw SkillNotFoundException(name))
+            } catch (exception: Exception) {
+                Failure(LLMFunctionException("Could not load skill", exception))
+            }
+        })
     }
 
     private suspend fun getFunctions(

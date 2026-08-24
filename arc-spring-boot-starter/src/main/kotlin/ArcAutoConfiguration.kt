@@ -8,6 +8,11 @@ import org.eclipse.lmos.arc.agents.Agent
 import org.eclipse.lmos.arc.agents.AgentLoader
 import org.eclipse.lmos.arc.agents.AgentProvider
 import org.eclipse.lmos.arc.agents.CompositeAgentProvider
+import org.eclipse.lmos.arc.agents.agent.CompositeSkillProvider
+import org.eclipse.lmos.arc.agents.agent.DuplicateSkillNameException
+import org.eclipse.lmos.arc.agents.agent.FileClasspathSkillProvider
+import org.eclipse.lmos.arc.agents.agent.SkillDocument
+import org.eclipse.lmos.arc.agents.agent.SkillProvider
 import org.eclipse.lmos.arc.agents.dsl.AgentFactory
 import org.eclipse.lmos.arc.agents.dsl.BeanProvider
 import org.eclipse.lmos.arc.agents.dsl.ChatAgentFactory
@@ -106,8 +111,22 @@ open class ArcAutoConfiguration {
         )
 
     @Bean
+    @ConditionalOnMissingBean(SkillProvider::class)
+    open fun skillProvider(skills: List<SkillDocument>): SkillProvider {
+        val duplicates = skills.groupingBy { it.source }.eachCount().entries.firstOrNull { it.value > 1 }
+        if (duplicates != null) throw DuplicateSkillNameException(duplicates.key)
+        return CompositeSkillProvider(
+            skills = skills.associateBy { it.source },
+            fallback = FileClasspathSkillProvider(),
+        )
+    }
+
+    @Bean
     open fun agentLoader(agentFactory: AgentFactory<*>) = Agents(agentFactory)
 
     @Bean
     open fun functionLoader(beanProvider: BeanProvider) = Functions(beanProvider)
+
+    @Bean
+    open fun skillLoader() = Skills()
 }

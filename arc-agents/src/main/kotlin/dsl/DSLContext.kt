@@ -4,6 +4,8 @@
 
 package org.eclipse.lmos.arc.agents.dsl
 
+import org.eclipse.lmos.arc.agents.SKILLS_LOCAL_CONTEXT_KEY
+import org.eclipse.lmos.arc.agents.agent.Skill
 import org.eclipse.lmos.arc.agents.functions.LLMFunction
 import org.eclipse.lmos.arc.core.getOrNull
 import org.eclipse.lmos.arc.core.result
@@ -38,6 +40,23 @@ interface DSLContext {
      * Gets a local value that is only available during the current request.
      */
     fun getLocal(key: String): Any?
+
+    /**
+     * Skill names and descriptions available in the current agent request. Use this in a prompt as `$SKILLS`.
+     */
+    val SKILLS: String
+        get() {
+            val skills = (getLocal(SKILLS_LOCAL_CONTEXT_KEY) as? Collection<*>)
+                ?.filterIsInstance<Skill>()
+                ?: return ""
+            return buildString {
+                append("Available skills:")
+                skills.forEach { skill ->
+                    append("\n- name: ").append(skill.name)
+                    skill.description?.let { append("\n  description: ").append(it) }
+                }
+            }
+        }
 }
 
 /**
@@ -93,5 +112,17 @@ class ToolsDSLContext(private val context: DSLContext) : DSLContext by context {
 
     override operator fun String.unaryPlus() {
         tools.add(this)
+    }
+}
+
+/**
+ * A [DSLContext] used by the skills section of an agent definition.
+ */
+class SkillsDSLContext(private val context: DSLContext) : DSLContext by context {
+
+    val skills = linkedSetOf<String>()
+
+    override operator fun String.unaryPlus() {
+        skills.add(this)
     }
 }

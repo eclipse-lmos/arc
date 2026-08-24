@@ -63,9 +63,26 @@ class AgentDefinition {
     var inputType: KClass<*>? = null
     var outputType: KClass<*>? = null
 
-    var skills: suspend () -> List<Skill> = { emptyList() }
-    fun skills(fn: suspend () -> List<Skill>) {
-        skills = fn
+    private var _skillsProvider: suspend SkillsDSLContext.() -> List<Skill>? = {
+        skills.forEach { +it }
+        null
+    }
+    val skillsProvider get() = _skillsProvider
+
+    /** Names of skills that are available to this agent. */
+    var skills: List<String> = emptyList()
+    /**
+     * Declares skill names with `+"name"`. For compatibility, returning a
+     * `List<Skill>` configures A2A skill metadata instead.
+     */
+    fun skills(fn: suspend SkillsDSLContext.() -> Any?) {
+        val previous = _skillsProvider
+        _skillsProvider = {
+            previous() ?: when (val result = fn()) {
+                is List<*> -> result.filterIsInstance<Skill>()
+                else -> null
+            }
+        }
     }
 
     var model: suspend DSLContext.() -> String? = { null }
