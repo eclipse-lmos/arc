@@ -17,7 +17,10 @@ import org.slf4j.LoggerFactory
 /**
  * An [AgentOutputFilter] that extracts "MUST" instructions from processed use cases and verifies compliance.
  */
-class MustFeature(private val keyword: String = "MUST") : AgentOutputFilter {
+class MustFeature(
+    private val keyword: String = "MUST",
+    private val model: String? = null,
+) : AgentOutputFilter {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -43,6 +46,7 @@ class MustFeature(private val keyword: String = "MUST") : AgentOutputFilter {
         log.info("Verifying MUST instructions:\n- $instructionsText")
 
         val verificationResult = context.llm(
+            model = model,
             system = """
                 You are a Quality Assurance Evaluator. 
                 Your role is to rigorously assess whether an Assistant’s responses comply with all required "MUST" instructions.
