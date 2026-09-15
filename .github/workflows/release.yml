@@ -29,3 +29,12 @@ jobs:
       signing-key-password: ${{ secrets.GPG_PASSPHRASE }}
     with:
       release-type: ${{ github.event.inputs.release-type }}
+
+  sbom:
+    needs: CI
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/generate-gradle-sbom.yml
+    with:
+      version: ${{ needs.CI.outputs.version }}

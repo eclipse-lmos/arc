@@ -5,9 +5,12 @@
 name: Generate Gradle SBOM
 
 on:
-  workflow_run:
-    workflows: [Release]
-    types: [completed]
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       version:
@@ -26,15 +29,15 @@ permissions:
 jobs:
   generate-sbom:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    outputs:
-      project-version: ${{ steps.version.outputs.PROJECT_VERSION }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.version }}
+          ref: ${{ inputs.version }}
 
       - name: Setup Java SDK
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -58,17 +61,8 @@ jobs:
           echo "Product version is: $VERSION"
 
       - name: Upload sbom
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: eclipse-csi/workflows/upload-sbom@0c1c6cf5cb4dc624a86410274c71b27d6273385a # main
         with:
-          name: sbom
-          path: ${{ env.PRODUCT_PATH }}build/reports/bom.json
-
-  store-sbom-data: # stores sbom and metadata in a predefined format for otterdog to pick up
-    needs: ['generate-sbom']
-    uses: eclipse-csi/workflows/.github/workflows/store-sbom-data.yml@main
-    with:
-      projectName: 'arc'
-      projectVersion: ${{ needs.generate-sbom.outputs.project-version }}
-      bomArtifact: 'sbom'
-      bomFilename: 'bom.json'
-      parentProject: 'a75a955e-abd4-4908-b2c4-08a517b63af8'
+          sbom-file: ${{ env.PRODUCT_PATH }}build/reports/bom.json
+          product-name: 'arc'
+          product-version: ${{ steps.version.outputs.PROJECT_VERSION }}
