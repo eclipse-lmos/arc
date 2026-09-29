@@ -248,7 +248,7 @@ class ChatAgent(
                     .getOrThrow().also { tags.outputWithUseCase(it.content, context = dslContext) }
                 outputMessage.toolCalls?.let { dslContext.setLocal(TOOL_CALLS_LOCAL_CONTEXT_KEY, it) }
                 dslContext.getOptional<GenerateResponseTagger>()?.tag(tags, outputMessage, dslContext)
-                conversation + outputMessage
+                filteredInput + outputMessage
             }
 
             //
@@ -258,7 +258,7 @@ class ChatAgent(
                 tags.input(completedConversation.latest<AssistantMessage>()?.content ?: "")
                 coroutineScope {
                     val filterOutputContext =
-                        OutputFilterContext(dslContext, conversation, completedConversation, generatedSystemPrompt)
+                        OutputFilterContext(dslContext, filteredInput, completedConversation, generatedSystemPrompt)
                     filterOutput.invoke(filterOutputContext).let {
                         filterOutputContext.finish()
                         filterOutputContext.output

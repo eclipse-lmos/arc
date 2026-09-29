@@ -160,6 +160,15 @@ class AgentDefinition {
         }
     }
 
+    /** Retain only the most recent conversation messages before generating a response. */
+    fun limitMessages(fn: suspend DSLContext.() -> Int) {
+        filterInput {
+            val limit = fn(this)
+            require(limit >= 1) { "limitMessages must be at least 1 (was $limit)" }
+            input = input.copy(transcript = input.transcript.takeLast(limit))
+        }
+    }
+
     var init: DSLContext.() -> Unit = { }
     fun init(fn: DSLContext.() -> Unit) {
         init = fn
