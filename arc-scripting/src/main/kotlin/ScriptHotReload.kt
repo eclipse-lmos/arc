@@ -20,6 +20,7 @@ import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.WatchService
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.concurrent.Executors.newFixedThreadPool
 import java.util.concurrent.atomic.AtomicBoolean
@@ -34,6 +35,8 @@ class ScriptHotReload(
     private val fallbackInterval: Duration,
 ) : Closeable {
     private val log = LoggerFactory.getLogger(this.javaClass)
+
+    private val agentToFileMappings = ConcurrentHashMap<File, Set<String>>()
 
     private val fileWatcher = lazy {
         try {
@@ -52,21 +55,39 @@ class ScriptHotReload(
                 when (event) {
                     is FileEvent.Created -> {
                         if (event.file.isDirectory) return@watch
-                        scriptAgentLoader.loadAgents(event.file)
+                        val loadedAgents = scriptAgentLoader.loadAgents(event.file)
                         scriptFunctionLoader.loadFunctions(event.file)
+                        removeRemovedAgents(loadedAgents)
                     }
 
                     is FileEvent.Modified -> {
                         if (event.file.isDirectory) return@watch
-                        scriptAgentLoader.loadAgents(event.file)
+                        val loadedAgents = scriptAgentLoader.loadAgents(event.file)
                         scriptFunctionLoader.loadFunctions(event.file)
+                        removeRemovedAgents(loadedAgents)
                     }
 
                     is FileEvent.Deleted -> {
-                        // TODO
+                        if (event.file.isDirectory) return@watch
+                        removeRemovedAgents(mapOf(event.file to emptySet()))
                     }
                 }
             }.onFailure { logError(it) }
+        }
+    }
+
+    /**
+     * Removes agents that were removed from the script files.
+     */
+    private fun removeRemovedAgents(loadedAgents: Map<File, Set<String>>) {
+        loadedAgents.forEach { (file, agents) ->
+            val previousAgents = agentToFileMappings[file] ?: emptySet()
+            val removedAgents = previousAgents - agents
+            if (removedAgents.isNotEmpty()) {
+                log.info("Removing agents ${removedAgents.joinToString()} from file ${file.name}")
+                removedAgents.forEach { scriptAgentLoader.removeAgent(it) }
+            }
+            agentToFileMappings[file] = agents
         }
     }
 

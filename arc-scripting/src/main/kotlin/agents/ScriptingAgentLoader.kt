@@ -12,6 +12,7 @@ import org.eclipse.lmos.arc.agents.events.EventPublisher
 import org.eclipse.lmos.arc.core.Failure
 import org.eclipse.lmos.arc.core.Result
 import org.eclipse.lmos.arc.core.Success
+import org.eclipse.lmos.arc.core.map
 import org.eclipse.lmos.arc.core.onFailure
 import org.eclipse.lmos.arc.scripting.ScriptFailedException
 import org.slf4j.LoggerFactory
@@ -38,15 +39,17 @@ class ScriptingAgentLoader(
 
     /**
      * Loads the agents defined in an Agent DSL script.
+     * @return a Result containing the names of the loaded agents or an error if the script failed.
      */
-    fun loadAgent(agentScript: String): Result<ResultValue?, ScriptFailedException> {
+    fun loadAgent(agentScript: String): Result<Set<String>, ScriptFailedException> {
         val context = BasicAgentDefinitionContext(agentFactory)
         val result = agentScriptEngine.eval(agentScript, context)
         if (result is Success && context.agents.isNotEmpty()) {
             log.info("Discovered the following agents (scripting): ${context.agents.joinToString { it.name }}")
             agents.putAll(context.agents.associateBy { it.name })
+            return result.map { context.agents.map { it.name }.toSet() }
         }
-        return result
+        return result.map { emptySet<String>() }
     }
 
     fun loadCompiledAgent(compiledAgentScript: CompiledAgentLoader) {
@@ -60,18 +63,24 @@ class ScriptingAgentLoader(
 
     /**
      * Loads the agents defined in a list of Agent DSL script files.
+     * @return a Map containing the file and the names of the loaded agents.
      */
-    fun loadAgents(vararg files: File) {
+    fun loadAgents(vararg files: File): Map<File, Set<String>> = buildMap {
         files
             .asSequence()
             .filter { it.name.endsWith(".agent.kts") }
-            .map { it.name to it.readText() }
-            .forEach { (name, script) ->
+            .map { it to it.readText() }
+            .forEach { (file, script) ->
+                val name = file.name
                 val result = loadAgent(script).onFailure {
                     log.warn("Failed to load agents from script: $name!", it)
                 }
                 when (result) {
-                    is Success -> eventPublisher?.publish(AgentLoadedEvent(name))
+                    is Success -> {
+                        put(file, result.value)
+                        eventPublisher?.publish(AgentLoadedEvent(name))
+                    }
+
                     is Failure -> eventPublisher?.publish(
                         AgentLoadedEvent(
                             name,
@@ -87,5 +96,13 @@ class ScriptingAgentLoader(
      */
     fun loadAgentsFromFolder(folder: File) {
         folder.walk().filter { it.isFile }.forEach { loadAgents(it) }
+    }
+
+    /**
+     * Removes the agent with the given name.
+     */
+    fun removeAgent(name: String): Boolean {
+        val agent = agents.remove(name)
+        return agent != null
     }
 }
