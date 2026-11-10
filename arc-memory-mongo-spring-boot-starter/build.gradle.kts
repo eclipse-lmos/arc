@@ -8,11 +8,11 @@ dependencies {
 
     implementation(libs.spring.boot.autoconfigure)
     implementation(libs.spring.boot.configuration.processor)
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:4.0.0")
+    implementation(libs.spring.boot.starter.data.mongodb.reactive)
 
-    testImplementation("org.springframework.boot:spring-boot-testcontainers:4.0.0")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:4.0.0")
-    testImplementation("org.springframework.boot:spring-boot-starter:4.0.0")
+    testImplementation(libs.spring.boot.testcontainers)
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter)
     testImplementation("org.testcontainers:mongodb:1.21.3")
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
 }

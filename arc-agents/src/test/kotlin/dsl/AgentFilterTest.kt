@@ -250,7 +250,7 @@ class AgentFilterTest : TestBase() {
             prompt { "prompt" }
             limitMessages {
                 evaluations++
-                context(Limit::class).value
+                get<Limit>().value
             }
         } as ChatAgent
         val history = conversation("first", "second", "third")
@@ -292,7 +292,7 @@ class AgentFilterTest : TestBase() {
             val agent = agent {
                 name = "invalid-limit-$invalidLimit"
                 prompt { "prompt" }
-                limitMessages { context(Limit::class).value }
+                limitMessages { get<Limit>().value }
             } as ChatAgent
             lateinit var result: org.eclipse.lmos.arc.core.Result<Conversation, AgentFailedException>
             testBeanProvider.setContext(contextBeans) {

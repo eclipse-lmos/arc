@@ -4,8 +4,6 @@
 
 package org.eclipse.lmos.arc.memory.redis
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.lettuce.core.AbstractRedisClient
 import io.lettuce.core.RedisClient
 import io.lettuce.core.SetArgs
@@ -20,6 +18,10 @@ import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.eclipse.lmos.arc.agents.memory.Memory
 import org.eclipse.lmos.arc.agents.memory.MemoryException
 import org.slf4j.LoggerFactory.getLogger
+import tools.jackson.databind.DefaultTyping
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
+import tools.jackson.module.kotlin.jacksonMapperBuilder
+import tools.jackson.module.kotlin.readValue
 import java.time.Duration
 
 /**
@@ -37,9 +39,14 @@ class RedisMemory(
         else -> (redisClient as RedisClient).connect()
     }
 
-    private val json = jacksonObjectMapper().apply {
-        enableDefaultTyping()
-    }
+    // Keep the Jackson 2 key format and wrapper-array type IDs for existing Redis entries.
+    private val json = jacksonMapperBuilder()
+        .configureForJackson2()
+        .activateDefaultTyping(
+            BasicPolymorphicTypeValidator.builder().allowIfSubType(Any::class.java).build(),
+            DefaultTyping.OBJECT_AND_NON_CONCRETE,
+        )
+        .build()
 
     override suspend fun storeLongTerm(owner: String, key: String, value: Any?): Unit = withClient { commands, keys ->
         val compositeKey = json.writeValueAsString(MemoryKey(owner, key))

@@ -3,17 +3,16 @@ kotlin-version = "2.2.21"
 kotlin-x-version = "1.11.0"
 kotlinx-serialization-version = "1.9.0"
 slf4j-version = "2.0.17"
-spring-boot-version = "3.5.1"
+spring-boot-version = "4.1.2"
 ktor-version = "3.4.0"
 ktor-server-version = "3.4.0"
 lettuce-version = "6.7.1.RELEASE"
-jackson-version = "2.19.2"
 resilience4j-version = "2.3.0"
 logback-version = "1.5.18"
-graphql-kotlin-version = "8.5.0"
+graphql-kotlin-version = "10.2.2"
 openfeature-version = "1.15.1"
-spring-ai-mcp-version = "1.1.0"
-mcp-version = "0.14.1"
+spring-ai-mcp-version = "2.0.2"
+mcp-version = "2.1.0"
 ktor-otel-version = "2.18.1-alpha"
 
 [plugins]
@@ -39,6 +38,11 @@ openfeature-sdk = { module = "dev.openfeature:sdk", version.ref = "openfeature-v
 #
 # Spring Boot dependencies
 #
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot-version" }
+spring-boot-resttestclient = { module = "org.springframework.boot:spring-boot-resttestclient", version.ref = "spring-boot-version" }
+spring-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient", version.ref = "spring-boot-version" }
+spring-boot-starter-data-mongodb-reactive = { module = "org.springframework.boot:spring-boot-starter-data-mongodb-reactive", version.ref = "spring-boot-version" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers", version.ref = "spring-boot-version" }
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot-version" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot-version" }
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "spring-boot-version" }
@@ -51,7 +55,7 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 # MCP
 #
 spring-ai-starter-mcp-server-webflux = { module = "org.springframework.ai:spring-ai-starter-mcp-server-webflux", version.ref = "spring-ai-mcp-version" }
-mcp-spring-webflux = { module = "io.modelcontextprotocol.sdk:mcp-spring-webflux", version.ref = "mcp-version" }
+mcp-spring-webflux = { module = "org.springframework.ai:mcp-spring-webflux", version.ref = "spring-ai-mcp-version" }
 mcp-sdk = { module = "io.modelcontextprotocol.sdk:mcp", version.ref = "mcp-version" }
 
 #
@@ -75,8 +79,8 @@ graphql-kotlin-spring = { module = "com.expediagroup:graphql-kotlin-spring-serve
 
 redis-lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce-version" }
 
-jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-version" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-version" }
+jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 
 resilience4j-kotlin = { module = "io.github.resilience4j:resilience4j-kotlin", version.ref = "resilience4j-version" }
 resilience4j-ratelimiter = { module = "io.github.resilience4j:resilience4j-ratelimiter", version.ref = "resilience4j-version" }

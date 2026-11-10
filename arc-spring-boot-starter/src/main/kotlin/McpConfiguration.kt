@@ -4,8 +4,7 @@
 
 package org.eclipse.lmos.arc.spring
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper
+import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper
 import io.modelcontextprotocol.server.McpServerFeatures
 import io.modelcontextprotocol.spec.McpSchema
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +24,7 @@ import org.springframework.ai.tool.ToolCallbackProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
+import tools.jackson.databind.json.JsonMapper
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -38,7 +38,7 @@ class McpConfiguration {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val log = LoggerFactory.getLogger(McpConfiguration::class.java)
 
-    private val mcpMapper = JacksonMcpJsonMapper(ObjectMapper())
+    private val mcpMapper = JacksonMcpJsonMapper(JsonMapper.builder().build())
 
     /**
      * Note: for some reason Spring does not yet support AsyncToolSpecifications.
@@ -89,14 +89,24 @@ class McpConfiguration {
                                     } else {
                                         fn.execute(args)
                                     }
-                                    result.set(McpSchema.CallToolResult(functionResult.getOrThrow(), false))
+                                    result.set(
+                                        McpSchema.CallToolResult.builder()
+                                            .addTextContent(functionResult.getOrThrow())
+                                            .isError(false)
+                                            .build(),
+                                    )
                                 } catch (e: Exception) {
                                     log.error("Calling function ${req.name} failed with args ${req.arguments()}", e)
                                     val handledError = errorHandler?.handleToolError(req.name, e)
                                     if (handledError != null) {
                                         result.set(handledError)
                                     } else {
-                                        result.set(McpSchema.CallToolResult(e.cause?.message ?: e.message, true))
+                                        result.set(
+                                            McpSchema.CallToolResult.builder()
+                                                .addTextContent(e.cause?.message ?: e.message ?: "Tool execution failed")
+                                                .isError(true)
+                                                .build(),
+                                        )
                                     }
                                 }
                                 wait.release()
