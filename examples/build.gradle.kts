@@ -12,8 +12,8 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-ollama:1.9.1")
 
     // Test
-    testImplementation("org.springframework.ai:spring-ai-mcp-server-webflux-spring-boot-starter:1.0.0-M6")
-    testImplementation("org.springframework.boot:spring-boot-starter-webflux:3.4.3")
+    testImplementation(libs.spring.ai.starter.mcp.server.webflux)
+    testImplementation(libs.spring.boot.starter.webflux)
     testImplementation(project(":arc-graphql-spring-boot-starter"))
-    testImplementation("com.expediagroup:graphql-kotlin-spring-server:8.8.1")
+    testImplementation(libs.graphql.kotlin.spring)
 }

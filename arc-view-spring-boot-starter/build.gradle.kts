@@ -4,9 +4,11 @@
 
 dependencies {
     implementation(project(":arc-assistants"))
-    implementation("org.springframework.boot:spring-boot-autoconfigure:3.4.4")
-    implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.4")
-    implementation("org.springframework.boot:spring-boot-starter-webflux:3.5.0")
+    implementation(libs.spring.boot.autoconfigure)
+    implementation(libs.spring.boot.configuration.processor)
+    implementation(libs.spring.boot.starter.webflux)
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.resttestclient)
+    testImplementation(libs.spring.boot.restclient)
 }
