@@ -25,8 +25,6 @@ import org.eclipse.lmos.arc.agents.llm.ChatCompletionSettings
 import org.eclipse.lmos.arc.core.Success
 import org.eclipse.lmos.arc.core.getOrThrow
 import org.junit.jupiter.api.Test
-import reactor.core.publisher.Mono
-import reactor.core.publisher.Mono.just
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
@@ -66,7 +64,7 @@ class OpenAINativeClientTest {
 
         val openAIClient = mockk<OpenAIClientAsync>()
         every { openAIClient.chat().completions().create(any()) } returnsMany listOf(
-            toolsChatCompletions(listOf("testFunction", "testFunction")).toFuture(),
+            toolsChatCompletions(listOf("testFunction", "testFunction")),
             finalChatCompletions(),
         )
 
@@ -84,8 +82,8 @@ class OpenAINativeClientTest {
 
         val openAIClient = mockk<OpenAIClientAsync>()
         every { openAIClient.chat().completions().create(any()) } returnsMany listOf(
-            toolsChatCompletions(listOf("testFunction")).toFuture(),
-            toolsChatCompletions(listOf("testFunction")).toFuture(),
+            toolsChatCompletions(listOf("testFunction")),
+            toolsChatCompletions(listOf("testFunction")),
             finalChatCompletions(),
         )
 
@@ -117,10 +115,10 @@ class OpenAINativeClientTest {
 
         val chatCompletions = mockk<ChatCompletion>()
         every { chatCompletions.choices() } returns listOf(chatChoice)
-        return just(chatCompletions).toFuture()
+        return CompletableFuture.completedFuture(chatCompletions)
     }
 
-    private fun toolsChatCompletions(functions: List<String>): Mono<ChatCompletion> {
+    private fun toolsChatCompletions(functions: List<String>): CompletableFuture<ChatCompletion> {
         val toolCalls = Optional.of(
             functions.map {
                 ChatCompletionMessageToolCall
@@ -147,6 +145,6 @@ class OpenAINativeClientTest {
 
         val chatCompletions = mockk<ChatCompletion>()
         every { chatCompletions.choices() } returns listOf(chatChoice)
-        return just(chatCompletions)
+        return CompletableFuture.completedFuture(chatCompletions)
     }
 }
