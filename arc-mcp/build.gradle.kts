@@ -16,5 +16,5 @@ dependencies {
     testImplementation(project(":arc-spring-boot-starter"))
     testImplementation(libs.spring.ai.starter.mcp.server.webflux)
     testImplementation(libs.spring.boot.starter.webflux)
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
+    testImplementation(libs.spring.boot.starter.test)
 }

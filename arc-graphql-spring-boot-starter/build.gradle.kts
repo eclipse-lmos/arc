@@ -14,10 +14,9 @@ dependencies {
 
     // Spring
     implementation(libs.spring.boot.starter.webflux)
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.2")
+    implementation(libs.jackson.kotlin)
 
     // Test
     testImplementation(project(":arc-spring-boot-starter"))
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
+    testImplementation(libs.spring.boot.starter.test)
 }

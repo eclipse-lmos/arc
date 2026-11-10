@@ -132,6 +132,7 @@ subprojects {
 
     if (!project.name.endsWith("-bom")) {
         dependencies {
+            "implementation"(platform(rootProject.libs.spring.boot.dependencies))
             "implementation"(rootProject.libs.kotlinx.coroutines.slf4j)
             "implementation"(rootProject.libs.kotlinx.coroutines.jdk8)
             "implementation"(rootProject.libs.kotlinx.coroutines.reactor)

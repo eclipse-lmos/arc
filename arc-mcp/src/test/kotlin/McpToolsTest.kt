@@ -42,7 +42,7 @@ class McpToolsTest : TestBase() {
         val fn = tools.first { it.name == "getBookDetails" } as FunctionWithContext
         withDSLContext(setOf(ToolCallMetadata(data = mapOf("test" to "value")))) {
             val fnWithContext = fn.withContext(this)
-            val result = fnWithContext.execute(mapOf("id" to "Kotlin"))
+            val result = fnWithContext.execute(mapOf("id" to "Kotlin", "readonly" to true))
             assertThat(result.getOrThrow()).isEqualTo("ToolCallMetadata(data={test=value})")
         }
     }

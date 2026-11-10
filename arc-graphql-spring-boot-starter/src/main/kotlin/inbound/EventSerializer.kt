@@ -3,14 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.eclipse.lmos.arc.graphql.inbound
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinFeature.UseJavaDurationConversion
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import org.eclipse.lmos.arc.agents.events.Event
+import tools.jackson.module.kotlin.KotlinFeature.UseJavaDurationConversion
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 
 private val eventObjectMapper = jacksonMapperBuilder {
     enable(UseJavaDurationConversion)
-}.addModule(JavaTimeModule()).build()
+}.configureForJackson2().build()
 
 /**
  * Serialize an Event to JSON.

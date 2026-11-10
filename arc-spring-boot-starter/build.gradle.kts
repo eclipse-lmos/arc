@@ -37,8 +37,8 @@ dependencies {
     implementation(libs.spring.boot.starter.webflux)
 
     // Tests
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.0")
-    testImplementation("org.springframework.boot:spring-boot-starter:3.5.0")
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter)
     testImplementation(project(":arc-langchain4j-client"))
     testImplementation(project(":arc-azure-client"))
     testImplementation("dev.langchain4j:langchain4j-ollama:$langchain4jVersion")

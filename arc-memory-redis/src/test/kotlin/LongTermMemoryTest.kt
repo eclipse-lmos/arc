@@ -84,4 +84,26 @@ class LongTermMemoryTest : TestBase() {
         val storedValue = memory.fetch<String>("owner", key2)
         assertThat(storedValue).isNotNull()
     }
+
+    @Test
+    fun `read Jackson 2 entries and preserve their stored format`(): Unit = runBlocking {
+        val client = createRedisClient()
+        try {
+            client.connect().use { connection ->
+                val commands = connection.sync()
+                val key = UUID.randomUUID().toString()
+                val redisKey = """{"owner":"legacy","key":"$key","sessionId":null}"""
+                val legacyJson = """{"value":["org.eclipse.lmos.arc.memory.redis.TestValue",{"nr":23,"value":"legacy"}]}"""
+                commands.set(redisKey, legacyJson)
+
+                assertThat(memory.fetch<TestValue>("legacy", key)).isEqualTo(TestValue(23, "legacy"))
+
+                memory.storeLongTerm("legacy", key, TestValue(23, "legacy"))
+                assertThat(commands.get(redisKey)).isEqualTo(legacyJson)
+            }
+        } finally {
+            client.shutdown()
+        }
+    }
+
 }
